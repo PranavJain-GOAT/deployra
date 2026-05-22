@@ -27,37 +27,86 @@ enum PurchaseStatus {
   REFUNDED
 }
 
+// ─── User ────────────────────────────────────────────────────────────────────
 model User {
-  id                    String         @id @default(uuid())
-  email                 String         @unique
+  id                    String    @id @default(uuid())
+  email                 String    @unique
   password              String?
-  googleId              String?        @unique
+  googleId              String?   @unique
   name                  String
   firstName             String?
   lastName              String?
-  country               String?        @default("India")
-  role                  Role           @default(CLIENT)
-  isEmailVerified       Boolean        @default(false)
-  stripeAccountId       String?        // For developers to receive payments via Stripe Connect
-  authProvider          String         @default("email")
+  country               String?   @default("India")
+  role                  Role      @default(CLIENT)
+  authProvider          String    @default("email")
   profileImage          String?
   lastLogin             DateTime?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  // Email Verification
+  isEmailVerified       Boolean   @default(false)
+  emailVerifyToken      String?
+  emailVerifyExpires    DateTime?
+
+  // Password Reset
   resetPasswordToken    String?
   resetPasswordExpires  DateTime?
-  createdAt             DateTime       @default(now())
-  updatedAt             DateTime       @updatedAt
+
+  // Brute-Force Protection
+  failedLoginAttempts   Int       @default(0)
+  lockedUntil           DateTime?
+
+  // Payments (future Stripe Connect)
+  stripeAccountId       String?
 
   // Relations
-  products      Product[]
-  purchases     Purchase[]
-  reviews       Review[]
-  wishlists     Wishlist[]
-  orders        Order[]
-  notifications Notification[]
-  sentMessages  Message[]      @relation("SentMessages")
-  recvMessages  Message[]      @relation("ReceivedMessages")
+  products        Product[]
+  purchases       Purchase[]
+  reviews         Review[]
+  wishlists       Wishlist[]
+  orders          Order[]
+  notifications   Notification[]
+  sentMessages    Message[]      @relation("SentMessages")
+  recvMessages    Message[]      @relation("ReceivedMessages")
+  refreshTokens   RefreshToken[]
+  loginHistory    LoginHistory[]
 }
 
+// ─── Refresh Token Store ──────────────────────────────────────────────────────
+// Stores hashed refresh tokens so individual sessions can be revoked.
+model RefreshToken {
+  id          String    @id @default(uuid())
+  userId      String
+  tokenHash   String    @unique   // SHA-256 hash of the actual token
+  userAgent   String?             // Browser/device identifier
+  ipAddress   String?             // IP at time of login
+  expiresAt   DateTime            // Hard expiry date
+  revoked     Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+// ─── Login History ────────────────────────────────────────────────────────────
+// Immutable audit log of all login attempts.
+model LoginHistory {
+  id          String   @id @default(uuid())
+  userId      String
+  ipAddress   String?
+  userAgent   String?
+  success     Boolean
+  failReason  String?
+  createdAt   DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+// ─── Product ──────────────────────────────────────────────────────────────────
 model Product {
   id          String        @id @default(uuid())
   title       String
@@ -70,7 +119,6 @@ model Product {
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
 
-  // Relations
   developer User       @relation(fields: [developerId], references: [id], onDelete: Cascade)
   purchases Purchase[]
   reviews   Review[]
@@ -78,22 +126,23 @@ model Product {
   orders    Order[]
 }
 
+// ─── Purchase ─────────────────────────────────────────────────────────────────
 model Purchase {
-  id             String         @id @default(uuid())
-  userId         String
-  productId      String
-  pricePaid      Float
+  id              String         @id @default(uuid())
+  userId          String
+  productId       String
+  pricePaid       Float
   paymentIntentId String?
-  status         PurchaseStatus @default(COMPLETED)
-  isInstalled    Boolean        @default(false)
-  createdAt      DateTime       @default(now())
-  updatedAt      DateTime       @updatedAt
+  status          PurchaseStatus @default(COMPLETED)
+  isInstalled     Boolean        @default(false)
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
 
-  // Relations
   user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
 }
 
+// ─── Review ───────────────────────────────────────────────────────────────────
 model Review {
   id        String   @id @default(uuid())
   rating    Int
@@ -103,37 +152,37 @@ model Review {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  // Relations
   user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
 }
 
+// ─── Wishlist ─────────────────────────────────────────────────────────────────
 model Wishlist {
   id        String   @id @default(uuid())
   userId    String
   productId String
   createdAt DateTime @default(now())
 
-  // Relations
   user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
 
   @@unique([userId, productId])
 }
 
+// ─── Order ────────────────────────────────────────────────────────────────────
 model Order {
-  id          String   @id @default(uuid())
-  userId      String
-  productId   String
-  details     String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id        String   @id @default(uuid())
+  userId    String
+  productId String
+  details   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  // Relations
   user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
   product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
 }
 
+// ─── Message ──────────────────────────────────────────────────────────────────
 model Message {
   id         String   @id @default(uuid())
   senderId   String
@@ -142,11 +191,11 @@ model Message {
   isRead     Boolean  @default(false)
   createdAt  DateTime @default(now())
 
-  // Relations
   sender   User @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
   receiver User @relation("ReceivedMessages", fields: [receiverId], references: [id], onDelete: Cascade)
 }
 
+// ─── Notification ─────────────────────────────────────────────────────────────
 model Notification {
   id        String   @id @default(uuid())
   userId    String
@@ -155,7 +204,6 @@ model Notification {
   message   String
   isRead    Boolean  @default(false)
   createdAt DateTime @default(now())
-  
-  // Relations
+
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

@@ -1,36 +1,53 @@
 const express = require('express');
-const { 
-  register, 
-  login, 
-  refresh, 
-  getMe, 
-  googleLogin, 
+const {
+  register,
+  login,
+  refresh,
+  getMe,
+  googleLogin,
   googleCallback,
   logout,
+  logoutAll,
+  verifyEmail,
+  resendVerificationEmail,
   forgotPassword,
   resetPassword
 } = require('../controllers/auth.controller');
 const { authenticate } = require('../middleware/auth.middleware');
 const { validate } = require('../middleware/validate');
 const { registerSchema, loginSchema } = require('../utils/schemas');
+const {
+  authLimiter,
+  loginLimiter,
+  passwordResetLimiter,
+  emailResendLimiter
+} = require('../middleware/rateLimiter');
 
 const router = express.Router();
 
-router.post('/register', validate(registerSchema), register);
-router.post('/login', validate(loginSchema), login);
-router.post('/refresh', refresh);
-router.post('/logout', logout);
-router.get('/me', authenticate, getMe);
+// ── Apply a broad rate limit to every /auth route ──────────────────────────
+router.use(authLimiter);
 
-// Google OAuth
-router.get('/google', googleLogin);
+// ── Core Auth ──────────────────────────────────────────────────────────────
+router.post('/register', loginLimiter, validate(registerSchema), register);
+router.post('/login',    loginLimiter, validate(loginSchema), login);
+router.post('/refresh',  refresh);
+router.post('/logout',   logout);
+router.post('/logout-all', authenticate, logoutAll);
+router.get('/me',        authenticate, getMe);
+
+// ── Google OAuth ───────────────────────────────────────────────────────────
+router.get('/google', loginLimiter, googleLogin);
 router.route('/google/callback')
   .get(googleCallback)
   .post(googleCallback);
 
-// Password Reset
-router.post('/forgot-password', forgotPassword);
-router.post('/reset-password', resetPassword);
+// ── Email Verification ─────────────────────────────────────────────────────
+router.get('/verify-email', verifyEmail);
+router.post('/resend-verification', authenticate, emailResendLimiter, resendVerificationEmail);
+
+// ── Password Reset ─────────────────────────────────────────────────────────
+router.post('/forgot-password', passwordResetLimiter, forgotPassword);
+router.post('/reset-password',  resetPassword);
 
 module.exports = router;
-
