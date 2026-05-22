@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Plus, X, Save, Loader2 } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -25,43 +24,15 @@ export default function AddProduct() {
     const [newCustom, setNewCustom] = useState("");
 
     useEffect(() => {
-        if (isEdit) {
-            async function load() {
-                const items = await base44.entities.CustomSolution.filter({ id });
-                if (items.length > 0) {
-                    const s = items[0];
-                    setForm({
-                        title: s.title || "", description: s.description || "",
-                        price: s.price_min || s.price_max || "",
-                        category: s.category || "chatbot", delivery_days: s.delivery_days || 5,
-                        demo_url: s.demo_url || "", features: s.features || [],
-                        whats_included: s.whats_included || [], whats_not_included: s.whats_not_included || [],
-                        who_its_for: s.who_its_for || [], what_it_does: s.what_it_does || "",
-                        customization_options: s.customization_options || [],
-                        developer_name: s.developer_name || "", developer_email: s.developer_email || "",
-                    });
-                }
-                setLoading(false);
-            }
-            load();
-        }
+        // In a real integration, load product data from the backend API by ID
+        setLoading(false);
     }, [id, isEdit]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setSaving(true);
-        const data = {
-            ...form,
-            price_min: Number(form.price),
-            price_max: Number(form.price),
-            delivery_days: Number(form.delivery_days),
-            status: "active",
-        };
-        if (isEdit) {
-            await base44.entities.CustomSolution.update(id, data);
-        } else {
-            await base44.entities.CustomSolution.create(data);
-        }
+        // TODO: Connect to backend API to save product data
+        await new Promise(r => setTimeout(r, 600)); // Simulate save
         setSaving(false);
         navigate("/developer/listings");
     };

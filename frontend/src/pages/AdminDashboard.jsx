@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { base44 } from "@/api/base44Client";
 import { motion } from "framer-motion";
 import {
   LineChart, Line, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -57,7 +56,8 @@ export default function AdminDashboard() {
   const [orders, setOrders] = useState([]);
   const [refreshing, setRefreshing] = useState(false);
 
-  useEffect(() => { base44.entities.Order.list().then(setOrders); }, []);
+  // Admin dashboard uses static demonstration data
+  useEffect(() => { setOrders([]); }, []);
 
   const refresh = async () => {
     setRefreshing(true);

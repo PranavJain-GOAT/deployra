@@ -4,7 +4,6 @@ import { Link } from "react-router-dom";
 import { Edit, Trash2, Eye, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
-import { base44 } from "@/api/base44Client";
 
 export default function Listings() {
   const [solutions, setSolutions] = useState([]);
@@ -18,18 +17,8 @@ export default function Listings() {
     }, 400);
   }, []);
 
-  const handleDelete = async (id) => {
+  const handleDelete = (id) => {
     if (!confirm("Are you sure you want to delete this listing?")) return;
-    try {
-      const isPlaceholder =
-        import.meta.env.VITE_BASE44_APP_ID === "placeholder_id" ||
-        !import.meta.env.VITE_BASE44_APP_ID;
-      if (!isPlaceholder) {
-        await base44.entities.CustomSolution.delete(id);
-      }
-    } catch (err) {
-      console.error("Failed to delete from base44 backend:", err);
-    }
     setSolutions((prev) => prev.filter((s) => s.id !== id));
   };
 

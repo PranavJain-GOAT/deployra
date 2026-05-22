@@ -4,7 +4,6 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
 import { useTheme } from "@/lib/ThemeContext";
 import { MOCK_PRODUCTS, MOCK_CUSTOM_SOLUTIONS } from "@/api/mockData";
-import { base44 } from "@/api/base44Client";
 
 /* ── Fuzzy scorer ──────────────────────────────────────────
    Returns a score 0–100 for how well a product matches query.
@@ -47,33 +46,10 @@ export default function LiveSearch() {
      - Else fetch from API; fall back to mock if empty/error
   ──────────────────────────────────────────────────────── */
   useEffect(() => {
-    async function load() {
-      const isPlaceholder =
-        import.meta.env.VITE_BASE44_APP_ID === "placeholder_id" ||
-        !import.meta.env.VITE_BASE44_APP_ID;
-
-      if (isPlaceholder) {
-        setAllProducts(MOCK_PRODUCTS);
-        setAllCustom(MOCK_CUSTOM_SOLUTIONS);
-        setDataLoaded(true);
-        return;
-      }
-
-      try {
-        const [p, c] = await Promise.all([
-          base44.entities.Product.list(),
-          base44.entities.CustomSolution.list(),
-        ]);
-        setAllProducts(p && p.length > 0 ? p : MOCK_PRODUCTS);
-        setAllCustom(c && c.length > 0 ? c : MOCK_CUSTOM_SOLUTIONS);
-      } catch {
-        setAllProducts(MOCK_PRODUCTS);
-        setAllCustom(MOCK_CUSTOM_SOLUTIONS);
-      } finally {
-        setDataLoaded(true);
-      }
-    }
-    load();
+    // Load all products from mock data
+    setAllProducts(MOCK_PRODUCTS);
+    setAllCustom(MOCK_CUSTOM_SOLUTIONS);
+    setDataLoaded(true);
   }, []);
 
   /* ── Keyboard shortcuts ─────────────────────────────── */

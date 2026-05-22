@@ -1,5 +1,4 @@
 import { useState, useEffect, useMemo, useRef } from "react";
-import { base44 } from "@/api/base44Client";
 import { MOCK_PRODUCTS, MOCK_CUSTOM_SOLUTIONS } from "@/api/mockData";
 import { Search, X, Package, Layers, ChevronDown } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -251,35 +250,13 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    async function load() {
-      setLoading(true);
-      const isPlaceholder =
-        import.meta.env.VITE_BASE44_APP_ID === "placeholder_id" ||
-        !import.meta.env.VITE_BASE44_APP_ID;
-      if (isPlaceholder) {
-        setTimeout(() => {
-          setProducts(MOCK_PRODUCTS);
-          setCustomSolutions(MOCK_CUSTOM_SOLUTIONS);
-          setLoading(false);
-        }, 500);
-        return;
-      }
-      try {
-        const [p, c] = await Promise.all([
-          base44.entities.Product.list(),
-          base44.entities.CustomSolution.list(),
-        ]);
-        setProducts(p && p.length > 0 ? p : MOCK_PRODUCTS);
-        setCustomSolutions(c && c.length > 0 ? c : MOCK_CUSTOM_SOLUTIONS);
-      } catch (err) {
-        console.warn("Using mock data due to API error", err);
-        setProducts(MOCK_PRODUCTS);
-        setCustomSolutions(MOCK_CUSTOM_SOLUTIONS);
-      } finally {
-        setLoading(false);
-      }
-    }
-    load();
+    // Load products from mock data with a brief simulated delay
+    const timer = setTimeout(() => {
+      setProducts(MOCK_PRODUCTS);
+      setCustomSolutions(MOCK_CUSTOM_SOLUTIONS);
+      setLoading(false);
+    }, 400);
+    return () => clearTimeout(timer);
   }, []);
 
   const handleFilterChange = (key, value) => {

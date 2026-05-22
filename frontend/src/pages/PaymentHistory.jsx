@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { base44 } from "@/api/base44Client";
 import { motion } from "framer-motion";
 import { Download, CreditCard, CheckCircle, Clock, XCircle, ArrowLeft, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -45,25 +44,11 @@ export default function PaymentHistory() {
   const [filter, setFilter] = useState("all");
 
   useEffect(() => {
-    async function load() {
-      try {
-        const isPlaceholder =
-          import.meta.env.VITE_BASE44_APP_ID === "placeholder_id" ||
-          !import.meta.env.VITE_BASE44_APP_ID;
-        if (isPlaceholder) {
-          setOrders(MOCK_ORDERS);
-        } else {
-          const data = await base44.entities.Order.list("-created_date");
-          setOrders(data && data.length > 0 ? data : MOCK_ORDERS);
-        }
-      } catch (err) {
-        console.warn("Using mock order data due to base44 API error", err);
-        setOrders(MOCK_ORDERS);
-      } finally {
-        setLoading(false);
-      }
-    }
-    load();
+    const timer = setTimeout(() => {
+      setOrders(MOCK_ORDERS);
+      setLoading(false);
+    }, 300);
+    return () => clearTimeout(timer);
   }, []);
 
   const filtered = filter === "all" ? orders : orders.filter((o) => o.status === filter);
