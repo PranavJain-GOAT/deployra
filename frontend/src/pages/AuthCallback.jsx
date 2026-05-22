@@ -14,6 +14,7 @@ export default function AuthCallback() {
       const accessToken = searchParams.get("accessToken");
       const refreshToken = searchParams.get("refreshToken");
       const code = searchParams.get("code");
+      const success = searchParams.get("success");
       const error = searchParams.get("error");
 
       if (error) {
@@ -23,7 +24,36 @@ export default function AuthCallback() {
 
       const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5001/api/v1';
 
-      // 1. Double check if cookies are already present and active (standard HTTP-only flow)
+      // Helper function to fetch user profile with retries to handle cookie propagation lag
+      const fetchUserWithRetry = async (retries = 3, delay = 500) => {
+        for (let i = 0; i < retries; i++) {
+          try {
+            const res = await axios.get(`${apiUrl}/users/me`);
+            if (res.data.success) {
+              return res.data.data;
+            }
+          } catch (e) {
+            console.warn(`Attempt ${i + 1} to fetch user info failed:`, e);
+            if (i < retries - 1) {
+              await new Promise(resolve => setTimeout(resolve, delay * (i + 1)));
+            }
+          }
+        }
+        return null;
+      };
+
+      // 1. If success=true is in URL, backend successfully authenticated & set cookies
+      if (success === "true") {
+        const userData = await fetchUserWithRetry(3, 500);
+        if (userData) {
+          login(userData);
+        }
+        // Direct back to homepage and not the sign in page again
+        navigate('/');
+        return;
+      }
+
+      // 2. Double check if cookies are already present and active (standard HTTP-only flow)
       try {
         const res = await axios.get(`${apiUrl}/users/me`);
         if (res.data.success) {
@@ -35,7 +65,7 @@ export default function AuthCallback() {
         // No cookies yet or invalid, proceed to query checks
       }
 
-      // 2. If tokens are in URL (backward compatibility or query params fallback)
+      // 3. If tokens are in URL (backward compatibility or query params fallback)
       if (accessToken) {
         try {
           const res = await axios.get(`${apiUrl}/users/me`, {
@@ -51,7 +81,7 @@ export default function AuthCallback() {
         }
       }
 
-      // 3. If OAuth code is in URL (standard frontend code exchange flow)
+      // 4. If OAuth code is in URL (standard frontend code exchange flow)
       if (code) {
         try {
           const response = await axios.post(`${apiUrl}/auth/google/callback`, { code });
