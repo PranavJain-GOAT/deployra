@@ -29,8 +29,12 @@ app.use(helmet({
   crossOriginResourcePolicy: { policy: "cross-origin" }
 }));
 
+// Safely resolve FRONTEND_URL — guard against the "FRONTEND_URL=..." prefix corruption bug
+const safeFrontendUrl = (process.env.FRONTEND_URL || '').replace(/^FRONTEND_URL=/, '').trim();
+
 const allowedOrigins = [
-  process.env.FRONTEND_URL,
+  safeFrontendUrl,
+  'https://deployra.vercel.app', // Always allow the production frontend
   'http://localhost:3000',
   'http://localhost:5173',
   'http://127.0.0.1:3000',

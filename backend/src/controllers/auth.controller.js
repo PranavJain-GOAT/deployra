@@ -285,7 +285,11 @@ const logout = async (req, res, next) => {
  * Trigger Google OAuth Login Redirect.
  */
 const googleLogin = (req, res) => {
-  const url = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${process.env.GOOGLE_CLIENT_ID}&redirect_uri=${process.env.GOOGLE_REDIRECT_URI}&response_type=code&scope=profile email`;
+  // Use env var, but fall back to the correct production URI if misconfigured
+  const redirectUri = (process.env.GOOGLE_REDIRECT_URI || '').startsWith('https://deployra.onrender.com')
+    ? process.env.GOOGLE_REDIRECT_URI
+    : 'https://deployra.onrender.com/auth/google/callback';
+  const url = `https://accounts.google.com/o/oauth2/v2/auth?client_id=${process.env.GOOGLE_CLIENT_ID}&redirect_uri=${encodeURIComponent(redirectUri)}&response_type=code&scope=profile%20email&access_type=offline&prompt=consent`;
   res.redirect(url);
 };
 
@@ -302,11 +306,15 @@ const googleCallback = async (req, res, next) => {
 
   try {
     // Exchange authorization code for tokens
+    // Use the same redirect_uri that was used to initiate the flow
+    const redirectUri = (process.env.GOOGLE_REDIRECT_URI || '').startsWith('https://deployra.onrender.com')
+      ? process.env.GOOGLE_REDIRECT_URI
+      : 'https://deployra.onrender.com/auth/google/callback';
     const { data } = await axios.post('https://oauth2.googleapis.com/token', {
       client_id: process.env.GOOGLE_CLIENT_ID,
       client_secret: process.env.GOOGLE_CLIENT_SECRET,
       code,
-      redirect_uri: process.env.GOOGLE_REDIRECT_URI,
+      redirect_uri: redirectUri,
       grant_type: 'authorization_code',
     });
 
@@ -367,9 +375,12 @@ const googleCallback = async (req, res, next) => {
     // Store JWT credentials securely in HTTP-only cookies
     setAuthCookies(res, accessToken, refreshToken, true); // Keep OAuth users signed in
 
+    // Resolve FRONTEND_URL safely — guard against the "FRONTEND_URL=..." prefix corruption bug
+    const frontendUrl = (process.env.FRONTEND_URL || '').replace(/^FRONTEND_URL=/, '').trim() || 'https://deployra.vercel.app';
+
     // If it's a GET request (direct redirection callback from Google)
     if (req.method === 'GET') {
-      return res.redirect(`${process.env.FRONTEND_URL}/auth-callback`);
+      return res.redirect(`${frontendUrl}/auth/google/callback?success=true`);
     }
 
     // If it's a POST request (JSON payload exchange from frontend)
@@ -391,7 +402,8 @@ const googleCallback = async (req, res, next) => {
   } catch (error) {
     logger.error('Google Auth Error:', error.response?.data || error.message);
     if (req.method === 'GET') {
-      return res.redirect(`${process.env.FRONTEND_URL}/auth?error=google_auth_failed`);
+      const frontendUrl = (process.env.FRONTEND_URL || '').replace(/^FRONTEND_URL=/, '').trim() || 'https://deployra.vercel.app';
+      return res.redirect(`${frontendUrl}/auth?error=google_auth_failed`);
     }
     next(new AppError('Google authentication failed', 401));
   }
@@ -435,7 +447,9 @@ const forgotPassword = async (req, res, next) => {
     });
 
     // Reset Link URL
-    const resetUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/auth?tab=reset&token=${resetToken}`;
+    // Reset Link URL — guard against FRONTEND_URL env var corruption
+    const safeFrontendUrl = (process.env.FRONTEND_URL || '').replace(/^FRONTEND_URL=/, '').trim() || 'https://deployra.vercel.app';
+    const resetUrl = `${safeFrontendUrl}/auth?tab=reset&token=${resetToken}`;
 
     // Send the password reset email
     try {
