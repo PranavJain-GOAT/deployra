@@ -65,6 +65,10 @@ app.get('/api/v1/health', (req, res) => {
 // Mounted Routes
 app.use('/api/v1', routes);
 
+// Fallback Route for Google OAuth redirects (which may lack the /api/v1 prefix)
+const { googleCallback } = require('./controllers/auth.controller');
+app.get('/auth/google/callback', googleCallback);
+
 // Global Error Handler
 app.use(errorHandler);
 
