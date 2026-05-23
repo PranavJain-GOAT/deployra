@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 import axios from 'axios';
 import { useQueryClient } from '@tanstack/react-query';
+import { useAuth } from '@/lib/AuthContext';
 
 const API = import.meta.env.VITE_API_URL || 'http://localhost:5001/api/v1';
 axios.defaults.withCredentials = true;
@@ -18,6 +19,7 @@ axios.defaults.withCredentials = true;
  */
 export function useProfile() {
   const queryClient = useQueryClient();
+  const { checkAuth } = useAuth();
 
   const [isUploading,    setIsUploading]    = useState(false);
   const [isRemoving,     setIsRemoving]     = useState(false);
@@ -42,7 +44,10 @@ export function useProfile() {
       // Step 2: Persist the image URL on the user profile
       await axios.patch(`${API}/users/me`, { profileImage: imageUrl });
 
-      // Step 3: Invalidate user query so AuthContext re-fetches
+      // Step 3: Update global AuthContext & React Query cache
+      if (checkAuth) {
+        await checkAuth();
+      }
       await queryClient.invalidateQueries({ queryKey: ['user'] });
       return imageUrl;
     } catch (err) {
@@ -52,7 +57,7 @@ export function useProfile() {
     } finally {
       setIsUploading(false);
     }
-  }, [queryClient]);
+  }, [queryClient, checkAuth]);
 
   // ── Remove avatar ────────────────────────────────────────────────────────
   const removeAvatar = useCallback(async () => {
@@ -60,6 +65,9 @@ export function useProfile() {
     setError(null);
     try {
       await axios.delete(`${API}/users/me/avatar`);
+      if (checkAuth) {
+        await checkAuth();
+      }
       await queryClient.invalidateQueries({ queryKey: ['user'] });
     } catch (err) {
       const msg = err.response?.data?.message || err.message || 'Remove failed.';
@@ -68,7 +76,7 @@ export function useProfile() {
     } finally {
       setIsRemoving(false);
     }
-  }, [queryClient]);
+  }, [queryClient, checkAuth]);
 
   // ── Update profile fields ────────────────────────────────────────────────
   const updateProfile = useCallback(async (data) => {
@@ -76,6 +84,9 @@ export function useProfile() {
     setError(null);
     try {
       const res = await axios.patch(`${API}/users/me`, data);
+      if (checkAuth) {
+        await checkAuth();
+      }
       await queryClient.invalidateQueries({ queryKey: ['user'] });
       return res.data?.data;
     } catch (err) {
@@ -85,7 +96,7 @@ export function useProfile() {
     } finally {
       setIsUpdating(false);
     }
-  }, [queryClient]);
+  }, [queryClient, checkAuth]);
 
   // ── Logout all devices ───────────────────────────────────────────────────
   const logoutAllDevices = useCallback(async () => {

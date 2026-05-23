@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Bell, Check, CheckCheck, Package, CreditCard, MessageSquare,
+  Bell, CheckCheck, Package, CreditCard, MessageSquare,
   AlertCircle, Info, X, Inbox
 } from 'lucide-react';
 import { useNotifications } from '@/hooks/useNotifications';
