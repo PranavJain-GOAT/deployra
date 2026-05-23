@@ -18,7 +18,8 @@ export default function AuthCallback() {
       const success      = searchParams.get("success");
       const error        = searchParams.get("error");
       const code         = searchParams.get("code");
-      const accessToken  = searchParams.get("accessToken");
+      const tokenParam   = searchParams.get("token") || searchParams.get("accessToken");
+      const rTokenParam  = searchParams.get("refreshToken");
       const userParam    = searchParams.get("u"); // base64url-encoded user payload
 
       const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5001/api/v1';
@@ -39,7 +40,7 @@ export default function AuthCallback() {
             atob(userParam.replace(/-/g, '+').replace(/_/g, '/'))
           );
           if (decoded?.id && decoded?.email) {
-            login(decoded);
+            login(decoded, tokenParam, rTokenParam);
             navigate('/', { replace: true });
             return;
           }
@@ -91,14 +92,14 @@ export default function AuthCallback() {
       }
 
       // ── 4. Bearer token fallback (legacy) ────────────────────────────────────
-      if (accessToken) {
+      if (tokenParam) {
         try {
           const res = await axios.get(`${apiUrl}/users/me`, {
-            headers: { Authorization: `Bearer ${accessToken}` },
+            headers: { Authorization: `Bearer ${tokenParam}` },
             withCredentials: true,
           });
           if (res.data?.success) {
-            login(res.data.data);
+            login(res.data.data, tokenParam, rTokenParam);
             navigate('/', { replace: true });
             return;
           }

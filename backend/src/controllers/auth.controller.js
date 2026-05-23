@@ -37,7 +37,9 @@ const hashToken = (token) =>
  * Set secure HTTP-only JWT cookies on the response.
  */
 const setAuthCookies = (res, accessToken, refreshToken, rememberMe = false) => {
-  const isProd = process.env.NODE_ENV === 'production';
+  const isProd = process.env.NODE_ENV === 'production' ||
+                 (process.env.FRONTEND_URL || '').includes('vercel.app') ||
+                 (process.env.GOOGLE_REDIRECT_URI || '').includes('onrender.com');
 
   res.cookie('accessToken', accessToken, {
     httpOnly: true,
@@ -63,7 +65,9 @@ const setAuthCookies = (res, accessToken, refreshToken, rememberMe = false) => {
  * Clear JWT cookies to securely end the session.
  */
 const clearAuthCookies = (res) => {
-  const isProd = process.env.NODE_ENV === 'production';
+  const isProd = process.env.NODE_ENV === 'production' ||
+                 (process.env.FRONTEND_URL || '').includes('vercel.app') ||
+                 (process.env.GOOGLE_REDIRECT_URI || '').includes('onrender.com');
   const opts = { httpOnly: true, secure: isProd, sameSite: isProd ? 'none' : 'lax' };
   res.clearCookie('accessToken', opts);
   res.clearCookie('refreshToken', opts);
@@ -185,7 +189,9 @@ const register = async (req, res, next) => {
           authProvider: user.authProvider,
           profileImage: user.profileImage,
           isEmailVerified: user.isEmailVerified
-        }
+        },
+        accessToken,
+        refreshToken
       }
     });
   } catch (error) {
@@ -291,7 +297,9 @@ const login = async (req, res, next) => {
           authProvider: user.authProvider,
           profileImage: user.profileImage,
           isEmailVerified: user.isEmailVerified
-        }
+        },
+        accessToken,
+        refreshToken
       }
     });
   } catch (error) {
@@ -344,7 +352,9 @@ const refresh = async (req, res, next) => {
     res.status(200).json({
       success: true,
       data: {
-        user: { id: user.id, email: user.email, name: user.name, role: user.role, isEmailVerified: user.isEmailVerified }
+        user: { id: user.id, email: user.email, name: user.name, role: user.role, isEmailVerified: user.isEmailVerified },
+        accessToken: newAccessToken,
+        refreshToken: newRefreshToken
       }
     });
   } catch (error) {
@@ -614,7 +624,7 @@ const googleCallback = async (req, res, next) => {
       })).toString('base64url');
 
       return res.redirect(
-        `${frontendUrl}/auth/google/callback?success=true&u=${userPayload}`
+        `${frontendUrl}/auth/google/callback?success=true&u=${userPayload}&token=${accessToken}&refreshToken=${refreshToken}`
       );
     }
 

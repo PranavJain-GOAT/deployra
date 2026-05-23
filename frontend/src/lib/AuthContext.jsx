@@ -19,7 +19,18 @@ export const AuthProvider = ({ children }) => {
    */
   const fetchUser = useCallback(async () => {
     const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5001/api/v1';
-    const axiosConfig = { withCredentials: true };
+    const token = localStorage.getItem('auth_token');
+    
+    if (token) {
+      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+    } else {
+      delete axios.defaults.headers.common['Authorization'];
+    }
+
+    const axiosConfig = { 
+      withCredentials: true,
+      headers: token ? { Authorization: `Bearer ${token}` } : {}
+    };
 
     try {
       const response = await axios.get(`${apiUrl}/users/me`, axiosConfig);
@@ -35,8 +46,26 @@ export const AuthProvider = ({ children }) => {
       // 401/expired access token - try to silently refresh it
       if (error.response && (error.response.status === 401 || error.response.status === 403)) {
         try {
-          const refreshResponse = await axios.post(`${apiUrl}/auth/refresh`, {}, axiosConfig);
+          const storedRefreshToken = localStorage.getItem('refresh_token');
+          const refreshResponse = await axios.post(
+            `${apiUrl}/auth/refresh`, 
+            { refreshToken: storedRefreshToken }, 
+            axiosConfig
+          );
+          
           if (refreshResponse.data.success) {
+            const newAccessToken = refreshResponse.data.data?.accessToken;
+            const newRefreshToken = refreshResponse.data.data?.refreshToken;
+            
+            if (newAccessToken) {
+              localStorage.setItem('auth_token', newAccessToken);
+              axios.defaults.headers.common['Authorization'] = `Bearer ${newAccessToken}`;
+              axiosConfig.headers = { Authorization: `Bearer ${newAccessToken}` };
+            }
+            if (newRefreshToken) {
+              localStorage.setItem('refresh_token', newRefreshToken);
+            }
+
             // Token refreshed, retry fetching profile
             const retryResponse = await axios.get(`${apiUrl}/users/me`, axiosConfig);
             if (retryResponse.data.success) {
@@ -51,6 +80,10 @@ export const AuthProvider = ({ children }) => {
         }
       }
 
+      // If token expired/invalidated, clean it up
+      localStorage.removeItem('auth_token');
+      localStorage.removeItem('refresh_token');
+      delete axios.defaults.headers.common['Authorization'];
       setUser(null);
       setIsAuthenticated(false);
     } finally {
@@ -68,13 +101,20 @@ export const AuthProvider = ({ children }) => {
   /**
    * Handle local authentication context initialization upon successful manual login/signup.
    */
-  const login = (userData) => {
+  const login = (userData, accessToken, refreshToken) => {
     setUser(userData);
     setIsAuthenticated(true);
     setAuthChecked(true);
     setAuthError(null);
     if (userData.role) {
       localStorage.setItem('user_role', userData.role.toLowerCase());
+    }
+    if (accessToken) {
+      localStorage.setItem('auth_token', accessToken);
+      axios.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
+    }
+    if (refreshToken) {
+      localStorage.setItem('refresh_token', refreshToken);
     }
   };
 
@@ -83,12 +123,20 @@ export const AuthProvider = ({ children }) => {
    */
   const logout = async () => {
     const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5001/api/v1';
+    const token = localStorage.getItem('auth_token');
+    const axiosConfig = {
+      withCredentials: true,
+      headers: token ? { Authorization: `Bearer ${token}` } : {}
+    };
     try {
-      await axios.post(`${apiUrl}/auth/logout`);
+      await axios.post(`${apiUrl}/auth/logout`, {}, axiosConfig);
     } catch (error) {
       console.error("API logout request failed:", error);
     } finally {
       localStorage.removeItem('user_role');
+      localStorage.removeItem('auth_token');
+      localStorage.removeItem('refresh_token');
+      delete axios.defaults.headers.common['Authorization'];
       setUser(null);
       setIsAuthenticated(false);
       setAuthChecked(true);

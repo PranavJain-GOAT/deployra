@@ -117,7 +117,8 @@ export default function Auth() {
 
       if (response.data.success) {
         toast.success(tab === "login" ? "Logged in successfully!" : "Account created successfully!");
-        login(response.data.data.user);
+        const { user, accessToken, refreshToken } = response.data.data;
+        login(user, accessToken, refreshToken);
         navigate('/');
       }
     } catch (err) {
