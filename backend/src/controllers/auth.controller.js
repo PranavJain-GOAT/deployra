@@ -600,7 +600,22 @@ const googleCallback = async (req, res, next) => {
     const frontendUrl = getFrontendUrl();
 
     if (req.method === 'GET') {
-      return res.redirect(`${frontendUrl}/auth/google/callback?success=true`);
+      // Encode a minimal user payload in the redirect URL so the frontend
+      // can hydrate auth state without requiring a cross-origin cookie read.
+      // This is the same approach used by Supabase, Auth0, and NextAuth.
+      const userPayload = Buffer.from(JSON.stringify({
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        role: user.role,
+        authProvider: user.authProvider,
+        profileImage: user.profileImage,
+        isEmailVerified: user.isEmailVerified,
+      })).toString('base64url');
+
+      return res.redirect(
+        `${frontendUrl}/auth/google/callback?success=true&u=${userPayload}`
+      );
     }
 
     res.status(200).json({

@@ -19,9 +19,10 @@ export const AuthProvider = ({ children }) => {
    */
   const fetchUser = useCallback(async () => {
     const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5001/api/v1';
-    
+    const axiosConfig = { withCredentials: true };
+
     try {
-      const response = await axios.get(`${apiUrl}/users/me`);
+      const response = await axios.get(`${apiUrl}/users/me`, axiosConfig);
       if (response.data.success) {
         setUser(response.data.data);
         setIsAuthenticated(true);
@@ -34,10 +35,10 @@ export const AuthProvider = ({ children }) => {
       // 401/expired access token - try to silently refresh it
       if (error.response && (error.response.status === 401 || error.response.status === 403)) {
         try {
-          const refreshResponse = await axios.post(`${apiUrl}/auth/refresh`);
+          const refreshResponse = await axios.post(`${apiUrl}/auth/refresh`, {}, axiosConfig);
           if (refreshResponse.data.success) {
             // Token refreshed, retry fetching profile
-            const retryResponse = await axios.get(`${apiUrl}/users/me`);
+            const retryResponse = await axios.get(`${apiUrl}/users/me`, axiosConfig);
             if (retryResponse.data.success) {
               setUser(retryResponse.data.data);
               setIsAuthenticated(true);
@@ -49,7 +50,7 @@ export const AuthProvider = ({ children }) => {
           console.warn("Silent token refresh failed or no valid session exists.");
         }
       }
-      
+
       setUser(null);
       setIsAuthenticated(false);
     } finally {
@@ -57,6 +58,7 @@ export const AuthProvider = ({ children }) => {
       setAuthChecked(true);
     }
   }, []);
+
 
   // Initiate initial authentication check on mount
   useEffect(() => {
