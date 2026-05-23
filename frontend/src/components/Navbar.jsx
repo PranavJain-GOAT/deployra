@@ -1,10 +1,13 @@
-import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Menu, X, LogOut, LayoutDashboard, ChevronDown } from "lucide-react";
+import { Link, useLocation } from "react-router-dom";
+import { Menu, X } from "lucide-react";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import LiveSearch from "./home/LiveSearch";
 import { useTheme } from "@/lib/ThemeContext";
 import { useAuth } from "@/lib/AuthContext";
+import ProfileMenu from "./ProfileMenu";
+import NotificationBell from "./NotificationBell";
+import ThemeToggle from "./ThemeToggle";
 
 function GlitchLink({ to, label, onClick }) {
   const [glitching, setGlitching] = useState(false);
@@ -33,17 +36,12 @@ function GlitchLink({ to, label, onClick }) {
 
 export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [profileOpen, setProfileOpen] = useState(false);
-  const [scrolled, setScrolled] = useState(false);
-  const { isDark } = useTheme();
+  const [scrolled, setScrolled]     = useState(false);
+  const { isDark }                  = useTheme();
   const { user, isAuthenticated, logout } = useAuth();
-  const navigate = useNavigate();
 
   useEffect(() => {
-    const onScroll = () => {
-      const s = window.scrollY;
-      setScrolled(s > 30);
-    };
+    const onScroll = () => setScrolled(window.scrollY > 30);
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
@@ -57,17 +55,6 @@ export default function Navbar() {
     : '1px solid transparent';
 
   const logoTextColor = isDark ? '#ffffff' : '#0a0a0a';
-
-  const getInitials = (name) => {
-    if (!name) return "U";
-    return name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
-  };
-
-  const handleDashboard = () => {
-    setProfileOpen(false);
-    const role = user?.role?.toLowerCase() || 'client';
-    navigate(`/${role}`);
-  };
 
   return (
     <>
@@ -110,63 +97,28 @@ export default function Navbar() {
             <div className="hidden md:flex items-center gap-1">
               {[
                 { label: "Marketplace", to: "/" },
-                { label: "Features", to: "/features" },
-                { label: "About", to: "/about" },
+                { label: "Features",   to: "/features" },
+                { label: "About",      to: "/about" },
               ].map((item) => (
                 <GlitchLink key={item.label} to={item.to} label={item.label} />
               ))}
             </div>
 
             {/* CTAs & Profile */}
-            <div className="flex items-center gap-4 shrink-0 ml-auto z-50">
-              {isAuthenticated ? (
-                <div 
-                  className="relative group"
-                  onMouseLeave={() => setProfileOpen(false)}
-                >
-                  <button
-                    onClick={() => setProfileOpen(!profileOpen)}
-                    onMouseEnter={() => setProfileOpen(true)}
-                    className="flex items-center gap-2 p-1 rounded-full hover:bg-black/5 dark:hover:bg-white/5 transition-all"
-                  >
-                    <div className="w-8 h-8 rounded-full bg-gray-900 dark:bg-white flex items-center justify-center text-[10px] font-bold text-white dark:text-gray-900 border border-gray-200 dark:border-white/10">
-                      {getInitials(user?.name)}
-                    </div>
-                    <ChevronDown className={`w-3.5 h-3.5 text-gray-500 transition-transform ${profileOpen ? 'rotate-180' : ''}`} />
-                  </button>
+            <div className="flex items-center gap-2.5 shrink-0 ml-auto z-50">
+              {/* Theme toggle — desktop */}
+              <div className="hidden md:flex">
+                <ThemeToggle />
+              </div>
 
-                  <AnimatePresence>
-                    {profileOpen && (
-                      <motion.div
-                        initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                        className="absolute right-0 mt-1 w-56 bg-white dark:bg-[#121212] rounded-2xl shadow-2xl border border-gray-100 dark:border-white/5 p-2 overflow-hidden"
-                      >
-                        <div className="px-3 py-3 border-b border-gray-50 dark:border-white/5 mb-1">
-                          <p className="text-xs font-bold text-gray-900 dark:text-white truncate">{user?.name}</p>
-                          <p className="text-[10px] text-gray-400 truncate mt-0.5">{user?.email}</p>
-                        </div>
-                        
-                        <button
-                          onClick={handleDashboard}
-                          className="w-full flex items-center gap-3 px-3 py-2.5 text-xs font-semibold text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-white/5 rounded-xl transition-all"
-                        >
-                          <LayoutDashboard className="w-4 h-4" />
-                          Dashboard
-                        </button>
-                        
-                        <button
-                          onClick={logout}
-                          className="w-full flex items-center gap-3 px-3 py-2.5 text-xs font-semibold text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-xl transition-all"
-                        >
-                          <LogOut className="w-4 h-4" />
-                          Logout
-                        </button>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </div>
+              {isAuthenticated ? (
+                <>
+                  {/* Notification Bell */}
+                  <NotificationBell />
+
+                  {/* World-class Profile Menu */}
+                  <ProfileMenu />
+                </>
               ) : (
                 <Link to="/auth" className="flex">
                   <motion.button
@@ -182,6 +134,7 @@ export default function Navbar() {
                 </Link>
               )}
               
+              {/* Mobile menu toggle */}
               <button
                 onClick={() => setMobileOpen(!mobileOpen)}
                 className={`md:hidden p-1 ${isDark ? 'text-white/60 hover:text-white' : 'text-neutral-500 hover:text-neutral-900'}`}
@@ -193,20 +146,22 @@ export default function Navbar() {
         </motion.nav>
       </div>
 
+      {/* ── Mobile Dropdown ── */}
       <AnimatePresence>
         {mobileOpen && (
           <motion.div
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
-            className="fixed top-20 left-4 right-4 z-40 glass rounded-2xl p-4 space-y-2 bg-white/95 dark:bg-[#0a0a0a]/95 backdrop-blur-xl border border-gray-100 dark:border-white/5"
+            className="fixed top-16 left-4 right-4 z-40 glass rounded-2xl p-4 space-y-2
+              bg-white/95 dark:bg-[#0a0a0a]/95 backdrop-blur-xl border border-gray-100 dark:border-white/5"
           >
             {[
               { label: "Marketplace", to: "/" },
-              { label: "Features", to: "/features" },
-              { label: "About", to: "/about" },
+              { label: "Features",   to: "/features" },
+              { label: "About",      to: "/about" },
               ...(isAuthenticated ? [
-                { label: "Dashboard", to: user?.role === 'DEVELOPER' ? '/developer' : '/client' },
+                { label: "Dashboard", to: user?.role === 'DEVELOPER' ? '/developer' : user?.role === 'ADMIN' ? '/admin' : '/client' },
               ] : [
                 { label: "Login / Sign Up", to: "/auth" }
               ])
