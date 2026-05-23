@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { Loader2 } from "lucide-react";
 import axios from "axios";
 import { useAuth } from "@/lib/AuthContext";
+import { API_URL } from "@/lib/config";
 
 export default function AuthCallback() {
   const [searchParams] = useSearchParams();
@@ -21,8 +22,6 @@ export default function AuthCallback() {
       const tokenParam   = searchParams.get("token") || searchParams.get("accessToken");
       const rTokenParam  = searchParams.get("refreshToken");
       const userParam    = searchParams.get("u"); // base64url-encoded user payload
-
-      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5001/api/v1';
 
       // ── Error from backend ──────────────────────────────────────────────────
       if (error) {
@@ -55,9 +54,9 @@ export default function AuthCallback() {
         await new Promise(r => setTimeout(r, 400)); // brief cookie-settle delay
         for (let i = 0; i < 5; i++) {
           try {
-            const res = await axios.get(`${apiUrl}/users/me`, { withCredentials: true });
+            const res = await axios.get(`${API_URL}/users/me`, { withCredentials: true });
             if (res.data?.success && res.data?.data) {
-              login(res.data.data);
+              login(res.data.data, tokenParam, rTokenParam);
               navigate('/', { replace: true });
               return;
             }
@@ -73,13 +72,13 @@ export default function AuthCallback() {
       if (code) {
         try {
           const response = await axios.post(
-            `${apiUrl}/auth/google/callback`,
+            `${API_URL}/auth/google/callback`,
             { code },
             { withCredentials: true }
           );
           if (response.data?.success) {
-            const { user } = response.data.data;
-            login(user);
+            const { user, accessToken, refreshToken } = response.data.data;
+            login(user, accessToken, refreshToken);
             navigate('/', { replace: true });
           } else {
             navigate('/auth?error=google_auth_failed', { replace: true });
@@ -94,7 +93,7 @@ export default function AuthCallback() {
       // ── 4. Bearer token fallback (legacy) ────────────────────────────────────
       if (tokenParam) {
         try {
-          const res = await axios.get(`${apiUrl}/users/me`, {
+          const res = await axios.get(`${API_URL}/users/me`, {
             headers: { Authorization: `Bearer ${tokenParam}` },
             withCredentials: true,
           });
@@ -108,7 +107,7 @@ export default function AuthCallback() {
 
       // ── 5. Cookies already set (user navigated to this page directly) ────────
       try {
-        const res = await axios.get(`${apiUrl}/users/me`, { withCredentials: true });
+        const res = await axios.get(`${API_URL}/users/me`, { withCredentials: true });
         if (res.data?.success) {
           login(res.data.data);
           navigate('/', { replace: true });

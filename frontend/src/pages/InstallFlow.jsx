@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowRight, ArrowLeft, Check, Upload, Settings, CreditCard, Loader2, Link as LinkIcon, ExternalLink, Plus, X, Image as ImageIcon, FileText, FileBadge, Building2, MapPin, Mail, Phone, Globe, Briefcase, UserRoundSearch } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import axios from "axios";
+import { API_URL } from "@/lib/config";
 
 const loadScript = src => new Promise((resolve) => {
   const script = document.createElement('script');
@@ -65,10 +66,8 @@ export default function InstallFlow() {
     const amount = product?.price || product?.price_min || 0;
     setLoading(true);
     
-    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5001/api/v1';
-    
     try {
-      const { data } = await axios.post(`${apiUrl}/payment/order`, {
+      const { data } = await axios.post(`${API_URL}/payment/order`, {
         amount: amount,
         currency: 'USD'
       });
@@ -93,7 +92,7 @@ export default function InstallFlow() {
         order_id: data.order_id,
         handler: async function (response) {
           try {
-            const verifyData = await axios.post(`${apiUrl}/payment/verify`, {
+            const verifyData = await axios.post(`${API_URL}/payment/verify`, {
               orderId: data.order_id,
               paymentId: response.razorpay_payment_id,
               signature: response.razorpay_signature

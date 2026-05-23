@@ -2,8 +2,8 @@ import { useState, useCallback } from 'react';
 import axios from 'axios';
 import { useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/lib/AuthContext';
+import { API_URL as API } from '@/lib/config';
 
-const API = import.meta.env.VITE_API_URL || 'http://localhost:5001/api/v1';
 axios.defaults.withCredentials = true;
 
 /**

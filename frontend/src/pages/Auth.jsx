@@ -9,6 +9,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import axios from "axios";
 import { useAuth } from "@/lib/AuthContext";
 import { toast } from "react-hot-toast";
+import { API_URL } from "@/lib/config";
 
 export default function Auth() {
   const navigate = useNavigate();
@@ -95,7 +96,6 @@ export default function Auth() {
     setLoading(true);
 
     try {
-      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5001/api/v1';
       let endpoint = "/auth/register";
       let payload = {};
 
@@ -113,7 +113,7 @@ export default function Auth() {
         };
       }
 
-      const response = await axios.post(`${apiUrl}${endpoint}`, payload);
+      const response = await axios.post(`${API_URL}${endpoint}`, payload);
 
       if (response.data.success) {
         toast.success(tab === "login" ? "Logged in successfully!" : "Account created successfully!");
@@ -137,8 +137,7 @@ export default function Auth() {
     setLoading(true);
 
     try {
-      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5001/api/v1';
-      const response = await axios.post(`${apiUrl}/auth/forgot-password`, { email: form.email });
+      const response = await axios.post(`${API_URL}/auth/forgot-password`, { email: form.email });
       
       if (response.data.success) {
         const msg = response.data.message || "Reset link dispatched! If that email is registered, you will receive instructions shortly.";
@@ -174,8 +173,7 @@ export default function Auth() {
     setLoading(true);
 
     try {
-      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5001/api/v1';
-      const response = await axios.post(`${apiUrl}/auth/reset-password`, { 
+      const response = await axios.post(`${API_URL}/auth/reset-password`, { 
         token: tokenParam,
         newPassword: resetForm.password
       });
@@ -357,8 +355,7 @@ export default function Auth() {
                           variant="outline"
                           type="button"
                           onClick={() => {
-                            const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5001/api/v1';
-                            window.location.href = `${apiUrl}/auth/google`;
+                            window.location.href = `${API_URL}/auth/google`;
                           }}
                           className="h-12 rounded-full gap-3 border border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-900 bg-white dark:bg-transparent font-bold text-gray-700 dark:text-gray-300 shadow-sm transition-all"
                         >

@@ -5,7 +5,7 @@ import axios from "axios";
 import { useAuth } from "@/lib/AuthContext";
 import { toast } from "react-hot-toast";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5001/api/v1";
+import { API_URL } from "@/lib/config";
 
 /**
  * EmailVerificationBanner
