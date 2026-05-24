@@ -27,6 +27,7 @@ import AuthCallback from './pages/AuthCallback';
 import VerifyEmail from './pages/VerifyEmail';
 import Pricing from './pages/Pricing';
 import SettingsPage from './pages/SettingsPage';
+import Onboarding from './pages/Onboarding';
 import PaymentHistory from './pages/PaymentHistory';
 import About from './pages/About';
 import Features from './pages/Features';
@@ -111,10 +112,10 @@ const AuthenticatedApp = () => {
           <Route path="/client/billing" element={<Billing />} />
         </Route>
       </Route>
-      {/* Settings Route Protection */}
       <Route element={<ProtectedRoute allowedRoles={['CLIENT', 'DEVELOPER', 'ADMIN']} unauthenticatedElement={<Navigate to="/auth" replace />} />}>
         <Route element={<Layout />}>
           <Route path="/settings" element={<SettingsPage />} />
+          <Route path="/onboarding" element={<Onboarding />} />
         </Route>
       </Route>
       
