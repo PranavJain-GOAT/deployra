@@ -471,7 +471,7 @@ export default function ProfileMenu() {
               <AccordionGroup title="Navigation" icon={Home} isOpen={activeAccordion === 'nav'} onToggle={() => toggleAccordion('nav')} isDark={isDark}>
                 <DropdownItem icon={LayoutDashboard} label="Dashboard" to={dashPath} isDark={isDark} onClose={close} />
                 <DropdownItem icon={Home} label="Marketplace" to="/" isDark={isDark} onClose={close} />
-                <DropdownItem icon={User} label="My Profile" to="/settings?tab=profile" isDark={isDark} onClose={close} />
+                <DropdownItem icon={User} label="My Profile" to="/onboarding" isDark={isDark} onClose={close} />
                 <DropdownItem icon={Bell} label="Notifications" to="/settings?tab=notifications" isDark={isDark} onClose={close} />
                 <DropdownItem icon={Activity} label="Recent Activity" to="/settings?tab=security" isDark={isDark} onClose={close} />
                 {!isDev && !isAdmin && (

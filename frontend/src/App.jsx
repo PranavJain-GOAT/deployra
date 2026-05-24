@@ -96,7 +96,7 @@ const AuthenticatedApp = () => {
           <Route path="/developer/logs" element={<LogsDebugger />} />
           <Route path="/developer/sandbox" element={<AiSandbox />} />
           <Route path="/developer/messages" element={<DevMessaging />} />
-          <Route path="/developer/profile" element={<DevProfile />} />
+          <Route path="/developer/profile" element={<Onboarding />} />
         </Route>
       </Route>
 
