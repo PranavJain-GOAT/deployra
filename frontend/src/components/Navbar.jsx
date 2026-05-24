@@ -6,7 +6,6 @@ import LiveSearch from "./home/LiveSearch";
 import { useTheme } from "@/lib/ThemeContext";
 import { useAuth } from "@/lib/AuthContext";
 import ProfileMenu from "./ProfileMenu";
-import NotificationBell from "./NotificationBell";
 import ThemeToggle from "./ThemeToggle";
 
 function GlitchLink({ to, label, onClick }) {
@@ -113,9 +112,6 @@ export default function Navbar() {
 
               {isAuthenticated ? (
                 <>
-                  {/* Notification Bell */}
-                  <NotificationBell />
-
                   {/* World-class Profile Menu */}
                   <ProfileMenu />
                 </>

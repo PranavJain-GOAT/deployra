@@ -60,6 +60,14 @@ model User {
   // Payments (future Stripe Connect)
   stripeAccountId       String?
 
+  // Two-Factor Authentication
+  twoFactorSecret       String?
+  twoFactorEnabled      Boolean   @default(false)
+  twoFactorRecoveryCodes String?
+
+  // Preferences & Privacy Settings
+  preferencesJson       String?
+
   // Relations
   products        Product[]
   purchases       Purchase[]
