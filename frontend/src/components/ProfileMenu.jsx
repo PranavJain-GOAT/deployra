@@ -2,7 +2,7 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  ChevronDown, LogOut, LayoutDashboard, Home, User, Bell,
+  ChevronDown, LogOut, LayoutDashboard, Home, User, Users, Bell,
   Activity, Heart, Settings, Shield, KeyRound, Smartphone,
   Fingerprint, Lock, Eye, CreditCard, BarChart3, TrendingUp,
   Receipt, FileText, Zap, HelpCircle, BookOpen, Headphones,

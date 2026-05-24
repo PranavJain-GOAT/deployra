@@ -3,7 +3,8 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import {
   User, Shield, CreditCard, Users, Settings, Bell, Camera, 
   BarChart3, Zap, HelpCircle, Sun, Moon, Info, ShieldCheck, 
-  RefreshCw, Plus, Minus, Download, ThumbsUp, X, Search
+  RefreshCw, Plus, Minus, Download, ThumbsUp, X, Search,
+  Smartphone, Wallet
 } from 'lucide-react';
 import axios from 'axios';
 import { useAuth } from '@/lib/AuthContext';
