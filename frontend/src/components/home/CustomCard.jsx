@@ -17,10 +17,15 @@ export default function CustomCard({ solution, index }) {
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 24 }}
+      initial={{ opacity: 0, y: 30 }}
       whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, amount: 0.2 }}
-      transition={{ duration: 0.45, delay: Math.min(index, 6) * 0.07, ease: [0.22, 1, 0.36, 1] }}
+      viewport={{ once: true, amount: 0.15 }}
+      transition={{
+        type: "spring",
+        stiffness: 80,
+        damping: 17,
+        delay: Math.min(index, 6) * 0.05
+      }}
       className="h-full"
     >
       <div className="group rounded-2xl overflow-hidden flex flex-col h-full border border-white/8 bg-white/3 hover:border-white/16 transition-all duration-300">

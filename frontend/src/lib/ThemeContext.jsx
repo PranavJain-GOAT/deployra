@@ -55,7 +55,14 @@ export function ThemeProvider({ children }) {
     return () => mq.removeEventListener('change', handler);
   }, []);
 
-  const toggleTheme = () => setThemeState((t) => (t === 'dark' ? 'light' : 'dark'));
+  const toggleTheme = () => {
+    const body = document.body;
+    body.classList.add('theme-transition');
+    setThemeState((t) => (t === 'dark' ? 'light' : 'dark'));
+    setTimeout(() => {
+      body.classList.remove('theme-transition');
+    }, 500);
+  };
 
   return (
     <ThemeContext.Provider value={{ theme, toggleTheme, isDark: theme === 'dark' }}>

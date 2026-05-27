@@ -166,9 +166,14 @@ function SearchResultCard({ item, type, index }) {
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: 30 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4, delay: Math.min(index, 8) * 0.04, ease: [0.22, 1, 0.36, 1] }}
+      transition={{
+        type: "spring",
+        stiffness: 80,
+        damping: 17,
+        delay: Math.min(index, 8) * 0.04
+      }}
     >
       <Link to={to} className="group block h-full">
         <div className="rounded-xl overflow-hidden flex flex-col h-full bg-white/[0.02] border border-white/5 hover:border-white/15 transition-all duration-300">

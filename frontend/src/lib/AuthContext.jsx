@@ -104,7 +104,14 @@ export const AuthProvider = ({ children }) => {
 
   // Initiate initial authentication check on mount
   useEffect(() => {
-    fetchUser();
+    const token = localStorage.getItem('auth_token');
+    const refreshToken = localStorage.getItem('refresh_token');
+    if (!token && !refreshToken) {
+      setIsLoadingAuth(false);
+      setAuthChecked(true);
+    } else {
+      fetchUser();
+    }
   }, [fetchUser]);
 
   /**

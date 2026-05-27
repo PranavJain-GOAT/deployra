@@ -176,13 +176,14 @@
     letter-spacing: -0.04em;
   }
 
-  /* Apply smooth transitions globally on theme switch */
-  *,
-  *::before,
-  *::after {
-    transition-property: background-color, border-color, color, fill, stroke, opacity, box-shadow;
-    transition-duration: 250ms;
-    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  /* Apply smooth transitions globally ONLY on theme switch */
+  .theme-transition,
+  .theme-transition *,
+  .theme-transition *::before,
+  .theme-transition *::after {
+    transition-property: background-color, border-color, color, fill, stroke, opacity, box-shadow !important;
+    transition-duration: 250ms !important;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1) !important;
   }
 
   /* Exclude animations & transforms from global transition */
