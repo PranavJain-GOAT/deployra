@@ -9,7 +9,7 @@ import {
   Bug, Lightbulb, MessageCircle, Keyboard, Sun,
   Globe, Accessibility, BellRing,
   Camera, Package, Code2, BadgeCheck,
-  Sparkles, Crown, Star, ChevronRight, X
+  Sparkles, Crown, Star, ChevronRight, X, Minus, Plus, ExternalLink
 } from 'lucide-react';
 
 import { useAuth } from '@/lib/AuthContext';
@@ -458,7 +458,7 @@ export default function ProfileMenu() {
                 <CreditCard className="w-4 h-4 mb-1" />
                 <span className="text-[9px] font-bold">Billing</span>
               </button>
-              <button onClick={() => { logout(); close(); }} className="flex flex-col items-center justify-center p-2 rounded-xl transition-all hover:bg-red-500/10 text-red-400">
+              <button onClick={() => { setShowLogoutConfirm(true); }} className="flex flex-col items-center justify-center p-2 rounded-xl transition-all hover:bg-red-500/10 text-red-400">
                 <LogOut className="w-4 h-4 mb-1" />
                 <span className="text-[9px] font-bold">Logout</span>
               </button>
@@ -516,7 +516,16 @@ export default function ProfileMenu() {
                 <DropdownItem icon={Headphones} label="Contact Support" to="/settings?tab=support" isDark={isDark} onClose={close} />
                 <DropdownItem icon={Bug} label="Report a Bug" to="/settings?tab=support" isDark={isDark} onClose={close} />
                 <DropdownItem icon={Lightbulb} label="Feature Requests" to="/settings?tab=support" isDark={isDark} onClose={close} />
-                <DropdownItem icon={MessageCircle} label="Community" to="https://discord.gg/deployra" isDark={isDark} onClose={close} />
+                <button
+                  onClick={() => { window.open('https://discord.gg/deployra', '_blank', 'noopener,noreferrer'); close(); }}
+                  className={`w-full flex items-center gap-2 px-3 py-1.5 rounded-lg text-[11px] font-medium transition-all text-left ${
+                    isDark ? 'text-white/50 hover:text-white hover:bg-white/5' : 'text-neutral-500 hover:text-neutral-900 hover:bg-black/5'
+                  }`}
+                >
+                  <MessageCircle className="w-3.5 h-3.5 opacity-70" />
+                  <span>Community</span>
+                  <ExternalLink className="w-3 h-3 opacity-40 ml-auto" />
+                </button>
                 <DropdownItem icon={Keyboard} label="Keyboard Shortcuts" to="/settings?tab=support" isDark={isDark} onClose={close} />
               </AccordionGroup>
 
