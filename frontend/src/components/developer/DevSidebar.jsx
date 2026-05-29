@@ -1,21 +1,58 @@
 import { Link, useLocation } from "react-router-dom";
-import { LayoutDashboard, Package, Plus, ArrowLeft, MessageSquare, User } from "lucide-react";
+import {
+  LayoutDashboard, Package, Plus, ArrowLeft, MessageSquare, User,
+  BarChart3, Zap, Terminal, Shield, DollarSign, Star,
+  TrendingUp, Users, GitBranch, CheckSquare, Wallet, FileText,
+  Trophy, ShoppingBag, Settings
+} from "lucide-react";
 import { useRef } from "react";
 
 const NAV_GROUPS = [
   {
-    label: "Main",
+    label: "Revenue",
     items: [
-      { path: "/developer",           label: "Dashboard",   icon: LayoutDashboard },
-      { path: "/developer/listings",  label: "My Listings", icon: Package },
-      { path: "/developer/add",       label: "Add Product", icon: Plus },
+      { path: "/developer",           label: "Dashboard",        icon: LayoutDashboard },
+      { path: "/developer/orders",    label: "Orders",           icon: ShoppingBag     },
+      { path: "/developer/earnings",  label: "Earnings & Escrow",icon: Wallet          },
+    ],
+  },
+  {
+    label: "Products",
+    items: [
+      { path: "/developer/listings",      label: "My Listings",     icon: Package     },
+      { path: "/developer/add",           label: "Publish Product", icon: Plus        },
+      { path: "/developer/verification",  label: "Verification",    icon: CheckSquare },
+    ],
+  },
+  {
+    label: "Marketplace",
+    items: [
+      { path: "/developer/analytics",  label: "Analytics",    icon: BarChart3  },
+      { path: "/developer/reviews",    label: "Reviews",       icon: Star       },
+      { path: "/developer/rankings",   label: "Rankings",      icon: Trophy     },
+    ],
+  },
+  {
+    label: "Communication",
+    items: [
+      { path: "/developer/messages", label: "Inbox", icon: MessageSquare },
+    ],
+  },
+  {
+    label: "Developer Tools",
+    items: [
+      { path: "/developer/api-vault",  label: "API Vault",   icon: Shield   },
+      { path: "/developer/webhooks",   label: "Webhooks",    icon: Zap      },
+      { path: "/developer/logs",       label: "Logs",        icon: Terminal },
+      { path: "/developer/sandbox",    label: "AI Sandbox",  icon: GitBranch},
     ],
   },
   {
     label: "Account",
     items: [
-      { path: "/developer/messages", label: "Messages", icon: MessageSquare },
-      { path: "/developer/profile",  label: "Profile",  icon: User },
+      { path: "/developer/profile",  label: "Dev Profile",  icon: User     },
+      { path: "/developer/payouts",  label: "Payouts",      icon: DollarSign},
+      { path: "/developer/team",     label: "Team & Org",   icon: Users    },
     ],
   },
 ];
@@ -60,14 +97,10 @@ function MagneticNavItem({ item, isActive }) {
           : "none",
       }}
     >
-      {/* Active neon accent pill */}
       {isActive && (
-        <span
-          className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-4 rounded-r-full bg-foreground"
-        />
+        <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-4 rounded-r-full bg-foreground" />
       )}
 
-      {/* Hover bg */}
       {!isActive && (
         <span
           className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-200"
@@ -80,17 +113,13 @@ function MagneticNavItem({ item, isActive }) {
         className={`relative z-10 ${isActive ? 'text-foreground' : 'text-inherit'}`}
         style={{ transition: "transform 0.12s cubic-bezier(0.34,1.56,0.64,1)", willChange: "transform" }}
       >
-        <item.icon
-          className="w-4 h-4"
-        />
+        <item.icon className="w-4 h-4" />
       </span>
       <span className="relative z-10 flex-1" style={{ fontFamily: "'Inter', sans-serif", letterSpacing: "0.01em", fontSize: "0.8125rem" }}>
         {item.label}
       </span>
       {item.badge && (
-        <span
-          className="ml-auto relative z-10 border border-foreground/20 text-foreground bg-foreground/5 rounded font-mono text-[10px] font-bold tracking-widest px-1.5 py-0.5 uppercase"
-        >
+        <span className="ml-auto relative z-10 border border-foreground/20 text-foreground bg-foreground/5 rounded font-mono text-[10px] font-bold tracking-widest px-1.5 py-0.5 uppercase">
           {item.badge}
         </span>
       )}
@@ -104,10 +133,7 @@ export default function DevSidebar() {
   return (
     <aside
       className="w-64 min-h-screen flex-shrink-0 hidden lg:flex flex-col bg-background/50 backdrop-blur-xl border-r border-border"
-      style={{
-        position: "relative",
-        zIndex: 10,
-      }}
+      style={{ position: "relative", zIndex: 10 }}
     >
       {/* Logo area */}
       <div className="p-5 pt-8 border-b border-border">
@@ -121,20 +147,18 @@ export default function DevSidebar() {
         </Link>
 
         <div className="flex items-center gap-3">
-            <div
-              className="logo-mark w-10 h-10 rounded-xl flex items-center justify-center bg-foreground text-background"
-            >
-              <span className="font-bold text-sm relative z-10" style={{ fontFamily: "Georgia, serif" }}>D</span>
-            </div>
-            <div>
-              <span className="text-foreground font-bold text-sm block" style={{ fontFamily: "Georgia, serif", letterSpacing: "-0.03em" }}>
-                Developer
-              </span>
-              <span className="block text-foreground/50 font-mono text-[9px] tracking-widest uppercase">
-                Command Center
-              </span>
-            </div>
+          <div className="logo-mark w-10 h-10 rounded-xl flex items-center justify-center bg-foreground text-background">
+            <span className="font-bold text-sm relative z-10" style={{ fontFamily: "Georgia, serif" }}>D</span>
           </div>
+          <div>
+            <span className="text-foreground font-bold text-sm block" style={{ fontFamily: "Georgia, serif", letterSpacing: "-0.03em" }}>
+              Developer
+            </span>
+            <span className="block text-foreground/50 font-mono text-[9px] tracking-widest uppercase">
+              Command Center
+            </span>
+          </div>
+        </div>
       </div>
 
       {/* Navigation */}
@@ -147,7 +171,11 @@ export default function DevSidebar() {
                 <MagneticNavItem
                   key={item.path}
                   item={item}
-                  isActive={location.pathname === item.path}
+                  isActive={
+                    item.path === "/developer"
+                      ? location.pathname === "/developer"
+                      : location.pathname.startsWith(item.path)
+                  }
                 />
               ))}
             </div>
@@ -155,15 +183,18 @@ export default function DevSidebar() {
         ))}
       </nav>
 
-      {/* Bottom — Dashboard Switcher + Status */}
+      {/* Bottom status + settings */}
       <div className="border-t border-border p-4 space-y-3">
-        <div
-          className="flex items-center gap-2.5 px-3.5 py-3 rounded-xl border border-border"
+        <Link
+          to="/settings"
+          className="w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl transition-all group text-foreground/50 hover:text-foreground hover:bg-foreground/5"
         >
+          <Settings className="w-4 h-4" />
+          <span className="text-xs font-medium" style={{ fontFamily: "'Inter', sans-serif" }}>Settings</span>
+        </Link>
+        <div className="flex items-center gap-2.5 px-3.5 py-3 rounded-xl border border-border">
           <div className="relative">
-            <span
-              className="block w-2.5 h-2.5 rounded-full flex-shrink-0 bg-foreground"
-            />
+            <span className="block w-2.5 h-2.5 rounded-full flex-shrink-0 bg-foreground" />
           </div>
           <div className="min-w-0">
             <div className="text-[11px] font-semibold text-foreground tracking-wide">

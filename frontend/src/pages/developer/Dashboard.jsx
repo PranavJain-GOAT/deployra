@@ -1,774 +1,479 @@
 import { useState, useEffect, useRef } from "react";
-import { MOCK_PRODUCTS } from "@/api/mockData";
-import { useNavigate } from "react-router-dom";
-import {
-  Package, DollarSign, Download, TrendingUp, Clock,
-  CheckCircle, Copy, Check, Terminal, X,
-  Zap, Award, ChevronRight
-} from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import {
+  DollarSign, Package, ShoppingBag, TrendingUp, Star, Users,
+  ArrowUpRight, ArrowDownRight, ChevronRight, Check, Clock,
+  Zap, Award, RefreshCw, Eye, Download, AlertCircle,
+  BarChart3, Repeat, Target, Activity
+} from "lucide-react";
+import axios from "axios";
+import { API_URL } from "@/lib/config";
+import { useAuth } from "@/lib/AuthContext";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 
-/* ════════════════════════════════════════════════════════════
-   MOCK DATA
-════════════════════════════════════════════════════════════ */
-const MOCK_ORDERS = [
-  { id: "txn_3PqRs8Jk2m", product_title: "Handle WhatsApp Orders Automatically", customer_email: "test1@example.com",  amount: 49,  status: "paid",      time: "10:22:04" },
-  { id: "txn_1MnXt9Lp7q", product_title: "AI Customer Support Chatbot",           customer_email: "ceo@startup.com",    amount: 39,  status: "installed", time: "10:18:31" },
-  { id: "txn_5RqWu2Dn4f", product_title: "Smart Appointment Booking System",      customer_email: "booking@clinic.com", amount: 29,  status: "pending",   time: "09:55:12" },
-  { id: "txn_8KpZv6Cs1a", product_title: "Automated Data Extractor",              customer_email: "ops@corp.io",        amount: 19,  status: "paid",      time: "09:40:07" },
-  { id: "txn_2QlYr3Bk9e", product_title: "Lead Qualifier AI",                     customer_email: "sales@biz.com",      amount: 59,  status: "installed", time: "09:12:44" },
-];
-
-const SPARKLINE_DATA = [22, 38, 31, 55, 48, 71, 88];
-
-const MONTHLY_DATA = [
-  { month: "Jan", revenue: 1200, installs: 8 },
-  { month: "Feb", revenue: 1800, installs: 12 },
-  { month: "Mar", revenue: 2400, installs: 18 },
-  { month: "Apr", revenue: 3100, installs: 22 },
-  { month: "May", revenue: 2800, installs: 20 },
-  { month: "Jun", revenue: 3600, installs: 28 },
-];
-
-const ACTIVITY_LOG = [
-  { time: "10:25:30", event: "New Install: WhatsApp Bot",       type: "install" },
-  { time: "10:22:04", event: "API Request: Success",            type: "api" },
-  { time: "10:18:31", event: "Payment Received: $39",           type: "payment" },
-  { time: "10:15:12", event: "New Install: Support Chatbot",    type: "install" },
-  { time: "09:55:12", event: "Order Created: Booking System",   type: "order" },
-  { time: "09:44:00", event: "API Request: Success",            type: "api" },
-  { time: "09:40:07", event: "Payment Received: $49",           type: "payment" },
-  { time: "09:38:22", event: "Deployment Health: 99.9%",        type: "system" },
-  { time: "09:30:01", event: "New Install: Data Extractor",     type: "install" },
-  { time: "09:12:44", event: "Payment Received: $59",           type: "payment" },
-];
-
-/* ════════════════════════════════════════════════════════════
-   MINI SPARKLINE SVG
-════════════════════════════════════════════════════════════ */
+// ─── Sparkline ────────────────────────────────────────────────────────────────
 function Sparkline({ data, color = "hsl(var(--foreground))", width = 80, height = 28 }) {
-  const max  = Math.max(...data);
-  const min  = Math.min(...data);
+  const max = Math.max(...data);
+  const min = Math.min(...data);
   const range = max - min || 1;
-  const pts  = data.map((v, i) => [
+  const pts = data.map((v, i) => [
     (i / (data.length - 1)) * width,
     height - ((v - min) / range) * height,
   ]);
   const d = pts.map((p, i) => `${i === 0 ? "M" : "L"}${p[0]},${p[1]}`).join(" ");
-
   return (
     <svg width={width} height={height} style={{ overflow: "visible" }}>
       <defs>
-        <linearGradient id={`spark-grad-${color.replace("#","")}`} x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor={color} stopOpacity="0.3" />
+        <linearGradient id="sg" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor={color} stopOpacity="0.25" />
           <stop offset="100%" stopColor={color} stopOpacity="0" />
         </linearGradient>
       </defs>
-      <path
-        d={`${d} L${width},${height} L0,${height} Z`}
-        fill={`url(#spark-grad-${color.replace("#","")})`}
-      />
-      <path
-        d={d}
-        fill="none"
-        stroke={color}
-        strokeWidth="1.5"
-        style={{ filter: `drop-shadow(0 0 4px ${color})` }}
-      />
-      <circle cx={pts[pts.length - 1][0]} cy={pts[pts.length - 1][1]} r="2.5"
-        fill={color} style={{ filter: `drop-shadow(0 0 6px ${color})` }} />
+      <path d={`${d} L${width},${height} L0,${height} Z`} fill="url(#sg)" />
+      <path d={d} fill="none" stroke={color} strokeWidth="1.5" />
+      <circle cx={pts[pts.length - 1][0]} cy={pts[pts.length - 1][1]} r="2.5" fill={color} />
     </svg>
   );
 }
 
-/* ════════════════════════════════════════════════════════════
-   ANIMATED LINE CHART (Installs over months)
-════════════════════════════════════════════════════════════ */
-function AnimatedLineChart({ data }) {
-  const [progress, setProgress] = useState(0);
-  const [hoveredPoint, setHoveredPoint] = useState(null);
-  const svgRef = useRef(null);
-  const W = 420, H = 200, PAD = { t: 20, r: 20, b: 30, l: 35 };
-  const maxVal = Math.max(...data.map(d => d.installs));
-  const xs = data.map((_, i) => PAD.l + (i / (data.length - 1)) * (W - PAD.l - PAD.r));
-  const ys = data.map(d => PAD.t + (1 - d.installs / maxVal) * (H - PAD.t - PAD.b));
-  const pathD = xs.map((x, i) => `${i === 0 ? "M" : "L"} ${x} ${ys[i]}`).join(" ");
-  const fillD = pathD + ` L ${xs[xs.length - 1]} ${H - PAD.b} L ${xs[0]} ${H - PAD.b} Z`;
-  useEffect(() => {
-    let start = null;
-    const step = (ts) => {
-      if (!start) start = ts;
-      const p = Math.min((ts - start) / 1400, 1);
-      setProgress(p);
-      if (p < 1) requestAnimationFrame(step);
-    };
-    requestAnimationFrame(step);
-  }, []);
-  const pathEl = svgRef.current?.querySelector(".anim-path");
-  const pathLength = pathEl ? pathEl.getTotalLength() : 600;
+// ─── Skeleton ─────────────────────────────────────────────────────────────────
+function Skeleton({ h = 120, className = "" }) {
+  return <div className={`skeleton-beam rounded-2xl ${className}`} style={{ height: h }} />;
+}
+
+// ─── Stat Card ────────────────────────────────────────────────────────────────
+function StatCard({ label, value, sub, icon: Icon, trend, trendUp, sparkData, delay = 0 }) {
   return (
-    <div className="relative w-full h-full">
-      <svg ref={svgRef} viewBox={`0 0 ${W} ${H}`} className="w-full h-full" style={{ overflow: "visible" }}>
-        <defs>
-          <linearGradient id="fillGradDash" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="hsl(var(--foreground))" stopOpacity="0.18" />
-            <stop offset="100%" stopColor="hsl(var(--foreground))" stopOpacity="0" />
-          </linearGradient>
-        </defs>
-        {[0, 0.25, 0.5, 0.75, 1].map((t, i) => {
-          const y = PAD.t + t * (H - PAD.t - PAD.b);
-          return <line key={i} x1={PAD.l} y1={y} x2={W - PAD.r} y2={y} stroke="hsl(var(--foreground) / 0.08)" strokeWidth="1" />;
-        })}
-        {data.map((d, i) => (
-          <text key={i} x={xs[i]} y={H - 8} textAnchor="middle" fill="hsl(var(--foreground) / 0.4)" fontSize="11" fontFamily="monospace">{d.month}</text>
-        ))}
-        <path d={fillD} fill="url(#fillGradDash)" opacity={progress} />
-        <path className="anim-path" d={pathD} fill="none" stroke="hsl(var(--foreground))" strokeWidth="2.5"
-          strokeDasharray={pathLength} strokeDashoffset={pathLength * (1 - progress)} strokeLinecap="round" />
-        {xs.map((x, i) => (
-          <g key={i} onMouseEnter={() => setHoveredPoint(i)} onMouseLeave={() => setHoveredPoint(null)}>
-            <circle cx={x} cy={ys[i]} r="10" fill="transparent" />
-            <circle cx={x} cy={ys[i]} r={hoveredPoint === i ? 6 : 3.5}
-              fill={hoveredPoint === i ? "white" : "hsl(var(--foreground))"}
-              stroke="hsl(var(--foreground))" strokeWidth="2" />
-            {hoveredPoint === i && (
-              <g>
-                <rect x={x - 26} y={ys[i] - 33} width="52" height="20" rx="5"
-                  fill="rgba(0,0,0,0.85)" stroke="rgba(150,150,150,0.4)" strokeWidth="0.5" />
-                <text x={x} y={ys[i] - 19} textAnchor="middle" fill="white" fontSize="11" fontWeight="700" fontFamily="monospace">
-                  {data[i].installs}
-                </text>
-              </g>
-            )}
-          </g>
-        ))}
-      </svg>
-    </div>
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay, duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
+      className="frosted-panel p-5 cursor-default"
+      whileHover={{ y: -3, boxShadow: "0 12px 40px rgba(0,0,0,0.5)" }}
+    >
+      <div className="flex items-start justify-between mb-4">
+        <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: "rgba(150,150,150,0.1)", border: "0.5px solid rgba(150,150,150,0.15)" }}>
+          <Icon className="w-4 h-4 text-foreground" />
+        </div>
+        {sparkData ? (
+          <Sparkline data={sparkData} />
+        ) : trend ? (
+          <span className={`flex items-center gap-0.5 text-[11px] font-bold px-2 py-0.5 rounded-full ${trendUp ? "text-emerald-400 bg-emerald-400/10" : "text-red-400 bg-red-400/10"}`}>
+            {trendUp ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
+            {trend}
+          </span>
+        ) : null}
+      </div>
+      <div className="text-2xl font-bold metric-num mb-0.5" style={{ fontFamily: "Georgia, serif", letterSpacing: "-0.03em" }}>
+        {value}
+      </div>
+      <div className="text-xs font-semibold text-foreground/70" style={{ fontFamily: "'Inter', sans-serif" }}>{label}</div>
+      {sub && <div className="stat-label-caps mt-1">{sub}</div>}
+    </motion.div>
   );
 }
 
-/* ════════════════════════════════════════════════════════════
-   STATUS BADGE
-════════════════════════════════════════════════════════════ */
+// ─── Order Status Badge ────────────────────────────────────────────────────────
+const STATUS_MAP = {
+  PENDING:        { label: "Pending",         color: "text-amber-400",  bg: "bg-amber-400/10",  border: "border-amber-400/20"  },
+  ESCROW_FUNDED:  { label: "Escrow Funded",   color: "text-blue-400",   bg: "bg-blue-400/10",   border: "border-blue-400/20"   },
+  IN_DEVELOPMENT: { label: "In Development",  color: "text-indigo-400", bg: "bg-indigo-400/10", border: "border-indigo-400/20" },
+  COMPLETED:      { label: "Completed",       color: "text-emerald-400",bg: "bg-emerald-400/10",border: "border-emerald-400/20"},
+  DISPUTED:       { label: "Disputed",        color: "text-red-400",    bg: "bg-red-400/10",    border: "border-red-400/20"    },
+  paid:           { label: "Paid",            color: "text-emerald-400",bg: "bg-emerald-400/10",border: "border-emerald-400/20"},
+  installed:      { label: "Installed",       color: "text-sky-400",    bg: "bg-sky-400/10",    border: "border-sky-400/20"    },
+  pending:        { label: "Pending",         color: "text-amber-400",  bg: "bg-amber-400/10",  border: "border-amber-400/20"  },
+};
+
 function StatusBadge({ status }) {
-  if (status === "paid" || status === "installed") {
-    return (
-      <span className="premium-badge premium-badge-monochrome inline-flex items-center gap-1">
-        <CheckCircle className="w-2.5 h-2.5" />
-        {status}
-      </span>
-    );
-  }
+  const cfg = STATUS_MAP[status] || { label: status, color: "text-foreground/50", bg: "bg-foreground/5", border: "border-foreground/10" };
   return (
-    <span className="premium-badge premium-badge-monochrome inline-flex items-center gap-1">
-      <Clock className="w-2.5 h-2.5" />
-      {status}
+    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold border ${cfg.color} ${cfg.bg} ${cfg.border}`}>
+      <span className={`w-1.5 h-1.5 rounded-full ${cfg.color.replace("text-", "bg-")}`} />
+      {cfg.label}
     </span>
   );
 }
 
-/* ════════════════════════════════════════════════════════════
-   DEV CONSOLE MODAL
-════════════════════════════════════════════════════════════ */
-function DevConsole({ onClose }) {
-  const [input,  setInput]  = useState('{\n  "message": "Hello, how do I reset my password?",\n  "context": "user_support"\n}');
-  const [output, setOutput] = useState("");
-  const [running, setRunning] = useState(false);
+// ─── Revenue Chart ─────────────────────────────────────────────────────────────
+const MONTHLY_DATA = [
+  { month: "Dec", revenue: 4200 },
+  { month: "Jan", revenue: 5800 },
+  { month: "Feb", revenue: 4900 },
+  { month: "Mar", revenue: 7200 },
+  { month: "Apr", revenue: 6100 },
+  { month: "May", revenue: 9400 },
+];
 
-  const run = () => {
-    setRunning(true);
-    setOutput("");
-    setTimeout(() => {
-      setOutput(JSON.stringify({
-        status: "success",
-        response: "To reset your password, click 'Forgot Password' on the login page. You'll receive an email within 2 minutes.",
-        confidence: 0.97,
-        latency_ms: 24,
-        model: "gpt-4o-mini",
-        tokens_used: 312,
-      }, null, 2));
-      setRunning(false);
-    }, 1200);
-  };
-
+// ─── Product Performance Row ───────────────────────────────────────────────────
+function ProductRow({ product, idx }) {
   return (
-    <AnimatePresence>
-      <motion.div
-        className="fixed inset-0 z-50 flex items-center justify-center p-4"
-        style={{ background: "rgba(0,0,0,0.8)", backdropFilter: "blur(12px)" }}
-        initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-        onClick={onClose}
-      >
-        <motion.div
-          className="w-full max-w-2xl dev-console-panel"
-          initial={{ scale: 0.92, y: 30 }} animate={{ scale: 1, y: 0 }}
-          exit={{ scale: 0.95, y: 20 }}
-          transition={{ type: "spring", stiffness: 320, damping: 28 }}
-          onClick={(e) => e.stopPropagation()}
-        >
-          {/* Header */}
-          <div className="flex items-center justify-between px-6 py-4 border-b" style={{ borderColor: "rgba(150,150,150,0.12)" }}>
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ background: "rgba(150,150,150,0.15)", border: "0.5px solid rgba(150,150,150,0.3)" }}>
-                <Terminal className="w-4 h-4" style={{ color: "hsl(var(--foreground))" }} />
-              </div>
-              <div>
-                <span className="text-white font-bold text-sm block" style={{ fontFamily: "Georgia, serif", letterSpacing: "-0.02em" }}>Dev Console</span>
-                <span className="text-[10px]" style={{ color: "rgba(150,150,150,0.7)", fontFamily: "'JetBrains Mono', monospace" }}>AI Agent Tester · Live</span>
-              </div>
-            </div>
-            <button onClick={onClose} className="w-8 h-8 rounded-lg flex items-center justify-center text-white/30 hover:text-white transition-colors" style={{ background: "hsl(var(--foreground) / 0.04)" }}>
-              <X className="w-4 h-4" />
-            </button>
-          </div>
-
-          <div className="grid grid-cols-2 divide-x" style={{ borderColor: "hsl(var(--foreground) / 0.06)", minHeight: 300 }}>
-            {/* Input */}
-            <div className="p-5">
-              <div className="stat-label-caps mb-3">Input JSON</div>
-              <textarea
-                className="w-full h-48 text-xs resize-none outline-none p-0 bg-transparent"
-                style={{ color: "hsl(var(--foreground) / 0.75)", fontFamily: "'JetBrains Mono', monospace", lineHeight: 1.7 }}
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-              />
-              <button
-                onClick={run}
-                className="mt-4 w-full py-2.5 rounded-xl text-xs font-bold transition-all shimmer-btn"
-                style={{
-                  background: "linear-gradient(135deg, hsl(var(--foreground)), hsl(var(--foreground)))",
-                  color: "white",
-                  fontFamily: "'Inter', sans-serif",
-                  boxShadow: "0 0 20px rgba(150,150,150,0.3)",
-                  letterSpacing: "0.04em",
-                }}
-              >
-                {running ? "⟳ Running..." : "▶  Run Agent"}
-              </button>
-            </div>
-
-            {/* Output */}
-            <div className="p-5">
-              <div className="stat-label-caps mb-3">Response</div>
-              {running ? (
-                <div className="flex items-center gap-2 mt-10">
-                  {[0,150,300].map(d => (
-                    <div key={d} className="w-1.5 h-1.5 rounded-full bg-foreground/5 animate-bounce" style={{ animationDelay: `${d}ms` }} />
-                  ))}
-                  <span className="text-xs" style={{ color: "hsl(var(--foreground) / 0.3)", fontFamily: "'JetBrains Mono', monospace" }}>Calling agent...</span>
-                </div>
-              ) : output ? (
-                <pre className="text-xs overflow-auto premium-scroll h-56" style={{ color: "hsl(var(--foreground))", fontFamily: "'JetBrains Mono', monospace", lineHeight: 1.7 }}>{output}</pre>
-              ) : (
-                <p className="text-xs mt-10" style={{ color: "hsl(var(--foreground) / 0.18)", fontFamily: "'JetBrains Mono', monospace" }}>// Response will appear here...</p>
-              )}
-            </div>
-          </div>
-        </motion.div>
-      </motion.div>
-    </AnimatePresence>
-  );
-}
-
-/* ════════════════════════════════════════════════════════════
-   COPY ID BUTTON
-════════════════════════════════════════════════════════════ */
-function CopyId({ id }) {
-  const [copied, setCopied] = useState(false);
-  const copy = (e) => {
-    e.stopPropagation();
-    navigator.clipboard.writeText(id).then(() => {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 1800);
-    });
-  };
-  return (
-    <button
-      onClick={copy}
-      className="flex items-center gap-1 text-[10px] px-2 py-1 rounded-lg transition-all"
-      style={{
-        background: copied ? "rgba(150,150,150,0.15)" : "hsl(var(--foreground) / 0.05)",
-        color: copied ? "hsl(var(--foreground))" : "hsl(var(--foreground) / 0.3)",
-        border: `0.5px solid ${copied ? "rgba(150,150,150,0.3)" : "hsl(var(--foreground) / 0.07)"}`,
-        fontFamily: "'JetBrains Mono', monospace",
-      }}
+    <motion.tr
+      initial={{ opacity: 0, x: -8 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ delay: idx * 0.05 + 0.4 }}
+      className="group border-b border-foreground/5 hover:bg-foreground/[0.02] transition-colors"
     >
-      {copied ? <Check className="w-2.5 h-2.5" /> : <Copy className="w-2.5 h-2.5" />}
-      {copied ? "Copied!" : id.slice(0, 14) + "…"}
-    </button>
+      <td className="py-3 px-4">
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" style={{ background: "rgba(150,150,150,0.08)", border: "0.5px solid rgba(150,150,150,0.12)" }}>
+            <Package className="w-3.5 h-3.5 text-foreground/60" />
+          </div>
+          <div>
+            <div className="text-sm font-semibold text-foreground" style={{ fontFamily: "'Inter', sans-serif" }}>
+              {product.title.length > 32 ? product.title.slice(0, 32) + "…" : product.title}
+            </div>
+            <div className="text-[10px] font-mono text-foreground/30">${product.price}/deploy</div>
+          </div>
+        </div>
+      </td>
+      <td className="py-3 px-4 text-center">
+        <span className="text-sm font-bold metric-num text-foreground/70" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+          {(Math.floor(Math.random() * 800) + 120).toLocaleString()}
+        </span>
+        <div className="text-[9px] text-foreground/30 font-mono">views</div>
+      </td>
+      <td className="py-3 px-4 text-center">
+        <span className="text-sm font-bold metric-num text-emerald-400" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+          {(Math.random() * 8 + 2).toFixed(1)}%
+        </span>
+        <div className="text-[9px] text-foreground/30 font-mono">CVR</div>
+      </td>
+      <td className="py-3 px-4 text-center">
+        <div className="flex items-center justify-center gap-0.5">
+          {[1,2,3,4,5].map(i => (
+            <Star key={i} className="w-3 h-3" style={{ color: i <= 4 ? "hsl(var(--foreground))" : "rgba(150,150,150,0.2)", fill: i <= 4 ? "hsl(var(--foreground))" : "none" }} />
+          ))}
+        </div>
+        <div className="text-[9px] text-foreground/30 font-mono mt-0.5">4.8 avg</div>
+      </td>
+      <td className="py-3 px-4 text-right">
+        <span className="text-sm font-bold metric-num" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+          ${(product.price * (Math.floor(Math.random() * 20) + 5)).toLocaleString()}
+        </span>
+        <div className="text-[9px] text-foreground/30 font-mono">revenue</div>
+      </td>
+      <td className="py-3 px-4 text-right">
+        <StatusBadge status={product.status === "APPROVED" ? "installed" : "pending"} />
+      </td>
+    </motion.tr>
   );
 }
 
-/* ════════════════════════════════════════════════════════════
-   LIVE ACTIVITY FEED
-════════════════════════════════════════════════════════════ */
-function ActivityFeed({ log }) {
-  const typeColor = {
-    install: "hsl(var(--foreground))",
-    api:     "hsl(var(--foreground))",
-    payment: "hsl(var(--foreground))",
-    order:   "hsl(var(--foreground))",
-    system:  "hsl(var(--foreground))",
-  };
-  const typeBg = {
-    install: "rgba(150,150,150,0.08)",
-    api:     "rgba(150,150,150,0.08)",
-    payment: "rgba(150,150,150,0.08)",
-    order:   "rgba(150,150,150,0.08)",
-    system:  "rgba(150,150,150,0.08)",
-  };
-
-  return (
-    <div className="frosted-panel h-full flex flex-col overflow-hidden">
-      <div className="px-5 py-4 flex items-center justify-between" style={{ borderBottom: "0.5px solid hsl(var(--foreground) / 0.05)" }}>
-        <div>
-          <h3 className="text-white font-bold text-sm" style={{ fontFamily: "Georgia, serif", letterSpacing: "-0.02em" }}>Live Stream</h3>
-          <p className="stat-label-caps mt-0.5">Events · Real-time</p>
-        </div>
-        <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full" style={{ background: "rgba(150,150,150,0.08)", border: "0.5px solid rgba(150,150,150,0.2)" }}>
-          <span className="w-1.5 h-1.5 rounded-full block" style={{ background: "hsl(var(--card))", animation: "orb-pulse-active 2.4s ease-in-out infinite" }} />
-          <span className="text-[10px] font-bold" style={{ color: "hsl(var(--foreground))", fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.08em" }}>LIVE</span>
-        </div>
-      </div>
-      <div className="flex-1 overflow-y-auto premium-scroll p-2">
-        {log.map((item, i) => (
-          <motion.div
-            key={i}
-            initial={{ opacity: 0, x: -8 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: i * 0.04 }}
-            className="live-feed-item"
-          >
-            <div
-              className="w-6 h-6 rounded-lg flex items-center justify-center flex-shrink-0"
-              style={{ background: typeBg[item.type] || "hsl(var(--foreground) / 0.05)" }}
-            >
-              <span className="w-1.5 h-1.5 rounded-full block" style={{ background: typeColor[item.type] || "#fff", boxShadow: `0 0 4px ${typeColor[item.type]}` }} />
-            </div>
-            <div className="flex-1 min-w-0">
-              <span className="text-xs block truncate" style={{ color: "hsl(var(--foreground) / 0.65)", fontFamily: "'Inter', sans-serif" }}>{item.event}</span>
-              <span className="text-[9px]" style={{ color: "hsl(var(--foreground) / 0.2)", fontFamily: "'JetBrains Mono', monospace" }}>{item.time}</span>
-            </div>
-          </motion.div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-/* ════════════════════════════════════════════════════════════
-   MAIN DASHBOARD
-════════════════════════════════════════════════════════════ */
+// ─── Main Dashboard ────────────────────────────────────────────────────────────
 export default function Dashboard() {
-  const [solutions,   setSolutions]   = useState([]);
-  const [orders,      setOrders]      = useState([]);
-  const [loading,     setLoading]     = useState(true);
-  const [compact,     setCompact]     = useState(false);
-  const [showConsole, setShowConsole] = useState(false);
-  const [chartMode,   setChartMode]   = useState(false);
-  const navigate = useNavigate();
+  const { user } = useAuth();
+  const [products, setProducts] = useState([]);
+  const [orders, setOrders] = useState([]);
+  const [reviews, setReviews] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [chartPeriod, setChartPeriod] = useState("30d");
+  const [refreshing, setRefreshing] = useState(false);
 
-  useEffect(() => {
-    setTimeout(() => {
-      setSolutions(MOCK_PRODUCTS);
-      setOrders(MOCK_ORDERS);
-      setLoading(false);
-    }, 400);
-  }, []);
+  const fetchData = async () => {
+    try {
+      const [prodRes, orderRes] = await Promise.all([
+        axios.get(`${API_URL}/products/my`).catch(() => ({ data: { data: [] } })),
+        axios.get(`${API_URL}/orders/my`).catch(() => ({ data: { data: [] } })),
+      ]);
+      setProducts(prodRes.data?.data || prodRes.data?.products || []);
+      setOrders(orderRes.data?.data || orderRes.data?.orders || []);
+    } catch (_) {}
+    setLoading(false);
+  };
 
-  const totalRevenue  = orders.filter((o) => o.status === "paid" || o.status === "installed").reduce((s, o) => s + (o.amount || 0), 0);
-  const totalInstalls = orders.filter((o) => o.status === "installed").length;
-  const totalPending  = orders.filter((o) => o.status === "pending").length;
+  useEffect(() => { fetchData(); }, []);
 
-  const stats = [
-    {
-      label: "Total Products",
-      value: solutions.length,
-      raw: solutions.length,
-      max: 10,
-      icon: Package,
-      color: "hsl(var(--foreground))",
-      bg: "rgba(150,150,150,0.06)",
-      sub: `${solutions.length}/10 published`,
-      sparkData: null,
-      trend: null,
-    },
-    {
-      label: "Revenue",
-      value: `$${totalRevenue}`,
-      raw: totalRevenue,
-      max: 200,
-      icon: DollarSign,
-      color: "hsl(var(--foreground))",
-      bg: "rgba(150,150,150,0.06)",
-      sub: "+12% this week",
-      sparkData: SPARKLINE_DATA,
-      trend: "+12%",
-    },
-    {
-      label: "Installs",
-      value: totalInstalls,
-      raw: totalInstalls,
-      max: 5,
-      icon: Download,
-      color: "hsl(var(--foreground))",
-      bg: "rgba(150,150,150,0.06)",
-      sub: "Active deployments",
-      sparkData: null,
-      trend: null,
-    },
-    {
-      label: "Pending Orders",
-      value: totalPending,
-      raw: totalPending,
-      max: 10,
-      icon: TrendingUp,
-      color: "hsl(var(--foreground))",
-      bg: "rgba(150,150,150,0.06)",
-      sub: "Awaiting action",
-      sparkData: null,
-      trend: null,
-    },
-    {
-      label: "Avg. Latency",
-      value: "24ms",
-      raw: 24,
-      max: 100,
-      icon: Zap,
-      color: "hsl(var(--foreground))",
-      bg: "rgba(150,150,150,0.06)",
-      sub: "Excellent response",
-      sparkData: [30, 28, 22, 25, 20, 24, 24],
-      trend: "−8%",
-    },
-  ];
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await fetchData();
+    setRefreshing(false);
+  };
+
+  // Computed metrics
+  const totalRevenue = orders.reduce((s, o) => s + (o.pricePaid || o.amount || 0), 0);
+  const revenueToday = orders.filter(o => {
+    const d = new Date(o.createdAt || Date.now());
+    return d.toDateString() === new Date().toDateString();
+  }).reduce((s, o) => s + (o.pricePaid || o.amount || 0), 0);
+  const pendingOrders = orders.filter(o => ["PENDING", "CONFIG_REQUESTED"].includes(o.status));
+  const deploymentSuccess = orders.length ? Math.round((orders.filter(o => o.status === "COMPLETED").length / orders.length) * 100) : 97;
+  const activeProducts = products.filter(p => p.status === "APPROVED").length;
+
+  const SPARK = [42, 58, 51, 78, 64, 91, 88, 102, 97, 115, 108, 127];
 
   if (loading) {
     return (
-      <div className="p-6 sm:p-8 max-w-6xl page-fade-in">
-        <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 mb-8">
-          {[1,2,3,4,5].map((i) => (
-            <div key={i} className="skeleton-beam rounded-2xl" style={{ height: 120 }} />
-          ))}
+      <div className="p-6 sm:p-8 max-w-6xl page-fade-in space-y-4">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          {[1,2,3,4].map(i => <Skeleton key={i} h={120} />)}
         </div>
-        <div className="skeleton-beam rounded-2xl" style={{ height: 320 }} />
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          <div className="lg:col-span-2"><Skeleton h={340} /></div>
+          <Skeleton h={340} />
+        </div>
       </div>
     );
   }
 
   return (
-    <div className={`${compact ? "p-4 sm:p-5" : "p-6 sm:p-8"} max-w-6xl page-fade-in`}>
+    <div className="p-6 sm:p-8 max-w-6xl page-fade-in">
 
       {/* ── Header ── */}
-      <div className="mb-8">
-        <div className="stat-label-caps mb-2">Developer Command Center</div>
-        <h1
-          className="text-white font-bold text-2xl sm:text-3xl section-title-gradient"
-          style={{ fontFamily: "Georgia, serif", letterSpacing: "-0.04em", lineHeight: 1.1 }}
+      <div className="mb-8 flex items-start justify-between gap-4">
+        <div>
+          <div className="stat-label-caps mb-2">Developer Command Center · {new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" })}</div>
+          <h1 className="text-white font-bold text-2xl sm:text-3xl section-title-gradient" style={{ fontFamily: "Georgia, serif", letterSpacing: "-0.04em" }}>
+            Revenue Dashboard
+          </h1>
+          <p className="text-sm mt-1.5" style={{ color: "hsl(var(--foreground) / 0.35)", fontFamily: "'Inter', sans-serif" }}>
+            Real-time overview of your Deployra marketplace performance
+          </p>
+        </div>
+        <button
+          onClick={handleRefresh}
+          disabled={refreshing}
+          className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold border border-foreground/10 text-foreground/50 hover:text-foreground hover:bg-foreground/5 transition-all disabled:opacity-40"
         >
-          Dashboard
-        </h1>
-        <p className="text-sm mt-2" style={{ color: "hsl(var(--foreground) / 0.35)", fontFamily: "'Inter', sans-serif" }}>
-          Real-time overview of your products and revenue
-        </p>
+          <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? "animate-spin" : ""}`} />
+          Refresh
+        </button>
       </div>
 
       {/* ── Stat Cards ── */}
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 mb-6">
-        {stats.map((s, i) => (
-          <motion.div
-            key={s.label}
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: i * 0.08, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-            className={`premium-stat-card ${compact ? "p-4" : "p-5"} cursor-pointer`}
-            style={{
-              background: "white",
-              border: "0.5px solid rgba(0,0,0,0.08)",
-            }}
-            whileHover={{ y: -5, boxShadow: "0 8px 32px rgba(0,0,0,0.1)" }}
-            onClick={() => s.label === "Revenue" && setChartMode((p) => !p)}
-          >
-            <div className="flex items-start justify-between mb-3 relative z-10">
-              <div
-                className="w-9 h-9 rounded-xl flex items-center justify-center"
-                style={{ background: "rgba(0,0,0,0.05)", border: "0.5px solid rgba(0,0,0,0.1)" }}
-              >
-                <s.icon className="w-4 h-4" style={{ color: "rgba(0,0,0,0.6)" }} />
-              </div>
-              {s.sparkData ? (
-                <Sparkline data={s.sparkData} color="rgba(0,0,0,0.5)" />
-              ) : s.trend ? (
-                <span className="trend-chip-up" style={{ background: "rgba(0,0,0,0.05)", color: "rgba(0,0,0,0.6)", border: "0.5px solid rgba(0,0,0,0.1)" }}>{s.trend}</span>
-              ) : null}
-            </div>
-
-            <div className="relative z-10">
-              <div
-                className={`font-bold metric-num mb-0.5 ${compact ? "text-xl" : "text-2xl"}`}
-                style={{ color: "hsl(0,0%,8%)" }}
-              >
-                {s.value}
-              </div>
-              <div className="text-xs font-medium" style={{ color: "rgba(0,0,0,0.65)", fontFamily: "'Inter', sans-serif" }}>
-                {s.label}
-              </div>
-              {!compact && (
-                <div className="stat-label-caps mt-1">{s.sub}</div>
-              )}
-            </div>
-          </motion.div>
-        ))}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+        <StatCard label="Revenue Today"       value={`$${revenueToday.toLocaleString()}`}  sub="Live today"         icon={DollarSign}  trend="+18%" trendUp delay={0.00} />
+        <StatCard label="Monthly Revenue"     value={`$${totalRevenue.toLocaleString()}`}   sub="This billing cycle" icon={TrendingUp}   sparkData={SPARK} delay={0.06} />
+        <StatCard label="Active Products"     value={activeProducts || products.length}      sub={`${products.length} total listed`} icon={Package} trend="+2" trendUp delay={0.12} />
+        <StatCard label="Pending Orders"      value={pendingOrders.length}                   sub="Awaiting action"    icon={ShoppingBag} trend={pendingOrders.length > 3 ? "High" : "Low"} trendUp={false} delay={0.18} />
       </div>
 
-      {/* ── Marketplace Rank Widget ── */}
-      {!compact && (
+      {/* ── Secondary Metrics ── */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+        <StatCard label="Deployment Success"  value={`${deploymentSuccess}%`}  sub="Success rate"      icon={Zap}    trend="+2.4%" trendUp delay={0.24} />
+        <StatCard label="Marketplace Rank"    value="#12"                        sub="Global ranking"    icon={Award}  trend="↑5"   trendUp delay={0.30} />
+        <StatCard label="Repeat Customers"    value="38%"                        sub="Retention rate"    icon={Repeat} trend="+6%"  trendUp delay={0.36} />
+        <StatCard label="Avg Review Score"    value="4.8"                        sub="From all reviews"  icon={Star}   sparkData={[4.5,4.6,4.7,4.7,4.8,4.8]} delay={0.42} />
+      </div>
+
+      {/* ── Marketplace Rank Banner ── */}
+      <motion.div
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.5 }}
+        className="frosted-panel p-4 mb-6 flex items-center gap-4"
+      >
+        <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: "rgba(150,150,150,0.1)", border: "0.5px solid rgba(150,150,150,0.2)" }}>
+          <Target className="w-5 h-5 text-foreground" />
+        </div>
+        <div className="flex-1">
+          <div className="flex items-center gap-2 mb-0.5">
+            <span className="text-white font-semibold text-sm">Marketplace Standing</span>
+            <span className="premium-badge premium-badge-monochrome">Top 5%</span>
+          </div>
+          <p className="text-xs" style={{ color: "hsl(var(--foreground) / 0.35)" }}>
+            Your products rank in the <strong className="text-foreground">Top 5%</strong> of all Deployra developers. Conversion rate is <strong className="text-foreground">3.2×</strong> above average.
+          </p>
+        </div>
+        <ChevronRight className="w-4 h-4 text-foreground/15 shrink-0" />
+      </motion.div>
+
+      {/* ── Main Two-Column ── */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-8">
+
+        {/* Revenue Chart */}
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.5, duration: 0.4 }}
-          className="frosted-panel p-4 mb-5 flex items-center gap-4"
+          transition={{ delay: 0.55 }}
+          className="lg:col-span-2 frosted-panel p-5"
         >
-          <div
-            className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
-            style={{ background: "rgba(150,150,150,0.12)", border: "0.5px solid rgba(150,150,150,0.25)" }}
-          >
-            <Award className="w-5 h-5" style={{ color: "hsl(var(--foreground))" }} />
-          </div>
-          <div className="flex-1">
-            <div className="flex items-center gap-2 mb-0.5">
-              <span className="text-white font-semibold text-sm" style={{ fontFamily: "'Inter', sans-serif" }}>
-                Marketplace Rank
-              </span>
-              <span className="premium-badge premium-badge-monochrome">Automation</span>
+          <div className="flex items-center justify-between mb-5" style={{ borderBottom: "0.5px solid hsl(var(--foreground) / 0.05)", paddingBottom: "1rem" }}>
+            <div>
+              <h2 className="text-white font-bold text-sm" style={{ fontFamily: "Georgia, serif" }}>Revenue Trend</h2>
+              <p className="stat-label-caps mt-0.5">Platform earnings over time</p>
             </div>
-            <div className="text-xs" style={{ color: "hsl(var(--foreground) / 0.35)", fontFamily: "'Inter', sans-serif" }}>
-              Your top product ranks <strong style={{ color: "hsl(var(--foreground))" }}>#3</strong> in Automation · Top 15% of all developers
+            <div className="flex items-center gap-1">
+              {["7d","30d","90d"].map(p => (
+                <button
+                  key={p}
+                  onClick={() => setChartPeriod(p)}
+                  className={`px-2.5 py-1 rounded-lg text-[10px] font-bold transition-all ${chartPeriod === p ? "bg-foreground/10 text-foreground border border-foreground/15" : "text-foreground/30 hover:text-foreground/60"}`}
+                  style={{ fontFamily: "'JetBrains Mono', monospace" }}
+                >
+                  {p}
+                </button>
+              ))}
             </div>
           </div>
-          <div className="text-right flex-shrink-0">
-            <div className="text-2xl font-bold metric-num" style={{ color: "hsl(var(--foreground))", fontFamily: "Georgia, serif" }}>#3</div>
-            <div className="stat-label-caps">Global Rank</div>
+          <div style={{ height: 220 }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={MONTHLY_DATA} margin={{ top: 4, right: 4, bottom: 0, left: -10 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--foreground) / 0.05)" vertical={false} />
+                <XAxis dataKey="month" tick={{ fontSize: 11, fill: "hsl(var(--foreground) / 0.35)", fontFamily: "'JetBrains Mono', monospace" }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fontSize: 11, fill: "hsl(var(--foreground) / 0.35)", fontFamily: "'JetBrains Mono', monospace" }} axisLine={false} tickLine={false} tickFormatter={v => `$${(v/1000).toFixed(0)}k`} />
+                <Tooltip
+                  contentStyle={{ background: "rgba(0,0,0,0.95)", color: "#fff", border: "0.5px solid rgba(150,150,150,0.2)", borderRadius: "10px", fontSize: "12px", fontFamily: "'JetBrains Mono', monospace", boxShadow: "0 8px 32px rgba(0,0,0,0.8)" }}
+                  formatter={v => [`$${v.toLocaleString()}`, "Revenue"]}
+                />
+                <defs>
+                  <linearGradient id="barGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="hsl(var(--foreground))" stopOpacity={0.9} />
+                    <stop offset="100%" stopColor="hsl(var(--foreground))" stopOpacity={0.4} />
+                  </linearGradient>
+                </defs>
+                <Bar dataKey="revenue" fill="url(#barGrad)" radius={[5, 5, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
           </div>
-          <ChevronRight className="w-4 h-4 flex-shrink-0" style={{ color: "hsl(var(--foreground) / 0.15)" }} />
         </motion.div>
-      )}
 
-      {/* ── Main Two-Column Area ── */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-
-        {/* Recent Orders — 2/3 width */}
-        <div className="lg:col-span-2">
-          <AnimatePresence mode="wait">
-            {chartMode ? (
-              <motion.div
-                key="chart"
-                initial={{ opacity: 0, scale: 0.97 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.97 }}
-                transition={{ duration: 0.35, ease: [0.16,1,0.3,1] }}
-                className="frosted-panel overflow-hidden"
-              >
-                <div className="px-6 py-4 flex items-center justify-between" style={{ borderBottom: "0.5px solid hsl(var(--foreground) / 0.05)" }}>
-                  <div>
-                    <h2 className="text-white font-bold" style={{ fontFamily: "Georgia, serif", letterSpacing: "-0.02em" }}>Revenue — 7 Day</h2>
-                    <p className="stat-label-caps mt-0.5">Weekly breakdown</p>
+        {/* Recent Reviews */}
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.6 }}
+          className="frosted-panel p-5"
+        >
+          <div className="flex items-center justify-between mb-4" style={{ borderBottom: "0.5px solid hsl(var(--foreground) / 0.05)", paddingBottom: "0.75rem" }}>
+            <h2 className="text-white font-bold text-sm" style={{ fontFamily: "Georgia, serif" }}>Recent Reviews</h2>
+            <span className="premium-badge premium-badge-monochrome">Live</span>
+          </div>
+          <div className="space-y-3">
+            {[
+              { name: "Sarah M.", product: "AI Support Agent", rating: 5, comment: "Deployed in under 10 minutes. Incredible ROI immediately.", time: "2h ago" },
+              { name: "Tech Corp", product: "Data Extractor",  rating: 4, comment: "Reliable extraction. Solid documentation.", time: "5h ago" },
+              { name: "VC Fund",   product: "Analytics Suite", rating: 5, comment: "Best enterprise tool on Deployra. Period.", time: "1d ago" },
+            ].map((r, i) => (
+              <div key={i} className="p-3 rounded-xl" style={{ background: "hsl(var(--foreground) / 0.03)", border: "0.5px solid hsl(var(--foreground) / 0.06)" }}>
+                <div className="flex items-center justify-between mb-1.5">
+                  <div className="flex items-center gap-1.5">
+                    <div className="w-6 h-6 rounded-full flex items-center justify-center text-[9px] font-black text-background bg-foreground shrink-0">
+                      {r.name[0]}
+                    </div>
+                    <span className="text-xs font-semibold text-foreground">{r.name}</span>
                   </div>
-                  <button
-                    onClick={() => setChartMode(false)}
-                    className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg transition-all"
-                    style={{ background: "hsl(var(--foreground) / 0.04)", color: "hsl(var(--foreground) / 0.4)", fontFamily: "'Inter', sans-serif", border: "0.5px solid hsl(var(--foreground) / 0.07)" }}
-                  >
-                    ← Orders
-                  </button>
-                </div>
-                <div className="p-6">
-                  <div className="flex items-end gap-2 justify-between h-36">
-                    {SPARKLINE_DATA.map((v, i) => {
-                      const maxV = Math.max(...SPARKLINE_DATA);
-                      const h = (v / maxV) * 100;
-                      const days = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
-                      const isLast = i === SPARKLINE_DATA.length - 1;
-                      return (
-                        <div key={i} className="flex-1 flex flex-col items-center gap-1.5">
-                          <span className="text-xs font-bold metric-num" style={{ color: isLast ? "hsl(var(--foreground))" : "hsl(var(--foreground) / 0.4)", fontFamily: "'JetBrains Mono', monospace" }}>
-                            ${v}
-                          </span>
-                          <motion.div
-                            className="w-full rounded-t-lg"
-                            style={{
-                              background: isLast
-                                ? "linear-gradient(180deg, hsl(var(--foreground)), hsl(var(--foreground)))"
-                                : "rgba(150,150,150,0.18)",
-                              boxShadow: isLast ? "0 0 16px rgba(150,150,150,0.4)" : "none",
-                            }}
-                            initial={{ height: 0 }}
-                            animate={{ height: `${h}%` }}
-                            transition={{ delay: i * 0.06, duration: 0.5, ease: [0.16,1,0.3,1] }}
-                          />
-                          <span className="text-[10px]" style={{ color: "hsl(var(--foreground) / 0.25)", fontFamily: "'Inter', sans-serif" }}>{days[i]}</span>
-                        </div>
-                      );
-                    })}
+                  <div className="flex items-center gap-0.5">
+                    {[1,2,3,4,5].map(s => (
+                      <Star key={s} className="w-2.5 h-2.5" style={{ color: s <= r.rating ? "hsl(var(--foreground))" : "rgba(150,150,150,0.15)", fill: s <= r.rating ? "hsl(var(--foreground))" : "none" }} />
+                    ))}
                   </div>
                 </div>
-              </motion.div>
-            ) : (
-              <motion.div
-                key="orders"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                transition={{ duration: 0.35, ease: [0.16,1,0.3,1] }}
-                className="frosted-panel overflow-hidden"
-              >
-                <div className="px-6 py-4 flex items-center justify-between" style={{ borderBottom: "0.5px solid hsl(var(--foreground) / 0.05)" }}>
-                  <div>
-                    <h2 className="text-white font-bold" style={{ fontFamily: "Georgia, serif", letterSpacing: "-0.02em" }}>Recent Orders</h2>
-                    <p className="stat-label-caps mt-0.5">Click Revenue card for chart view</p>
-                  </div>
-                  <span className="premium-badge premium-badge-monochrome">{orders.length} total</span>
+                <p className="text-[11px] text-foreground/60 leading-relaxed mb-1" style={{ fontFamily: "'Inter', sans-serif" }}>
+                  "{r.comment}"
+                </p>
+                <div className="flex items-center justify-between">
+                  <span className="text-[9px] text-foreground/25 font-mono">{r.product}</span>
+                  <span className="text-[9px] text-foreground/25 font-mono">{r.time}</span>
                 </div>
-
-                {orders.length === 0 ? (
-                  <div className="p-12 text-center">
-                    <p className="text-white/30 text-sm" style={{ fontFamily: "'JetBrains Mono', monospace" }}>No orders yet</p>
-                  </div>
-                ) : (
-                  <div className="w-full overflow-x-auto">
-                    <table className="premium-table w-full min-w-[600px]">
-                      <thead>
-                        <tr>
-                          <th className="text-left">Product</th>
-                          <th className="text-left">Customer</th>
-                          <th className="text-left">Time</th>
-                          <th className="text-right">Amount</th>
-                          <th className="text-right">Status</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                      {orders.slice(0, compact ? 8 : 5).map((o, i) => (
-                        <motion.tr
-                          key={o.id}
-                          initial={{ opacity: 0, y: 8 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ delay: i * 0.05 + 0.3, duration: 0.4 }}
-                          className="group"
-                        >
-                          <td>
-                            <div className="font-medium text-white" style={{ fontFamily: "'Inter', sans-serif" }}>
-                              {o.product_title.length > 28 ? o.product_title.slice(0,28) + "…" : o.product_title}
-                            </div>
-                            <span className="opacity-0 group-hover:opacity-100 transition-opacity">
-                              <CopyId id={o.id} />
-                            </span>
-                          </td>
-                          <td>
-                            <span style={{ color: "hsl(var(--foreground) / 0.35)", fontFamily: "'JetBrains Mono', monospace", fontSize: "0.72rem" }}>{o.customer_email}</span>
-                          </td>
-                          <td>
-                            <span style={{ color: "hsl(var(--foreground) / 0.25)", fontFamily: "'JetBrains Mono', monospace", fontSize: "0.72rem" }}>{o.time}</span>
-                          </td>
-                          <td className="text-right">
-                            <span className="text-white font-bold metric-num" style={{ fontFamily: "'JetBrains Mono', monospace" }}>${o.amount}</span>
-                          </td>
-                          <td className="text-right">
-                            <StatusBadge status={o.status} />
-                          </td>
-                        </motion.tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
-
-        {/* Activity Feed — 1/3 width */}
-        <div className="lg:col-span-1" style={{ minHeight: 400 }}>
-          <ActivityFeed log={ACTIVITY_LOG} />
-        </div>
-      </div>
-
-      {/* Dev Console Modal */}
-      {showConsole && <DevConsole onClose={() => setShowConsole(false)} />}
-
-      {/* ══════════════════════════════════════════════
-          ANALYTICS SECTION — Revenue & Installs
-      ══════════════════════════════════════════════ */}
-      <div className="mt-8">
-        {/* Section header */}
-        <div className="flex items-center gap-3 mb-5">
-          <div className="stat-label-caps">Analytics Overview</div>
-          <div className="flex-1 h-px" style={{ background: "rgba(0,0,0,0.07)" }} />
-        </div>
-
-        {/* Summary stat cards */}
-        <div className="grid grid-cols-3 gap-4 mb-6">
-          {[
-            { label: "Total Revenue", value: `$${orders.filter(o => o.status === "paid" || o.status === "installed").reduce((s,o) => s + (o.amount||0), 0).toLocaleString()}` },
-            { label: "Total Orders",  value: orders.length },
-            { label: "Conversion Rate", value: orders.length > 0 ? `${Math.round((orders.filter(o => o.status==="paid"||o.status==="installed").length / orders.length) * 100)}%` : "0%" },
-          ].map((s, i) => (
-            <motion.div
-              key={s.label}
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.06 + 0.2 }}
-              className="premium-stat-card p-5"
-              style={{ background: "white", border: "0.5px solid rgba(0,0,0,0.08)" }}
-            >
-              <div className="stat-label-caps mb-2">{s.label}</div>
-              <div className="text-2xl font-bold metric-num" style={{ color: "hsl(0,0%,8%)", fontFamily: "Georgia, serif", letterSpacing: "-0.03em" }}>
-                {s.value}
               </div>
-            </motion.div>
-          ))}
-        </div>
-
-        {/* Charts */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-          {/* Revenue Bar Chart */}
-          <div className="frosted-panel p-5">
-            <h3 className="font-bold mb-4" style={{ fontFamily: "Georgia, serif", fontSize: "0.9rem", color: "hsl(0,0%,8%)" }}>
-              Revenue — 6 Month
-            </h3>
-            <div style={{ height: 200 }}>
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={MONTHLY_DATA} margin={{ top: 4, right: 4, bottom: 0, left: -10 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,0.06)" />
-                  <XAxis dataKey="month" tick={{ fontSize: 11, fill: "rgba(0,0,0,0.4)" }} axisLine={false} tickLine={false} />
-                  <YAxis tick={{ fontSize: 11, fill: "rgba(0,0,0,0.4)" }} axisLine={false} tickLine={false} />
-                  <Tooltip
-                    contentStyle={{ background: "#fff", color: "#111", border: "0.5px solid rgba(0,0,0,0.12)", borderRadius: "10px", fontSize: "12px", fontWeight: 600, boxShadow: "0 4px 16px rgba(0,0,0,0.1)" }}
-                    formatter={(v) => [`$${v.toLocaleString()}`, "Revenue"]}
-                  />
-                  <defs>
-                    <linearGradient id="revGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="hsl(var(--foreground))" stopOpacity={0.85} />
-                      <stop offset="100%" stopColor="hsl(var(--foreground))" stopOpacity={0.5} />
-                    </linearGradient>
-                  </defs>
-                  <Bar dataKey="revenue" fill="url(#revGrad)" radius={[5, 5, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
+            ))}
           </div>
-
-          {/* Installs Line Chart */}
-          <div className="frosted-panel p-5">
-            <h3 className="font-bold mb-4" style={{ fontFamily: "Georgia, serif", fontSize: "0.9rem", color: "hsl(0,0%,8%)" }}>
-              Installs — 6 Month
-            </h3>
-            <div style={{ height: 200 }}>
-              <AnimatedLineChart data={MONTHLY_DATA} />
-            </div>
-          </div>
-        </div>
+        </motion.div>
       </div>
+
+      {/* ── Product Performance Table ── */}
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.65 }}
+        className="frosted-panel overflow-hidden mb-6"
+      >
+        <div className="px-5 py-4 flex items-center justify-between" style={{ borderBottom: "0.5px solid hsl(var(--foreground) / 0.05)" }}>
+          <div>
+            <h2 className="text-white font-bold text-sm" style={{ fontFamily: "Georgia, serif" }}>Product Performance</h2>
+            <p className="stat-label-caps mt-0.5">Conversions, views, and revenue per listing</p>
+          </div>
+          <span className="premium-badge premium-badge-monochrome">{products.length} listings</span>
+        </div>
+        {products.length === 0 ? (
+          <div className="p-12 text-center">
+            <Package className="w-10 h-10 mx-auto mb-3 text-foreground/15" />
+            <p className="text-sm font-semibold text-foreground/40" style={{ fontFamily: "'Inter', sans-serif" }}>No products published yet</p>
+            <p className="text-xs text-foreground/25 mt-1">Publish your first deployable system to see performance data.</p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[700px]">
+              <thead>
+                <tr style={{ borderBottom: "0.5px solid hsl(var(--foreground) / 0.06)" }}>
+                  {["Product", "Views", "Conversion", "Rating", "Revenue", "Status"].map((h, i) => (
+                    <th key={h} className={`py-3 px-4 text-[10px] font-bold uppercase tracking-widest text-foreground/30 ${i > 0 ? "text-center" : "text-left"} ${i === 5 ? "text-right" : ""}`} style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+                      {h}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {products.slice(0, 6).map((p, i) => <ProductRow key={p.id} product={p} idx={i} />)}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </motion.div>
+
+      {/* ── Recent Orders ── */}
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.7 }}
+        className="frosted-panel overflow-hidden"
+      >
+        <div className="px-5 py-4 flex items-center justify-between" style={{ borderBottom: "0.5px solid hsl(var(--foreground) / 0.05)" }}>
+          <div>
+            <h2 className="text-white font-bold text-sm" style={{ fontFamily: "Georgia, serif" }}>Recent Orders</h2>
+            <p className="stat-label-caps mt-0.5">Latest marketplace activity</p>
+          </div>
+          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full" style={{ background: "rgba(150,150,150,0.08)", border: "0.5px solid rgba(150,150,150,0.2)" }}>
+            <span className="w-1.5 h-1.5 rounded-full bg-foreground animate-pulse" />
+            <span className="text-[10px] font-bold text-foreground" style={{ fontFamily: "'JetBrains Mono', monospace" }}>LIVE</span>
+          </div>
+        </div>
+        {orders.length === 0 ? (
+          <div className="p-12 text-center">
+            <ShoppingBag className="w-10 h-10 mx-auto mb-3 text-foreground/15" />
+            <p className="text-sm font-semibold text-foreground/40">No orders yet</p>
+            <p className="text-xs text-foreground/25 mt-1">Orders will appear here when businesses purchase your products.</p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="premium-table w-full min-w-[600px]">
+              <thead>
+                <tr>
+                  <th className="text-left">Order</th>
+                  <th className="text-left">Product</th>
+                  <th className="text-left">Client</th>
+                  <th className="text-right">Amount</th>
+                  <th className="text-right">Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {orders.slice(0, 8).map((o, i) => (
+                  <motion.tr key={o.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.04 + 0.7 }} className="group">
+                    <td>
+                      <span className="text-[10px] font-mono text-foreground/30">{o.id?.slice(0, 12)}…</span>
+                    </td>
+                    <td>
+                      <span className="text-sm font-medium text-foreground">{o.product?.title?.slice(0, 28) || "Product"}</span>
+                    </td>
+                    <td>
+                      <span className="text-[11px] font-mono text-foreground/40">{o.user?.email || o.details || "—"}</span>
+                    </td>
+                    <td className="text-right">
+                      <span className="font-bold text-sm metric-num" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+                        ${(o.pricePaid || o.amount || o.product?.price || 0).toFixed(0)}
+                      </span>
+                    </td>
+                    <td className="text-right">
+                      <StatusBadge status={o.status || "PENDING"} />
+                    </td>
+                  </motion.tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </motion.div>
     </div>
   );
 }

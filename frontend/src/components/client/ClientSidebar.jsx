@@ -1,31 +1,49 @@
 import { Link, useLocation } from "react-router-dom";
 import {
-  History, ListTodo, Users, Heart, MessageSquare,
-  CreditCard, ArrowLeft, Puzzle, Crown
+  LayoutDashboard, ShoppingBag, Rocket, DollarSign, Search,
+  Heart, MessageSquare, CreditCard, ArrowLeft, Users,
+  HeadphonesIcon, FileText, Layers, Building2, Settings,
+  Globe, Shield
 } from "lucide-react";
 import { useRef } from "react";
 
 const NAV_GROUPS = [
   {
-    label: "Overview",
+    label: "Operations",
     items: [
-      { path: "/client",              label: "Command Overview", icon: History,       hint: "Dashboard home" },
-      { path: "/client/orders",       label: "Order Management", icon: ListTodo,      hint: "Track projects" },
+      { path: "/client",              label: "Business Dashboard",  icon: LayoutDashboard },
+      { path: "/client/orders",       label: "Order Lifecycle",     icon: ShoppingBag     },
+      { path: "/client/deployments",  label: "Deployments",         icon: Rocket          },
+      { path: "/client/escrow",       label: "Escrow Tracker",      icon: Shield          },
     ],
   },
   {
-    label: "Connect",
+    label: "Marketplace",
     items: [
-      { path: "/client/hire",         label: "Dev Direct",       icon: Users,         hint: "Hire developers" },
-      { path: "/client/integrations", label: "Integrations",     icon: Puzzle,        hint: "Connect apps", badge: "NEW" },
-      { path: "/client/messages",     label: "Messages",         icon: MessageSquare, hint: "Chat" },
+      { path: "/client/marketplace",  label: "Discover Products",  icon: Search          },
+      { path: "/client/saved",        label: "Saved & Watchlists", icon: Heart           },
+      { path: "/client/hire",         label: "Dev Direct",         icon: Users           },
+    ],
+  },
+  {
+    label: "Communication",
+    items: [
+      { path: "/client/messages",     label: "Inbox",              icon: MessageSquare   },
+      { path: "/client/support",      label: "Support Tickets",    icon: HeadphonesIcon  },
+    ],
+  },
+  {
+    label: "Finance",
+    items: [
+      { path: "/client/billing",      label: "Billing Dashboard",  icon: CreditCard      },
+      { path: "/client/invoices",     label: "Invoice Center",     icon: FileText        },
     ],
   },
   {
     label: "Account",
     items: [
-      { path: "/client/wishlist",     label: "Wishlist",         icon: Heart,         hint: "Saved items" },
-      { path: "/client/billing",      label: "Billing & Wallet", icon: CreditCard,    hint: "Payments" },
+      { path: "/client/team",         label: "Team Management",    icon: Building2       },
+      { path: "/client/integrations", label: "Integrations",       icon: Layers, badge: "NEW" },
     ],
   },
 ];
@@ -58,20 +76,13 @@ function MagneticNavItem({ item, isActive }) {
         isActive ? "text-foreground" : "text-foreground/60 hover:text-foreground/90"
       }`}
       style={{
-        background: isActive
-          ? "rgba(150,150,150,0.08)"
-          : "transparent",
+        background: isActive ? "rgba(150,150,150,0.08)" : "transparent",
         boxShadow: isActive ? "inset 0 0 0 0.5px rgba(150,150,150,0.15)" : "none",
       }}
     >
-      {/* Active accent pill */}
       {isActive && (
-        <span
-          className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-4 rounded-r-full bg-foreground"
-        />
+        <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-4 rounded-r-full bg-foreground" />
       )}
-
-      {/* Hover bg */}
       {!isActive && (
         <span
           className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-200"
@@ -80,19 +91,14 @@ function MagneticNavItem({ item, isActive }) {
       )}
 
       <span ref={ref} className="magnetic-icon relative z-10">
-        <item.icon
-          className={`w-4 h-4 ${isActive ? 'text-foreground' : 'text-inherit'}`}
-        />
+        <item.icon className={`w-4 h-4 ${isActive ? 'text-foreground' : 'text-inherit'}`} />
       </span>
       <span className="relative z-10 flex-1" style={{ fontFamily: "'Inter', sans-serif", letterSpacing: "0.01em", fontSize: "0.8125rem" }}>
         {item.label}
       </span>
 
-      {/* Badge */}
       {item.badge && (
-        <span
-          className="ml-auto relative z-10 border border-foreground/20 text-foreground bg-foreground/5 rounded font-mono text-[10px] font-bold tracking-widest px-1.5 py-0.5 uppercase"
-        >
+        <span className="ml-auto relative z-10 border border-foreground/20 text-foreground bg-foreground/5 rounded font-mono text-[10px] font-bold tracking-widest px-1.5 py-0.5 uppercase">
           {item.badge}
         </span>
       )}
@@ -100,7 +106,7 @@ function MagneticNavItem({ item, isActive }) {
   );
 }
 
-export default function ClientSidebar({ vipMode, onVipToggle }) {
+export default function ClientSidebar() {
   const location = useLocation();
 
   return (
@@ -120,30 +126,18 @@ export default function ClientSidebar({ vipMode, onVipToggle }) {
         </Link>
 
         <div className="flex items-center gap-3">
-            <div
-              className="logo-mark w-10 h-10 rounded-xl flex items-center justify-center bg-foreground text-background"
-            >
-              <span
-                className="font-bold text-sm relative z-10"
-                style={{ fontFamily: "Georgia, serif" }}
-              >
-                C
-              </span>
-            </div>
-            <div>
-              <span
-                className="text-foreground font-bold text-sm block"
-                style={{ fontFamily: "Georgia, serif", letterSpacing: "-0.03em" }}
-              >
-                Client Hub
-              </span>
-              <span
-                className="block text-foreground/50 font-mono text-[9px] tracking-widest uppercase"
-              >
-                Command Center
-              </span>
-            </div>
+          <div className="logo-mark w-10 h-10 rounded-xl flex items-center justify-center bg-foreground text-background">
+            <Globe className="w-5 h-5" />
           </div>
+          <div>
+            <span className="text-foreground font-bold text-sm block" style={{ fontFamily: "Georgia, serif", letterSpacing: "-0.03em" }}>
+              Business Hub
+            </span>
+            <span className="block text-foreground/50 font-mono text-[9px] tracking-widest uppercase">
+              Operations Center
+            </span>
+          </div>
+        </div>
       </div>
 
       {/* Navigation */}
@@ -156,7 +150,11 @@ export default function ClientSidebar({ vipMode, onVipToggle }) {
                 <MagneticNavItem
                   key={item.path}
                   item={item}
-                  isActive={location.pathname === item.path}
+                  isActive={
+                    item.path === "/client"
+                      ? location.pathname === "/client"
+                      : location.pathname.startsWith(item.path)
+                  }
                 />
               ))}
             </div>
@@ -164,29 +162,15 @@ export default function ClientSidebar({ vipMode, onVipToggle }) {
         ))}
       </nav>
 
-      {/* Bottom — Dashboard Mode Switcher + VIP Toggle */}
-      <div className="border-t border-border p-4 space-y-3">
-        <button
-          onClick={onVipToggle}
-          className={`w-full flex items-center gap-3 px-3.5 py-3 rounded-xl transition-all group border ${vipMode ? 'bg-foreground/5 border-foreground/30' : 'border-transparent hover:bg-foreground/5'}`}
+      {/* Bottom */}
+      <div className="border-t border-border p-4 space-y-2">
+        <Link
+          to="/settings"
+          className="w-full flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl transition-all text-foreground/50 hover:text-foreground hover:bg-foreground/5"
         >
-          <Crown
-            className={`w-4 h-4 transition-transform group-hover:scale-110 flex-shrink-0 ${vipMode ? 'text-foreground' : 'text-foreground/30'}`}
-          />
-          <div className="text-left flex-1 min-w-0">
-            <div className={`text-xs font-semibold tracking-wide ${vipMode ? 'text-foreground' : 'text-foreground/50'}`}>
-              VIP Priority
-            </div>
-            <div className="text-[10px] text-foreground/30">
-              {vipMode ? "Gold mode active" : "Toggle for gold mode"}
-            </div>
-          </div>
-          <div
-            className={`ml-auto w-8 h-4 rounded-full border transition-colors flex items-center p-0.5 ${vipMode ? 'bg-foreground/20 border-foreground/30' : 'bg-transparent border-foreground/20'}`}
-          >
-             <div className={`w-3 h-3 rounded-full transition-transform ${vipMode ? 'bg-foreground translate-x-4' : 'bg-foreground/30 translate-x-0'}`} />
-          </div>
-        </button>
+          <Settings className="w-4 h-4" />
+          <span className="text-xs font-medium" style={{ fontFamily: "'Inter', sans-serif" }}>Settings</span>
+        </Link>
       </div>
     </aside>
   );
