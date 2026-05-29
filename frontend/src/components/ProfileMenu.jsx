@@ -514,13 +514,11 @@ export default function ProfileMenu() {
               <AccordionGroup title="Account & Security" icon={Shield} isOpen={activeAccordion === 'sec'} onToggle={() => toggleAccordion('sec')} isDark={isDark}>
                 <DropdownItem icon={Settings} label="Account Settings" to="/settings?tab=profile" isDark={isDark} onClose={close} />
                 <DropdownItem icon={Shield} label="Security Settings" to="/settings?tab=security" isDark={isDark} onClose={close} />
-                <DropdownItem icon={KeyRound} label="Change Password" to="/settings?tab=security" isDark={isDark} onClose={close} />
-                <DropdownItem icon={Smartphone} label="Sessions & Devices" to="/settings?tab=security" isDark={isDark} onClose={close} />
-                <DropdownItem icon={Fingerprint} label="Two-Factor Auth" to="/settings?tab=security" isDark={isDark} onClose={close} />
-                {isDev && (
-                  <DropdownItem icon={Lock} label="API Keys" to="/developer/api-vault" isDark={isDark} onClose={close} />
-                )}
-                <DropdownItem icon={Eye} label="Privacy Controls" to="/settings?tab=preferences" isDark={isDark} onClose={close} />
+                <DropdownItem icon={KeyRound} label="Change Password" to="/settings?tab=password" isDark={isDark} onClose={close} />
+                <DropdownItem icon={Smartphone} label="Sessions & Devices" to="/settings?tab=sessions" isDark={isDark} onClose={close} />
+                <DropdownItem icon={Fingerprint} label="Two-Factor Auth" to="/settings?tab=2fa" isDark={isDark} onClose={close} />
+                <DropdownItem icon={Lock} label="API Keys" to="/settings?tab=api-keys" isDark={isDark} onClose={close} />
+                <DropdownItem icon={Eye} label="Privacy Controls" to="/settings?tab=privacy" isDark={isDark} onClose={close} />
               </AccordionGroup>
 
               {/* Accordion 3: Billing */}
