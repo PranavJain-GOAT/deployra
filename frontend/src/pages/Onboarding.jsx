@@ -113,7 +113,7 @@ function InlineToast({ message, type = 'success', onDismiss }) {
   const colors = {
     success: 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400',
     error: 'bg-red-500/10 border-red-500/30 text-red-400',
-    info: 'bg-violet-500/10 border-violet-500/30 text-violet-400',
+    info: 'bg-white/10 border-white/25 text-white/90',
   };
   const icons = {
     success: <CheckCircle2 className="w-4 h-4 shrink-0" />,
@@ -153,7 +153,7 @@ function StepDots({ currentStep, totalSteps, isDark }) {
             transition={{ duration: 0.2 }}
             className={`rounded-full transition-all ${
               isCurrent
-                ? 'w-6 h-2 bg-violet-500'
+                ? 'w-6 h-2 bg-white'
                 : isCompleted
                   ? 'w-2 h-2 bg-emerald-400'
                   : `w-2 h-2 ${isDark ? 'bg-white/20' : 'bg-black/15'}`
@@ -182,7 +182,7 @@ function FieldError({ message }) {
 
 export default function Onboarding() {
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, checkAuth } = useAuth();
   const { isDark } = useTheme();
   const { uploadAvatar } = useProfile();
 
@@ -410,27 +410,30 @@ export default function Onboarding() {
       };
       await axios.patch(`${API_URL}/users/preferences`, { preferences: onboardingPrefs });
 
-      // Update user profile fields (country from address, but don't change role)
-      const updatePayload = {};
-      if (formData.address) updatePayload.country = formData.address.split(',').pop().trim();
-      if (Object.keys(updatePayload).length > 0) {
-        await axios.patch(`${API_URL}/users/me`, updatePayload);
+      // Update user profile fields (country from address, and upgrade role to DEVELOPER)
+      const updatePayload = { role: 'DEVELOPER' };
+      if (formData.address) {
+        updatePayload.country = formData.address.split(',').pop().trim();
+      }
+      await axios.patch(`${API_URL}/users/me`, updatePayload);
+
+      // Refresh Auth Context so that user.role in React is updated
+      if (checkAuth) {
+        await checkAuth();
       }
 
       confetti({
         particleCount: 180,
         spread: 90,
         origin: { y: 0.6 },
-        colors: ['#7c3aed', '#8b5cf6', '#a78bfa', '#c4b5fd', '#10b981']
+        colors: ['#ffffff', '#888888', '#aaaaaa', '#cccccc', '#10b981']
       });
 
       showToast('🎉 Profile complete! Redirecting to your dashboard...', 'success');
 
       setTimeout(() => {
-        // Navigate to role-appropriate dashboard
-        if (user?.role === 'DEVELOPER') navigate('/developer');
-        else if (user?.role === 'ADMIN') navigate('/admin');
-        else navigate('/');
+        // We navigate to /developer since the role is updated to DEVELOPER
+        navigate('/developer');
       }, 2000);
     } catch (err) {
       console.error('Error completing onboarding:', err);
@@ -704,10 +707,10 @@ export default function Onboarding() {
   // Global background depending on dark mode
   const bgTheme = isDark ? 'bg-[#030712] text-white' : 'bg-slate-50 text-neutral-900';
   const cardTheme = isDark ? 'bg-[#0b0f19] border-white/5 shadow-2xl' : 'bg-white border-black/5 shadow-xl';
-  const inputClass = `w-full px-3.5 py-2.5 rounded-xl border text-xs font-medium focus:ring-1 focus:ring-violet-500 focus:outline-none transition-all ${
+  const inputClass = `w-full px-3.5 py-2.5 rounded-xl border text-xs font-medium focus:ring-1 focus:ring-white/20 focus:outline-none transition-all ${
     isDark ? 'bg-white/3 border-white/8 text-white placeholder-white/30' : 'bg-white border-slate-200 text-neutral-900 placeholder-neutral-400'
   }`;
-  const selectClass = `w-full px-3.5 py-2.5 rounded-xl border text-xs font-medium focus:ring-1 focus:ring-violet-500 focus:outline-none ${
+  const selectClass = `w-full px-3.5 py-2.5 rounded-xl border text-xs font-medium focus:ring-1 focus:ring-white/20 focus:outline-none ${
     isDark ? 'bg-[#0b0f19] border-white/8 text-white' : 'bg-white border-slate-200 text-neutral-900'
   }`;
 
@@ -730,7 +733,7 @@ export default function Onboarding() {
         isDark ? 'border-white/5 bg-[#030712]/90' : 'border-black/5 bg-slate-50/90'
       }`}>
         <div className="flex items-center gap-3">
-          <span className="text-xs font-bold uppercase tracking-widest text-violet-500">Identity Builder</span>
+          <span className="text-xs font-bold uppercase tracking-widest text-white/60">Identity Builder</span>
           <span className="w-1.5 h-1.5 rounded-full bg-slate-400 opacity-40" />
           <div className="flex items-center gap-1.5 text-[11px] text-slate-400 font-medium">
             <Clock className="w-3.5 h-3.5" />
@@ -743,7 +746,7 @@ export default function Onboarding() {
           <div className="flex items-center gap-1.5 text-[11px]">
             {isSaving ? (
               <>
-                <RefreshCw className="w-3.5 h-3.5 text-violet-400 animate-spin" />
+                <RefreshCw className="w-3.5 h-3.5 text-white/90 animate-spin" />
                 <span className="text-slate-400">Autosaving...</span>
               </>
             ) : cloudSynced ? (
@@ -789,12 +792,12 @@ export default function Onboarding() {
                   {STEP_NAMES[step]}
                 </h3>
               </div>
-              <span className="text-xs font-bold text-violet-400">{progressPercent}%</span>
+              <span className="text-xs font-bold text-white/90">{progressPercent}%</span>
             </div>
 
             <div className={`w-full h-1.5 rounded-full overflow-hidden ${isDark ? 'bg-white/5' : 'bg-slate-200'}`}>
               <motion.div
-                className="h-full bg-gradient-to-r from-violet-500 via-purple-500 to-indigo-500"
+                className="h-full bg-gradient-to-r from-white/30 via-white/80 to-white"
                 initial={{ width: 0 }}
                 animate={{ width: `${progressPercent}%` }}
                 transition={{ duration: 0.5, ease: 'easeOut' }}
@@ -803,7 +806,7 @@ export default function Onboarding() {
 
             {/* Psychological nudge */}
             <div className="flex items-center gap-1.5 text-[10px] text-slate-400">
-              <Sparkles className="w-3 h-3 text-violet-400 animate-pulse" />
+              <Sparkles className="w-3 h-3 text-white/90 animate-pulse" />
               <span>You're ahead of 78% of new users. Complete setup to earn your Elite Badge.</span>
             </div>
           </div>
@@ -844,7 +847,7 @@ export default function Onboarding() {
               disabled={isParsing || isSaving}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.97 }}
-              className="shimmer-btn flex items-center gap-2 text-xs font-bold px-7 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-500 text-white transition-all shadow-lg shadow-violet-600/30 hover:shadow-violet-600/40 disabled:opacity-60 disabled:cursor-not-allowed"
+              className="shimmer-btn flex items-center gap-2 text-xs font-bold px-7 py-2.5 rounded-xl bg-white hover:bg-white/90 text-black transition-all shadow-md disabled:opacity-60 disabled:cursor-not-allowed"
             >
               {isSaving ? (
                 <>
@@ -895,7 +898,7 @@ export default function Onboarding() {
           }`}>
 
             {/* Glowing top accent */}
-            <div className="h-1 w-full bg-gradient-to-r from-violet-500 via-purple-500 to-indigo-500 rounded-t-2xl" />
+            <div className="h-1 w-full bg-gradient-to-r from-white/30 via-white/80 to-white rounded-t-2xl" />
 
             {/* Card Content */}
             <div className="p-6 space-y-5">
@@ -908,10 +911,10 @@ export default function Onboarding() {
                       <img
                         src={formData.photoUrl}
                         alt="Preview Avatar"
-                        className="w-14 h-14 rounded-full object-cover ring-2 ring-violet-500/20"
+                        className="w-14 h-14 rounded-full object-cover ring-2 ring-white/20"
                       />
                     ) : (
-                      <div className="w-14 h-14 rounded-full bg-gradient-to-tr from-violet-500 to-purple-600 flex items-center justify-center text-white font-bold text-lg ring-2 ring-violet-500/20">
+                      <div className="w-14 h-14 rounded-full bg-gradient-to-tr from-white/10 to-white/40 flex items-center justify-center text-white font-bold text-lg ring-2 ring-white/20">
                         {user?.name ? user.name.split(' ').map(n => n[0]).join('').toUpperCase() : 'U'}
                       </div>
                     )}
@@ -938,7 +941,7 @@ export default function Onboarding() {
                 {/* Pricing / Plan Badge */}
                 <div className="text-right shrink-0">
                   <span className={`inline-flex px-2 py-0.5 rounded-full text-[9px] font-bold ${
-                    previewTheme === 'dark' ? 'bg-violet-500/10 text-violet-400' : 'bg-violet-50 text-violet-600'
+                    previewTheme === 'dark' ? 'bg-white/10 text-white/90' : 'bg-white/10 text-white/90'
                   }`}>
                     PRO MEMBER
                   </span>
@@ -984,7 +987,7 @@ export default function Onboarding() {
                 <div className="space-y-3">
                   <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Recent History</div>
                   {formData.experience.slice(0, 2).map((exp) => (
-                    <div key={exp.id} className="border-l-2 border-violet-500/30 pl-3.5 space-y-1">
+                    <div key={exp.id} className="border-l-2 border-white/25 pl-3.5 space-y-1">
                       <div className="flex justify-between items-center text-xs">
                         <span className="font-bold">{exp.role}</span>
                         <span className="text-[10px] text-slate-400">{exp.duration}</span>
@@ -1028,7 +1031,7 @@ export default function Onboarding() {
 
             <div>
               <div className="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-1.5">Reputation</div>
-              <div className="flex items-center gap-1 text-xs font-bold text-indigo-400">
+              <div className="flex items-center gap-1 text-xs font-bold text-white/80">
                 <Star className="w-3.5 h-3.5" />
                 <span>Level 3 Specialist</span>
               </div>
@@ -1058,14 +1061,14 @@ export default function Onboarding() {
           >
             <div className={`w-full max-w-sm p-8 rounded-2xl border text-center space-y-5 ${cardTheme}`}>
               <div className="relative w-14 h-14 mx-auto">
-                <div className="w-14 h-14 rounded-full border-2 border-violet-500/20 border-t-violet-500 animate-spin" />
-                <Sparkles className="w-5 h-5 text-violet-400 absolute inset-0 m-auto" />
+                <div className="w-14 h-14 rounded-full border-2 border-white/10 border-t-white animate-spin" />
+                <Sparkles className="w-5 h-5 text-white/90 absolute inset-0 m-auto" />
               </div>
               <div className="text-sm font-bold">{parseStatus}</div>
 
               <div className={`w-full h-2 rounded-full overflow-hidden ${isDark ? 'bg-white/5' : 'bg-slate-100'}`}>
                 <motion.div
-                  className="h-full bg-gradient-to-r from-violet-600 to-indigo-500"
+                  className="h-full bg-gradient-to-r from-white/20 to-white/80"
                   animate={{ width: `${parseProgress}%` }}
                   transition={{ duration: 0.3 }}
                 />
@@ -1100,7 +1103,7 @@ export default function Onboarding() {
               {/* GitHub Card */}
               <div className={`p-5 rounded-2xl border text-left flex flex-col gap-3 transition-all ${
                 formData.importSource === 'github'
-                  ? 'border-violet-500 bg-violet-500/5'
+                  ? 'border-white bg-white/5'
                   : isDark ? 'border-white/8 bg-white/[0.02] hover:bg-white/5' : 'border-black/5 bg-white hover:bg-slate-50'
               }`}>
                 <div className="flex items-start gap-3">
@@ -1121,7 +1124,7 @@ export default function Onboarding() {
                     value={formData.githubUrl}
                     onChange={(e) => setFormData(prev => ({ ...prev, githubUrl: e.target.value }))}
                     placeholder="https://github.com/username"
-                    className={`w-full px-3 py-2 rounded-lg border text-[11px] font-medium focus:ring-1 focus:ring-violet-500 focus:outline-none ${
+                    className={`w-full px-3 py-2 rounded-lg border text-[11px] font-medium focus:ring-1 focus:ring-white/20 focus:outline-none ${
                       isDark ? 'bg-white/5 border-white/10 text-white placeholder-white/20' : 'bg-slate-50 border-slate-200 text-neutral-900'
                     }`}
                   />
@@ -1143,7 +1146,7 @@ export default function Onboarding() {
               {/* LinkedIn Card */}
               <div className={`p-5 rounded-2xl border text-left flex flex-col gap-3 transition-all ${
                 formData.importSource === 'linkedin'
-                  ? 'border-violet-500 bg-violet-500/5'
+                  ? 'border-white bg-white/5'
                   : isDark ? 'border-white/8 bg-white/[0.02] hover:bg-white/5' : 'border-black/5 bg-white hover:bg-slate-50'
               }`}>
                 <div className="flex items-start gap-3">
@@ -1163,7 +1166,7 @@ export default function Onboarding() {
                     value={formData.linkedinUrl}
                     onChange={(e) => setFormData(prev => ({ ...prev, linkedinUrl: e.target.value }))}
                     placeholder="https://linkedin.com/in/username"
-                    className={`w-full px-3 py-2 rounded-lg border text-[11px] font-medium focus:ring-1 focus:ring-violet-500 focus:outline-none ${
+                    className={`w-full px-3 py-2 rounded-lg border text-[11px] font-medium focus:ring-1 focus:ring-white/20 focus:outline-none ${
                       isDark ? 'bg-white/5 border-white/10 text-white placeholder-white/20' : 'bg-slate-50 border-slate-200 text-neutral-900'
                     }`}
                   />
@@ -1206,7 +1209,7 @@ export default function Onboarding() {
               className={`p-8 rounded-2xl border border-dashed text-center space-y-4 cursor-pointer transition-all group ${
                 formData.resumeName
                   ? 'border-emerald-500/50 bg-emerald-500/5'
-                  : isDark ? 'border-white/10 bg-white/[0.02] hover:border-violet-500 hover:bg-violet-500/5' : 'border-black/10 bg-white hover:border-violet-500 hover:bg-violet-50'
+                  : isDark ? 'border-white/10 bg-white/[0.02] hover:border-white/40 hover:bg-white/5' : 'border-black/10 bg-white hover:border-white/40 hover:bg-black/5'
               }`}
               onClick={() => fileInputRef.current?.click()}
             >
@@ -1219,7 +1222,7 @@ export default function Onboarding() {
               />
 
               <div className={`w-12 h-12 rounded-full flex items-center justify-center mx-auto transition-all ${
-                isDark ? 'bg-violet-500/10 text-violet-400 group-hover:bg-violet-500/20' : 'bg-violet-100 text-violet-600 group-hover:bg-violet-200'
+                isDark ? 'bg-white/10 text-white/90 group-hover:bg-white/20' : 'bg-black/10 text-neutral-800 group-hover:bg-black/15'
               }`}>
                 <Upload className="w-5 h-5" />
               </div>
@@ -1274,7 +1277,7 @@ export default function Onboarding() {
                     }}
                     className={`p-4 rounded-xl border text-left transition-all hover:scale-[1.01] ${
                       formData.specialization === cat
-                        ? 'border-violet-500 bg-violet-500/8 ring-1 ring-violet-500/30'
+                        ? 'border-white bg-white/8 ring-1 ring-white/30'
                         : isDark ? 'border-white/8 bg-white/[0.02] hover:bg-white/5 hover:border-white/15' : 'border-black/5 bg-white hover:bg-slate-50 hover:border-black/10'
                     }`}
                   >
@@ -1286,7 +1289,7 @@ export default function Onboarding() {
                     </div>
                     <p className={`text-[9px] mt-1 ${isDark ? 'text-slate-400' : 'text-neutral-500'}`}>Avg Rate: ${ROLE_TEMPLATES[cat].avgRate}/hr</p>
                     {formData.specialization === cat && (
-                      <div className="flex items-center gap-1 mt-2 text-[9px] text-violet-400 font-bold">
+                      <div className="flex items-center gap-1 mt-2 text-[9px] text-white/90 font-bold">
                         <Check className="w-3 h-3" /> Selected
                       </div>
                     )}
@@ -1332,7 +1335,7 @@ export default function Onboarding() {
                     Adjust based on your market expectations and experience.
                   </p>
                 </div>
-                <div className="text-xl font-black text-violet-400">${formData.hourlyRate}/hr</div>
+                <div className="text-xl font-black text-white/90">${formData.hourlyRate}/hr</div>
               </div>
 
               <input
@@ -1341,7 +1344,7 @@ export default function Onboarding() {
                 max="250"
                 value={formData.hourlyRate}
                 onChange={(e) => setFormData(prev => ({ ...prev, hourlyRate: parseInt(e.target.value) }))}
-                className="w-full accent-violet-500 h-1.5 rounded-lg cursor-pointer"
+                className="w-full accent-white h-1.5 rounded-lg cursor-pointer"
               />
 
               <div className="flex justify-between text-[10px] text-slate-400">
@@ -1350,7 +1353,7 @@ export default function Onboarding() {
               </div>
 
               <div className={`flex items-start gap-1.5 text-[10px] font-medium pt-2 border-t ${isDark ? 'border-white/5 text-slate-400' : 'border-slate-100 text-neutral-500'}`}>
-                <Info className="w-3.5 h-3.5 text-violet-400 shrink-0 mt-0.5" />
+                <Info className="w-3.5 h-3.5 text-white/90 shrink-0 mt-0.5" />
                 <span>{currentTemplate.trends}</span>
               </div>
             </div>
@@ -1384,7 +1387,7 @@ export default function Onboarding() {
                 <motion.button
                   onClick={() => handleAddSkill(skillSearch)}
                   whileTap={{ scale: 0.95 }}
-                  className="px-4 bg-violet-600 hover:bg-violet-500 text-white rounded-xl text-xs font-bold transition-all shadow-md shadow-violet-600/20"
+                  className="px-4 bg-white hover:bg-white/90 text-black rounded-xl text-xs font-bold transition-all shadow-sm"
                 >
                   Add
                 </motion.button>
@@ -1400,12 +1403,12 @@ export default function Onboarding() {
                   initial={{ opacity: 0, scale: 0.8 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.8 }}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-violet-500/10 border border-violet-500/25 text-violet-300"
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold bg-white/10 border border-white/20 text-white/80"
                 >
                   <span>{skill}</span>
                   <button
                     onClick={() => handleRemoveSkill(skill)}
-                    className="hover:text-white text-violet-400 transition-colors ml-0.5 leading-none"
+                    className="hover:text-white text-white/90 transition-colors ml-0.5 leading-none"
                   >
                     ×
                   </button>
@@ -1422,10 +1425,10 @@ export default function Onboarding() {
             <div className={`p-5 rounded-xl border space-y-3 ${cardTheme}`}>
               <div className="flex items-center justify-between">
                 <h4 className="text-xs font-bold flex items-center gap-1.5">
-                  <Sparkles className="w-3.5 h-3.5 text-violet-400" />
+                  <Sparkles className="w-3.5 h-3.5 text-white/90" />
                   Suggested Complementary Tech
                 </h4>
-                <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full ${isDark ? 'bg-violet-500/10 text-violet-400' : 'bg-violet-100 text-violet-600'}`}>
+                <span className={`text-[9px] font-bold px-2 py-0.5 rounded-full ${isDark ? 'bg-white/10 text-white/90' : 'bg-black/10 text-neutral-800'}`}>
                   AI-powered
                 </span>
               </div>
@@ -1437,7 +1440,7 @@ export default function Onboarding() {
                     key={s}
                     onClick={() => handleAddSkill(s)}
                     className={`px-2.5 py-1 rounded-lg text-[10px] font-bold border transition-all hover:scale-[1.02] ${
-                      isDark ? 'border-white/10 hover:bg-white/8 hover:border-violet-500/30 text-slate-300' : 'border-black/10 hover:bg-violet-50 hover:border-violet-200 text-neutral-600'
+                      isDark ? 'border-white/10 hover:bg-white/8 hover:border-white/25 text-slate-300' : 'border-black/10 hover:bg-black/5 hover:border-black/15 text-neutral-600'
                     }`}
                   >
                     + {s}
@@ -1487,7 +1490,7 @@ export default function Onboarding() {
             <div className={`p-5 rounded-xl border space-y-4 ${cardTheme}`}>
               <div className="flex justify-between items-center">
                 <h4 className="text-xs font-bold flex items-center gap-1.5">
-                  <Sparkles className="w-4 h-4 text-violet-400" />
+                  <Sparkles className="w-4 h-4 text-white/90" />
                   <span>AI Suggestions for your stack</span>
                 </h4>
                 <span className="text-[10px] text-emerald-400 font-bold bg-emerald-400/10 px-2 py-0.5 rounded-full border border-emerald-400/20">
@@ -1506,7 +1509,7 @@ export default function Onboarding() {
                     }}
                     className={`w-full p-3 rounded-lg border text-left text-xs font-bold transition-all flex justify-between items-center hover:scale-[1.005] ${
                       formData.title === sug
-                        ? 'border-violet-500 bg-violet-500/8 ring-1 ring-violet-500/20'
+                        ? 'border-white bg-white/8 ring-1 ring-white/20'
                         : isDark ? 'border-white/5 hover:bg-white/5 bg-white/[0.02]' : 'border-black/5 hover:bg-slate-50 bg-white'
                     }`}
                   >
@@ -1523,7 +1526,7 @@ export default function Onboarding() {
               {/* Title SEO scoring */}
               <div className={`pt-2 border-t flex justify-between text-[10px] font-medium ${isDark ? 'border-white/5 text-slate-400' : 'border-slate-100 text-neutral-500'}`}>
                 <span>Discoverability score:</span>
-                <span className="font-bold text-violet-400">{scoreTitle(formData.title)}/100</span>
+                <span className="font-bold text-white/90">{scoreTitle(formData.title)}/100</span>
               </div>
             </div>
 
@@ -1566,7 +1569,7 @@ export default function Onboarding() {
                         <button
                           onClick={() => handleOptimizeBullet(idx, bIdx)}
                           disabled={aiOptimizing}
-                          className="text-[9px] font-bold text-violet-400 hover:text-violet-300 flex items-center gap-1 shrink-0 p-1.5 bg-violet-500/10 rounded-lg border border-violet-500/20 transition-all disabled:opacity-50"
+                          className="text-[9px] font-bold text-white/90 hover:text-white/80 flex items-center gap-1 shrink-0 p-1.5 bg-white/10 rounded-lg border border-white/10 transition-all disabled:opacity-50"
                         >
                           <Sparkles className={`w-3 h-3 ${aiOptimizing ? 'animate-spin' : 'animate-pulse'}`} />
                           <span>{aiOptimizing ? '...' : 'AI'}</span>
@@ -1658,7 +1661,7 @@ export default function Onboarding() {
               {formData.education.map((edu) => (
                 <div key={edu.id} className={`p-4 rounded-xl border flex justify-between items-center ${cardTheme}`}>
                   <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-lg bg-indigo-500/10 flex items-center justify-center text-indigo-400 text-xs font-black">
+                    <div className="w-9 h-9 rounded-lg bg-white/5 flex items-center justify-center text-white text-xs font-black">
                       {edu.school.substring(0, 2).toUpperCase()}
                     </div>
                     <div>
@@ -1777,9 +1780,9 @@ export default function Onboarding() {
                     isDark ? 'border-white/8 bg-black/30' : 'border-slate-200 bg-white'
                   }`}
                 >
-                  <Globe className="w-3.5 h-3.5 text-violet-400" />
+                  <Globe className="w-3.5 h-3.5 text-white/90" />
                   <span>{lang.name}</span>
-                  <span className="text-violet-400">· {lang.fluency}</span>
+                  <span className="text-white/90">· {lang.fluency}</span>
                   <button onClick={() => handleRemoveLang(lang.code)} className="text-slate-400 hover:text-red-400 transition-colors ml-0.5">
                     ×
                   </button>
@@ -1880,7 +1883,7 @@ export default function Onboarding() {
             <div className={`p-5 rounded-xl border space-y-4 ${cardTheme}`}>
               <div className="flex justify-between items-center">
                 <h4 className="text-xs font-bold flex items-center gap-1.5">
-                  <Sparkles className="w-4 h-4 text-violet-400" />
+                  <Sparkles className="w-4 h-4 text-white/90" />
                   <span>AI Copilot Engine</span>
                 </h4>
 
@@ -1903,7 +1906,7 @@ export default function Onboarding() {
                 disabled={aiOptimizing}
                 whileHover={{ scale: 1.01 }}
                 whileTap={{ scale: 0.98 }}
-                className="shimmer-btn w-full py-2.5 rounded-xl bg-violet-600 hover:bg-violet-500 text-white text-xs font-bold transition-all shadow-md shadow-violet-500/20 flex items-center justify-center gap-2 disabled:opacity-60"
+                className="shimmer-btn w-full py-2.5 rounded-xl bg-white hover:bg-white/90 text-black text-xs font-bold transition-all shadow-md flex items-center justify-center gap-2 disabled:opacity-60"
               >
                 <Sparkles className={`w-3.5 h-3.5 ${aiOptimizing ? 'animate-spin' : ''}`} />
                 <span>{aiOptimizing ? 'Rewriting Bio with AI...' : 'Generate with AI'}</span>
@@ -1946,8 +1949,8 @@ export default function Onboarding() {
 
                 <div
                   onClick={() => photoInputRef.current?.click()}
-                  className={`w-28 h-28 rounded-full border-2 border-dashed hover:border-violet-500 cursor-pointer mx-auto flex items-center justify-center overflow-hidden group relative transition-all ${
-                    isDark ? 'border-white/20 bg-black/40 hover:bg-violet-500/5' : 'border-slate-300 bg-slate-50 hover:bg-violet-50'
+                  className={`w-28 h-28 rounded-full border-2 border-dashed hover:border-white/40 cursor-pointer mx-auto flex items-center justify-center overflow-hidden group relative transition-all ${
+                    isDark ? 'border-white/20 bg-black/40 hover:bg-white/5' : 'border-slate-300 bg-slate-50 hover:bg-black/5'
                   }`}
                 >
                   <input
@@ -1965,7 +1968,7 @@ export default function Onboarding() {
                       </div>
                     </>
                   ) : (
-                    <div className="flex flex-col items-center gap-1.5 text-slate-400 group-hover:text-violet-400 transition-colors">
+                    <div className="flex flex-col items-center gap-1.5 text-slate-400 group-hover:text-white/90 transition-colors">
                       <CameraIcon className="w-7 h-7" />
                       <span className="text-[9px] font-bold">Upload Photo</span>
                     </div>
@@ -1977,7 +1980,7 @@ export default function Onboarding() {
                     <div className="text-[10px] text-amber-400 font-semibold">📐 Confirm crop alignment...</div>
                     <button
                       onClick={handleCropSave}
-                      className="w-full px-3 py-1.5 bg-violet-600 hover:bg-violet-500 text-white rounded-lg text-[10px] font-bold transition-all"
+                      className="w-full px-3 py-1.5 bg-white hover:bg-white/90 text-black rounded-lg text-[10px] font-bold transition-all border border-white/10"
                     >
                       Save & Upload
                     </button>
@@ -2065,7 +2068,7 @@ export default function Onboarding() {
                       />
                       <button
                         onClick={handleVerifySMS}
-                        className="px-3 py-2 bg-violet-600 hover:bg-violet-500 text-white rounded-xl text-[10px] font-bold transition-all"
+                        className="px-3 py-2 bg-white hover:bg-white/90 text-black rounded-xl text-[10px] font-bold transition-all border border-white/10"
                       >
                         Verify
                       </button>
@@ -2096,7 +2099,7 @@ export default function Onboarding() {
                       id="idCheck"
                       checked={formData.idVerified}
                       onChange={(e) => setFormData(prev => ({ ...prev, idVerified: e.target.checked }))}
-                      className="accent-violet-600 w-3.5 h-3.5 rounded cursor-pointer"
+                      className="accent-white w-3.5 h-3.5 rounded cursor-pointer"
                     />
                     <label htmlFor="idCheck" className={`text-[11px] font-medium flex items-center gap-1 cursor-pointer ${isDark ? 'text-slate-300' : 'text-neutral-700'}`}>
                       <Lock className="w-3 h-3 text-slate-400" />
@@ -2109,7 +2112,7 @@ export default function Onboarding() {
                       id="addressCheck"
                       checked={formData.addressVerified}
                       onChange={(e) => setFormData(prev => ({ ...prev, addressVerified: e.target.checked }))}
-                      className="accent-violet-600 w-3.5 h-3.5 rounded cursor-pointer"
+                      className="accent-white w-3.5 h-3.5 rounded cursor-pointer"
                     />
                     <label htmlFor="addressCheck" className={`text-[11px] font-medium cursor-pointer ${isDark ? 'text-slate-300' : 'text-neutral-700'}`}>
                       Address verified via utility document

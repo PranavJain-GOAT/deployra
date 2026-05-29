@@ -22,7 +22,8 @@ router.get('/me', authenticate, async (req, res, next) => {
         authProvider: true,
         twoFactorEnabled: true,
         createdAt: true,
-        lastLogin: true
+        lastLogin: true,
+        preferencesJson: true
       }
     });
     res.status(200).json({ success: true, data: user });
@@ -49,7 +50,8 @@ router.get('/profile', authenticate, async (req, res, next) => {
         authProvider: true,
         twoFactorEnabled: true,
         createdAt: true,
-        lastLogin: true
+        lastLogin: true,
+        preferencesJson: true
       }
     });
     res.status(200).json({ success: true, data: user });
@@ -62,7 +64,7 @@ router.get('/profile', authenticate, async (req, res, next) => {
 // Update profile: name, firstName, lastName, country, profileImage
 router.patch('/me', authenticate, async (req, res, next) => {
   try {
-    const { name, firstName, lastName, country, profileImage } = req.body;
+    const { name, firstName, lastName, country, profileImage, role } = req.body;
 
     // Build update payload — only include fields that were sent
     const updateData = {};
@@ -71,6 +73,7 @@ router.patch('/me', authenticate, async (req, res, next) => {
     if (lastName !== undefined)     updateData.lastName = lastName.trim();
     if (country !== undefined)      updateData.country = country.trim();
     if (profileImage !== undefined) updateData.profileImage = profileImage;
+    if (role !== undefined)         updateData.role = role;
 
     // Derive name from first/last if name not explicitly provided
     if (!updateData.name && (updateData.firstName || updateData.lastName)) {
@@ -99,7 +102,8 @@ router.patch('/me', authenticate, async (req, res, next) => {
         profileImage: true,
         authProvider: true,
         twoFactorEnabled: true,
-        createdAt: true
+        createdAt: true,
+        preferencesJson: true
       }
     });
 

@@ -20,7 +20,7 @@ import { useNotifications } from '@/hooks/useNotifications';
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 const PLAN_CONFIG = {
   CLIENT:    { label: 'Free Plan',       color: 'text-slate-400',   bg: 'bg-slate-400/10',   icon: Star      },
-  DEVELOPER: { label: 'Pro Plan',        color: 'text-violet-400',  bg: 'bg-violet-400/10',  icon: Sparkles  },
+  DEVELOPER: { label: 'Pro Plan',        color: 'text-white font-bold',  bg: 'bg-white/10 border border-white/10',  icon: Sparkles  },
   ADMIN:     { label: 'Enterprise',      color: 'text-amber-400',   bg: 'bg-amber-400/10',   icon: Crown     },
 };
 
@@ -173,13 +173,13 @@ function DropdownCropper({ file, onCropComplete, onClose, isDark }) {
           step="0.05" 
           value={zoom} 
           onChange={(e) => setZoom(parseFloat(e.target.value))} 
-          className="flex-1 accent-violet-500 h-1 rounded-lg bg-white/10" 
+          className="flex-1 accent-white h-1 rounded-lg bg-white/10" 
         />
         <Plus className="w-3.5 h-3.5 text-white/40" />
       </div>
 
       <div className="flex gap-2">
-        <button onClick={handleCrop} className="flex-1 py-1.5 bg-violet-600 hover:bg-violet-500 text-white rounded-xl text-[10px] font-bold transition-all">Save</button>
+        <button onClick={handleCrop} className="flex-1 py-1.5 bg-white text-black hover:bg-white/90 rounded-xl text-[10px] font-bold transition-all">Save</button>
         <button onClick={onClose} className="flex-1 py-1.5 text-[10px] font-bold rounded-xl border border-white/10 text-white/60 hover:bg-white/5">Cancel</button>
       </div>
       <canvas ref={canvasRef} className="hidden" />
@@ -232,7 +232,7 @@ function AccordionGroup({ title, icon: Icon, isOpen, onToggle, children, isDark 
           {Icon && <Icon className="w-4 h-4 opacity-75" />}
           <span>{title}</span>
         </div>
-        <ChevronRight className={`w-3.5 h-3.5 transition-transform duration-200 ${isOpen ? 'rotate-90 text-violet-500' : 'opacity-40'}`} />
+        <ChevronRight className={`w-3.5 h-3.5 transition-transform duration-200 ${isOpen ? 'rotate-90 text-white' : 'opacity-40'}`} />
       </button>
 
       <AnimatePresence initial={false}>
@@ -269,7 +269,7 @@ function DropdownItem({ icon: Icon, label, to, onClick, isDark, onClose }) {
       onClick={handleClick}
       className={`w-full flex items-center gap-2 px-3 py-1.5 rounded-lg text-[11px] font-medium transition-all text-left ${
         isActive
-          ? 'text-violet-400 bg-violet-500/10 font-bold'
+          ? isDark ? 'text-white bg-white/10 font-bold' : 'text-neutral-900 bg-black/10 font-bold'
           : isDark ? 'text-white/50 hover:text-white hover:bg-white/5' : 'text-neutral-500 hover:text-neutral-900 hover:bg-black/5'
       }`}
     >
@@ -299,6 +299,9 @@ export default function ProfileMenu() {
   const isDev = user?.role === 'DEVELOPER';
   const isAdmin = user?.role === 'ADMIN';
   const dashPath = isAdmin ? '/admin' : isDev ? '/developer' : '/client';
+
+  const prefs = user?.preferencesJson ? (typeof user.preferencesJson === 'string' ? JSON.parse(user.preferencesJson) : user.preferencesJson) : {};
+  const onboarded = prefs.onboarded === true;
 
   // outside clicks
   useEffect(() => {
@@ -446,14 +449,22 @@ export default function ProfileMenu() {
               <button onClick={() => { navigate('/settings?tab=notifications'); close(); }} className={`flex flex-col items-center justify-center p-2 rounded-xl transition-all ${isDark ? 'hover:bg-white/5 text-white/70 hover:text-white' : 'hover:bg-black/5 text-neutral-600 hover:text-neutral-900'}`}>
                 <div className="relative mb-1">
                   <Bell className="w-4 h-4" />
-                  {unreadCount > 0 && <span className="absolute -top-1 -right-1 w-2 h-2 bg-violet-500 rounded-full" />}
+                  {unreadCount > 0 && <span className="absolute -top-1 -right-1 w-2 h-2 bg-white rounded-full animate-pulse" />}
                 </div>
                 <span className="text-[9px] font-bold">Inbox</span>
               </button>
-              <button onClick={() => { navigate('/settings?tab=profile'); close(); }} className={`flex flex-col items-center justify-center p-2 rounded-xl transition-all ${isDark ? 'hover:bg-white/5 text-white/70 hover:text-white' : 'hover:bg-black/5 text-neutral-600 hover:text-neutral-900'}`}>
-                <Settings className="w-4 h-4 mb-1" />
-                <span className="text-[9px] font-bold">Settings</span>
-              </button>
+              {onboarded ? (
+                <button onClick={() => { navigate('/onboarding'); close(); }} className={`flex flex-col items-center justify-center p-2 rounded-xl transition-all ${isDark ? 'hover:bg-white/5 text-white/70 hover:text-white' : 'hover:bg-black/5 text-neutral-600 hover:text-neutral-900'}`}>
+                  <User className="w-4 h-4 mb-1" />
+                  <span className="text-[9px] font-bold">Profile</span>
+                </button>
+              ) : (
+                <button onClick={() => { navigate('/onboarding'); close(); }} className={`flex flex-col items-center justify-center p-2 rounded-xl transition-all relative border border-white/20 bg-white/5 pulse-aura ${isDark ? 'text-white' : 'text-neutral-900'}`}>
+                  <User className="w-4 h-4 mb-1 text-white animate-pulse" />
+                  <span className="text-[9px] font-bold text-white">Setup</span>
+                  <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-red-500 animate-ping" />
+                </button>
+              )}
               <button onClick={() => { navigate('/settings?tab=billing'); close(); }} className={`flex flex-col items-center justify-center p-2 rounded-xl transition-all ${isDark ? 'hover:bg-white/5 text-white/70 hover:text-white' : 'hover:bg-black/5 text-neutral-600 hover:text-neutral-900'}`}>
                 <CreditCard className="w-4 h-4 mb-1" />
                 <span className="text-[9px] font-bold">Billing</span>
@@ -471,7 +482,20 @@ export default function ProfileMenu() {
               <AccordionGroup title="Navigation" icon={Home} isOpen={activeAccordion === 'nav'} onToggle={() => toggleAccordion('nav')} isDark={isDark}>
                 <DropdownItem icon={LayoutDashboard} label="Dashboard" to={dashPath} isDark={isDark} onClose={close} />
                 <DropdownItem icon={Home} label="Marketplace" to="/" isDark={isDark} onClose={close} />
-                <DropdownItem icon={User} label="My Profile" to="/onboarding" isDark={isDark} onClose={close} />
+                {onboarded ? (
+                  <DropdownItem icon={User} label="My Profile" to="/onboarding" isDark={isDark} onClose={close} />
+                ) : (
+                  <button
+                    onClick={() => { navigate('/onboarding'); close(); }}
+                    className="w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-[11px] font-bold bg-white text-black pulse-aura text-left transition-all my-0.5"
+                  >
+                    <div className="flex items-center gap-2">
+                      <User className="w-3.5 h-3.5" />
+                      <span>Setup Profile</span>
+                    </div>
+                    <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse mr-1" />
+                  </button>
+                )}
                 <DropdownItem icon={Bell} label="Notifications" to="/settings?tab=notifications" isDark={isDark} onClose={close} />
                 <DropdownItem icon={Activity} label="Recent Activity" to="/settings?tab=security" isDark={isDark} onClose={close} />
                 {!isDev && !isAdmin && (
