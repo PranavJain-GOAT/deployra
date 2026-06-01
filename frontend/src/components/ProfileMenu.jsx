@@ -2,13 +2,12 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  ChevronDown, LogOut, LayoutDashboard, Home, User, Users, Bell,
-  Activity, Heart, Settings, Shield, KeyRound, Smartphone,
-  Fingerprint, Lock, Eye, CreditCard, BarChart3, TrendingUp,
-  Receipt, FileText, Zap, HelpCircle, BookOpen, Headphones,
-  Bug, Lightbulb, MessageCircle, Keyboard, Sun,
-  Globe, Accessibility, BellRing,
-  Camera, Package, Code2, BadgeCheck,
+  ChevronDown, LogOut, LayoutDashboard, User, Bell,
+  Heart, Settings, Shield, Eye,
+  HelpCircle, BookOpen, Headphones,
+  Bug, Lightbulb, MessageCircle, Sun,
+  Globe, BellRing,
+  Camera, Code2, BadgeCheck,
   Sparkles, Crown, Star, ChevronRight, X, Minus, Plus, ExternalLink
 } from 'lucide-react';
 
@@ -288,7 +287,7 @@ export default function ProfileMenu() {
   const ref = useRef(null);
   const { user, logout } = useAuth();
   const { isDark } = useTheme();
-  const { uploadAvatar, removeAvatar, isUploading, isRemoving, logoutAllDevices } = useProfile();
+  const { uploadAvatar, removeAvatar, isUploading } = useProfile();
   const { unreadCount } = useNotifications();
   const navigate = useNavigate();
 
@@ -435,81 +434,34 @@ export default function ProfileMenu() {
               </div>
             </div>
 
-            {/* ═══ SECTION 2 — Quick Actions Grid ═══ */}
-            <div className={`p-2 grid grid-cols-3 gap-1 border-b ${isDark ? 'border-white/5' : 'border-black/5'}`}>
-              <button onClick={() => { navigate(dashPath); close(); }} className={`flex flex-col items-center justify-center p-2 rounded-xl transition-all ${isDark ? 'hover:bg-white/5 text-white/70 hover:text-white' : 'hover:bg-black/5 text-neutral-600 hover:text-neutral-900'}`}>
-                <LayoutDashboard className="w-4 h-4 mb-1" />
-                <span className="text-[9px] font-bold">Dash</span>
-              </button>
-              <button onClick={() => { navigate('/'); close(); }} className={`flex flex-col items-center justify-center p-2 rounded-xl transition-all ${isDark ? 'hover:bg-white/5 text-white/70 hover:text-white' : 'hover:bg-black/5 text-neutral-600 hover:text-neutral-900'}`}>
-                <Home className="w-4 h-4 mb-1" />
-                <span className="text-[9px] font-bold">Market</span>
-              </button>
-              <button onClick={() => { navigate('/settings?tab=notifications'); close(); }} className={`flex flex-col items-center justify-center p-2 rounded-xl transition-all ${isDark ? 'hover:bg-white/5 text-white/70 hover:text-white' : 'hover:bg-black/5 text-neutral-600 hover:text-neutral-900'}`}>
-                <div className="relative mb-1">
-                  <Bell className="w-4 h-4" />
-                  {unreadCount > 0 && <span className="absolute -top-1 -right-1 w-2 h-2 bg-white rounded-full animate-pulse" />}
-                </div>
-                <span className="text-[9px] font-bold">Inbox</span>
-              </button>
-              <button onClick={() => { navigate('/settings?tab=profile'); close(); }} className={`flex flex-col items-center justify-center p-2 rounded-xl transition-all ${isDark ? 'hover:bg-white/5 text-white/70 hover:text-white' : 'hover:bg-black/5 text-neutral-600 hover:text-neutral-900'}`}>
-                <User className="w-4 h-4 mb-1" />
-                <span className="text-[9px] font-bold">Profile</span>
-              </button>
-              <button onClick={() => { navigate('/settings?tab=billing'); close(); }} className={`flex flex-col items-center justify-center p-2 rounded-xl transition-all ${isDark ? 'hover:bg-white/5 text-white/70 hover:text-white' : 'hover:bg-black/5 text-neutral-600 hover:text-neutral-900'}`}>
-                <CreditCard className="w-4 h-4 mb-1" />
-                <span className="text-[9px] font-bold">Billing</span>
-              </button>
-              <button onClick={() => { setShowLogoutConfirm(true); }} className="flex flex-col items-center justify-center p-2 rounded-xl transition-all hover:bg-red-500/10 text-red-400">
-                <LogOut className="w-4 h-4 mb-1" />
-                <span className="text-[9px] font-bold">Logout</span>
-              </button>
-            </div>
+
 
             {/* ═══ SECTION 3 — Accordion Groups ═══ */}
             <div className="flex flex-col">
               
               {/* Accordion 1: Navigation */}
-              <AccordionGroup title="Navigation" icon={Home} isOpen={activeAccordion === 'nav'} onToggle={() => toggleAccordion('nav')} isDark={isDark}>
+              <AccordionGroup title="Navigation" icon={LayoutDashboard} isOpen={activeAccordion === 'nav'} onToggle={() => toggleAccordion('nav')} isDark={isDark}>
                 <DropdownItem icon={LayoutDashboard} label="Dashboard" to={dashPath} isDark={isDark} onClose={close} />
-                <DropdownItem icon={Home} label="Marketplace" to="/" isDark={isDark} onClose={close} />
                 <DropdownItem icon={User} label="My Profile" to="/settings?tab=profile" isDark={isDark} onClose={close} />
                 <DropdownItem icon={Bell} label="Notifications" to="/settings?tab=notifications" isDark={isDark} onClose={close} />
-                <DropdownItem icon={Activity} label="Recent Activity" to="/settings?tab=security" isDark={isDark} onClose={close} />
                 {!isDev && !isAdmin && (
                   <DropdownItem icon={Heart} label="Saved Items" to="/client/wishlist" isDark={isDark} onClose={close} />
-                )}
-                {!isDev && !isAdmin && (
-                  <DropdownItem icon={Package} label="My Orders" to="/client/orders" isDark={isDark} onClose={close} />
                 )}
                 {isDev && (
                   <DropdownItem icon={Code2} label="My Listings" to="/developer/listings" isDark={isDark} onClose={close} />
                 )}
-                <DropdownItem icon={Users} label="Teams / Orgs" to="/settings?tab=teams" isDark={isDark} onClose={close} />
               </AccordionGroup>
 
               {/* Accordion 2: Account & Security */}
               <AccordionGroup title="Account & Security" icon={Shield} isOpen={activeAccordion === 'sec'} onToggle={() => toggleAccordion('sec')} isDark={isDark}>
                 <DropdownItem icon={Settings} label="Account Settings" to="/settings?tab=profile" isDark={isDark} onClose={close} />
                 <DropdownItem icon={Shield} label="Security Settings" to="/settings?tab=security" isDark={isDark} onClose={close} />
-                <DropdownItem icon={KeyRound} label="Change Password" to="/settings?tab=password" isDark={isDark} onClose={close} />
-                <DropdownItem icon={Smartphone} label="Sessions & Devices" to="/settings?tab=sessions" isDark={isDark} onClose={close} />
-                <DropdownItem icon={Fingerprint} label="Two-Factor Auth" to="/settings?tab=2fa" isDark={isDark} onClose={close} />
-                <DropdownItem icon={Lock} label="API Keys" to="/settings?tab=api-keys" isDark={isDark} onClose={close} />
                 <DropdownItem icon={Eye} label="Privacy Controls" to="/settings?tab=privacy" isDark={isDark} onClose={close} />
               </AccordionGroup>
 
-              {/* Accordion 3: Billing */}
-              <AccordionGroup title="Billing" icon={CreditCard} isOpen={activeAccordion === 'bill'} onToggle={() => toggleAccordion('bill')} isDark={isDark}>
-                <DropdownItem icon={CreditCard} label="Billing Dashboard" to="/settings?tab=billing" isDark={isDark} onClose={close} />
-                <DropdownItem icon={Zap} label="Upgrade to Pro" to="/pricing" isDark={isDark} onClose={close} />
-                <DropdownItem icon={BarChart3} label="Usage Analytics" to="/settings?tab=billing" isDark={isDark} onClose={close} />
-                <DropdownItem icon={Receipt} label="Payment History" to="/payment-history" isDark={isDark} onClose={close} />
-                <DropdownItem icon={FileText} label="Invoices" to="/settings?tab=billing" isDark={isDark} onClose={close} />
-                <DropdownItem icon={TrendingUp} label="Manage Subscription" to="/settings?tab=billing" isDark={isDark} onClose={close} />
-              </AccordionGroup>
 
-              {/* Accordion 4: Support & Resources */}
+
+              {/* Accordion 3: Support & Resources */}
               <AccordionGroup title="Support & Resources" icon={HelpCircle} isOpen={activeAccordion === 'supp'} onToggle={() => toggleAccordion('supp')} isDark={isDark}>
                 <DropdownItem icon={HelpCircle} label="Help Center" to="/settings?tab=support" isDark={isDark} onClose={close} />
                 <DropdownItem icon={BookOpen} label="Documentation" to="/settings?tab=support" isDark={isDark} onClose={close} />
@@ -526,14 +478,12 @@ export default function ProfileMenu() {
                   <span>Community</span>
                   <ExternalLink className="w-3 h-3 opacity-40 ml-auto" />
                 </button>
-                <DropdownItem icon={Keyboard} label="Keyboard Shortcuts" to="/settings?tab=support" isDark={isDark} onClose={close} />
               </AccordionGroup>
 
-              {/* Accordion 5: Preferences */}
+              {/* Accordion 4: Preferences */}
               <AccordionGroup title="Preferences" icon={Settings} isOpen={activeAccordion === 'pref'} onToggle={() => toggleAccordion('pref')} isDark={isDark}>
                 <DropdownItem icon={Sun} label="Theme Selection" to="/settings?tab=preferences" isDark={isDark} onClose={close} />
                 <DropdownItem icon={Globe} label="Language Settings" to="/settings?tab=preferences" isDark={isDark} onClose={close} />
-                <DropdownItem icon={Accessibility} label="Accessibility Settings" to="/settings?tab=preferences" isDark={isDark} onClose={close} />
                 <DropdownItem icon={BellRing} label="Notification Preferences" to="/settings?tab=preferences" isDark={isDark} onClose={close} />
               </AccordionGroup>
 
