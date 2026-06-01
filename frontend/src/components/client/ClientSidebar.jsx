@@ -12,6 +12,7 @@ const NAV_GROUPS = [
     label: "Operations",
     items: [
       { path: "/client",              label: "Business Dashboard",  icon: LayoutDashboard },
+      { path: "/client/orders",       label: "Order Lifecycle",     icon: ShoppingBag     },
       { path: "/client/deployments",  label: "Deployments",         icon: Rocket          },
       { path: "/client/escrow",       label: "Escrow Tracker",      icon: Shield          },
     ],
@@ -19,6 +20,7 @@ const NAV_GROUPS = [
   {
     label: "Marketplace",
     items: [
+      { path: "/client/marketplace",  label: "Discover Products",  icon: Search          },
       { path: "/client/saved",        label: "Saved & Watchlists", icon: Heart           },
       { path: "/client/hire",         label: "Dev Direct",         icon: Users           },
     ],
@@ -31,8 +33,16 @@ const NAV_GROUPS = [
     ],
   },
   {
+    label: "Finance",
+    items: [
+      { path: "/client/billing",      label: "Billing Dashboard",  icon: CreditCard      },
+      { path: "/client/invoices",     label: "Invoice Center",     icon: FileText        },
+    ],
+  },
+  {
     label: "Account",
     items: [
+      { path: "/client/team",         label: "Team Management",    icon: Building2       },
       { path: "/client/integrations", label: "Integrations",       icon: Layers, badge: "NEW" },
     ],
   },

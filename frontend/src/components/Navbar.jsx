@@ -95,6 +95,7 @@ export default function Navbar() {
             {/* Nav Links */}
             <div className="hidden md:flex items-center gap-1">
               {[
+                { label: "Marketplace", to: "/" },
                 { label: "Features",   to: "/features" },
                 { label: "About",      to: "/about" },
               ].map((item) => (
@@ -148,6 +149,7 @@ export default function Navbar() {
               bg-white/95 dark:bg-[#0a0a0a]/95 backdrop-blur-xl border border-gray-100 dark:border-white/5"
           >
             {[
+              { label: "Marketplace", to: "/" },
               { label: "Features",   to: "/features" },
               { label: "About",      to: "/about" },
               ...(isAuthenticated ? [

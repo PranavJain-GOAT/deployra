@@ -9,17 +9,22 @@ import { useNavigate } from "react-router-dom";
 
 const NAV_ITEMS = [
   { path: "/client",              label: "Overview",         icon: History },
+  { path: "/client/orders",       label: "Order Management", icon: ListTodo },
   { path: "/client/hire",         label: "Dev Direct",       icon: Users },
   { path: "/client/integrations", label: "Integrations",     icon: Puzzle },
   { path: "/client/wishlist",     label: "Wishlist",         icon: Heart },
   { path: "/client/messages",     label: "Messages",         icon: MessageSquare },
+  { path: "/client/billing",      label: "Billing & Wallet", icon: CreditCard },
 ];
 
 const CMDK_COMMANDS = [
   { label: "Overview Dashboard",    path: "/client",              icon: History,       hint: "Home" },
   { label: "Launch Support Agent",  path: "/client",              icon: Rocket,        hint: "Action" },
+  { label: "Order Management",      path: "/client/orders",       icon: ListTodo,      hint: "Orders" },
   { label: "Hire Developers",       path: "/client/hire",         icon: Users,         hint: "Dev" },
   { label: "Integrations Hub",      path: "/client/integrations", icon: Puzzle,        hint: "Apps" },
+  { label: "Billing & Wallet",      path: "/client/billing",      icon: Wallet,        hint: "Payments" },
+  { label: "Find invoices from Oct",path: "/client/billing",      icon: CreditCard,    hint: "Billing" },
   { label: "Messages",              path: "/client/messages",     icon: MessageSquare, hint: "Chat" },
   { label: "Wishlist",              path: "/client/wishlist",     icon: Heart,         hint: "Saved" },
 ];
@@ -206,6 +211,11 @@ export default function ClientLayout() {
         <button className="hud-btn hud-primary" onClick={() => { playClickSound(); navigate("/client"); }}>
           <Rocket className="w-3.5 h-3.5" />
           Launch Agent
+        </button>
+        <div className="hud-divider" />
+        <button className="hud-btn" onClick={() => { playClickSound(); navigate("/client/billing"); }}>
+          <Wallet className="w-3.5 h-3.5" />
+          Top Up
         </button>
         <div className="hud-divider" />
         <button className="hud-btn" onClick={() => { playClickSound(); setCmdkOpen(true); }}>
