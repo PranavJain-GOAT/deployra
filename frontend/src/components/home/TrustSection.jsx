@@ -29,37 +29,6 @@ export default function TrustSection() {
     <section className="py-20 border-t border-white/6 relative overflow-hidden">
       <div className="absolute inset-0 dark-grid opacity-20" />
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          className="text-center mb-14"
-        >
-          <p className="text-[11px] font-mono tracking-[0.25em] text-white/25 mb-3">TRUSTED BY</p>
-          <WordReveal text="Industry leaders across sectors" tag="h2" className="text-white font-bold" style={{ fontFamily: 'Georgia, serif', fontSize: 'clamp(2rem, 4vw, 3rem)', letterSpacing: '-0.04em' }} />
-        </motion.div>
-
-        {/* Marquee */}
-        <div className="relative w-full max-w-5xl mx-auto mb-24 overflow-hidden py-4" style={{ maskImage: 'linear-gradient(to right, transparent, black 15%, black 85%, transparent)', WebkitMaskImage: 'linear-gradient(to right, transparent, black 15%, black 85%, transparent)' }}>
-          <style>{`
-            @keyframes marqueeScroll {
-              0% { transform: translateX(0); }
-              100% { transform: translateX(-50%); }
-            }
-          `}</style>
-          <div className="flex gap-20 whitespace-nowrap" style={{ animation: 'marqueeScroll 35s linear infinite', width: 'max-content' }}>
-            {[...Array(2)].map((_, i) => (
-              <div key={i} className="flex gap-20 items-center px-10">
-                {['STRIPE', 'SHOPIFY', 'META', 'LINEAR', 'NOTION', 'VERCEL', 'SUPABASE', 'AIRBNB'].map(logo => (
-                  <span key={logo} className="text-white/20 font-bold text-3xl tracking-widest inline-flex items-center gap-2 grayscale hover:grayscale-0 hover:text-white transition-all duration-500" style={{ fontFamily: 'Georgia, serif' }}>
-                     {logo === 'META' && "∞ "}
-                     {logo}
-                  </span>
-                ))}
-              </div>
-            ))}
-          </div>
-        </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-14">
           {TESTIMONIALS.map((t) => (

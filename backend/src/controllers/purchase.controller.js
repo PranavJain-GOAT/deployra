@@ -23,28 +23,76 @@ const checkout = async (req, res, next) => {
       return res.status(400).json({ success: false, message: 'You already own this product' });
     }
 
-    // Attempt Stripe Intent
-    let clientSecret = null;
-    let paymentIntentId = null;
-
-    // Create a pending or completed record based on whether stripe is active
-    const purchaseStatus = 'COMPLETED'; // If no stripe, auto complete for testing
+    // Create completed purchase record
+    const purchaseStatus = 'COMPLETED';
 
     const purchase = await prisma.purchase.create({
       data: {
         userId: req.user.id,
         productId,
         pricePaid: product.price,
-        paymentIntentId,
         status: purchaseStatus
+      }
+    });
+
+    // 1. Create linked Order
+    await prisma.order.create({
+      data: {
+        userId: req.user.id,
+        productId,
+        details: `Purchase of "${product.title}" for $${product.price}`
+      }
+    });
+
+    // 2. Create Notifications
+    // Developer notification
+    await prisma.notification.create({
+      data: {
+        userId: product.developerId,
+        type: 'SALE_RECEIVED',
+        title: 'New Product Sale!',
+        message: `Your product "${product.title}" was purchased by ${req.user.name || req.user.email} for $${product.price}.`
+      }
+    });
+
+    // Buyer notification
+    await prisma.notification.create({
+      data: {
+        userId: req.user.id,
+        type: 'PURCHASE_CONFIRMED',
+        title: 'Purchase Confirmed',
+        message: `Thank you for purchasing "${product.title}". You can now access/download it from your dashboard.`
+      }
+    });
+
+    // 3. Create Activities
+    // Developer Activity
+    await prisma.activity.create({
+      data: {
+        userId: product.developerId,
+        type: 'ORDER_RECEIVED',
+        title: 'New Order Received',
+        body: `Your product "${product.title}" has been purchased by ${req.user.name || req.user.email} for $${product.price}.`,
+        meta: JSON.stringify({ productId, purchaseId: purchase.id })
+      }
+    });
+
+    // Buyer Activity
+    await prisma.activity.create({
+      data: {
+        userId: req.user.id,
+        type: 'PRODUCT_PURCHASED',
+        title: 'Product Purchased',
+        body: `You successfully purchased "${product.title}" for $${product.price}.`,
+        meta: JSON.stringify({ productId, purchaseId: purchase.id })
       }
     });
 
     res.status(200).json({
       success: true,
-      clientSecret,
+      clientSecret: null,
       data: purchase,
-      message: purchaseStatus === 'COMPLETED' ? 'Purchase successful' : 'Checkout session created'
+      message: 'Purchase successful'
     });
   } catch (error) {
     next(error);

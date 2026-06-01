@@ -52,7 +52,6 @@ const NAV_GROUPS = [
     items: [
       { path: "/developer/profile",  label: "Dev Profile",  icon: User     },
       { path: "/developer/payouts",  label: "Payouts",      icon: DollarSign},
-      { path: "/developer/team",     label: "Team & Org",   icon: Users    },
     ],
   },
 ];

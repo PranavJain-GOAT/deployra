@@ -79,6 +79,7 @@ model User {
   recvMessages    Message[]      @relation("ReceivedMessages")
   refreshTokens   RefreshToken[]
   loginHistory    LoginHistory[]
+  activities      Activity[]
 }
 
 // ─── Refresh Token Store ──────────────────────────────────────────────────────
@@ -116,16 +117,27 @@ model LoginHistory {
 
 // ─── Product ──────────────────────────────────────────────────────────────────
 model Product {
-  id          String        @id @default(uuid())
-  title       String
-  description String
-  price       Float
-  developerId String
-  features    String[]
-  images      String[]
-  status      ProductStatus @default(PENDING)
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
+  id               String        @id @default(uuid())
+  title            String
+  description      String
+  price            Float
+  developerId      String
+  features         String[]
+  images           String[]
+  status           ProductStatus @default(PENDING)
+  category         String?
+  demoUrl          String?
+  videoUrl         String?
+  whatItDoes       String?
+  whoItsFor        String[]
+  whatsIncluded    String[]
+  whatsNotIncluded String[]
+  setupTime        String?
+  deliveryDays     Int           @default(5)
+  views            Int           @default(0)
+  demoViews        Int           @default(0)
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
 
   developer User       @relation(fields: [developerId], references: [id], onDelete: Cascade)
   purchases Purchase[]
@@ -211,6 +223,19 @@ model Notification {
   title     String
   message   String
   isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// ─── Activity ─────────────────────────────────────────────────────────────────
+model Activity {
+  id        String   @id @default(uuid())
+  userId    String
+  type      String   // PRODUCT_PUBLISHED, PRODUCT_APPROVED, ORDER_CREATED, REVIEW_RECEIVED, etc.
+  title     String
+  body      String?
+  meta      String?  // JSON blob for links/IDs
   createdAt DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)

@@ -3,6 +3,8 @@ import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Plus, X, Save, Loader2 } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useCreateProduct, useUpdateProduct, useProductById } from "@/hooks/useMarketplace";
+import { toast } from "sonner";
 
 export default function AddProduct() {
     const { id } = useParams();
@@ -23,18 +25,66 @@ export default function AddProduct() {
     const [newWho, setNewWho] = useState("");
     const [newCustom, setNewCustom] = useState("");
 
+    const createProductMutation = useCreateProduct();
+    const updateProductMutation = useUpdateProduct();
+    const { data: productData, isLoading: isProductLoading } = useProductById(id);
+
     useEffect(() => {
-        // In a real integration, load product data from the backend API by ID
-        setLoading(false);
-    }, [id, isEdit]);
+        if (isEdit && productData) {
+            setForm({
+                title: productData.title || "",
+                description: productData.description || "",
+                price: productData.price || "",
+                category: productData.category || "chatbot",
+                delivery_days: productData.deliveryDays || 5,
+                demo_url: productData.demoUrl || "",
+                features: productData.features || [],
+                whats_included: productData.whatsIncluded || [],
+                whats_not_included: productData.whatsNotIncluded || [],
+                who_its_for: productData.whoItsFor || [],
+                what_it_does: productData.whatItDoes || "",
+                customization_options: [],
+                developer_name: productData.developer?.name || "",
+                developer_email: productData.developer?.email || "",
+            });
+            setLoading(false);
+        } else if (!isEdit) {
+            setLoading(false);
+        }
+    }, [productData, isEdit]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setSaving(true);
-        // TODO: Connect to backend API to save product data
-        await new Promise(r => setTimeout(r, 600)); // Simulate save
-        setSaving(false);
-        navigate("/developer/listings");
+        try {
+            const payload = {
+                title: form.title,
+                description: form.description,
+                price: parseFloat(form.price),
+                category: form.category,
+                deliveryDays: parseInt(form.delivery_days) || 5,
+                demoUrl: form.demo_url,
+                features: form.features,
+                whatsIncluded: form.whats_included,
+                whatsNotIncluded: form.whats_not_included,
+                whoItsFor: form.who_its_for,
+                whatItDoes: form.what_it_does,
+            };
+
+            if (isEdit) {
+                await updateProductMutation.mutateAsync({ id, data: payload });
+                toast.success("Product updated successfully!");
+            } else {
+                await createProductMutation.mutateAsync(payload);
+                toast.success("Product submitted for review!");
+            }
+            setSaving(false);
+            navigate("/developer/listings");
+        } catch (err) {
+            console.error(err);
+            toast.error(err.response?.data?.message || "Failed to save product");
+            setSaving(false);
+        }
     };
 
     const addToList = (field, value, setter) => {
@@ -48,7 +98,7 @@ export default function AddProduct() {
         setForm((p) => ({ ...p, [field]: p[field].filter((_, i) => i !== index) }));
     };
 
-    if (loading) {
+    if (loading || isProductLoading) {
         return (
             <div className="flex justify-center py-32">
                 <div className="w-8 h-8 border-4 border-muted border-t-foreground rounded-full animate-spin" />
@@ -112,17 +162,6 @@ export default function AddProduct() {
                         placeholder="https://demo.example.com" />
                 </Field>
 
-                <div className="grid grid-cols-2 gap-4">
-                    <Field label="Your Name">
-                        <input value={form.developer_name} onChange={(e) => setForm((p) => ({ ...p, developer_name: e.target.value }))}
-                            className="w-full px-4 py-3 bg-muted border-2 border-transparent focus:border-foreground rounded-xl text-sm font-medium focus:outline-none transition-colors" />
-                    </Field>
-                    <Field label="Your Email">
-                        <input type="email" value={form.developer_email} onChange={(e) => setForm((p) => ({ ...p, developer_email: e.target.value }))}
-                            className="w-full px-4 py-3 bg-muted border-2 border-transparent focus:border-foreground rounded-xl text-sm font-medium focus:outline-none transition-colors" />
-                    </Field>
-                </div>
-
                 <Field label="What it does">
                     <textarea value={form.what_it_does} onChange={(e) => setForm((p) => ({ ...p, what_it_does: e.target.value }))} rows={2}
                         className="w-full px-4 py-3 bg-muted border-2 border-transparent focus:border-foreground rounded-xl text-sm font-medium focus:outline-none transition-colors resize-none"
@@ -144,10 +183,6 @@ export default function AddProduct() {
                 <ListField label="Who it's for" items={form.who_its_for} value={newWho} onChange={setNewWho}
                     onAdd={() => addToList("who_its_for", newWho, setNewWho)}
                     onRemove={(i) => removeFromList("who_its_for", i)} placeholder="e.g. Restaurants" />
-
-                <ListField label="Customization Options" items={form.customization_options} value={newCustom} onChange={setNewCustom}
-                    onAdd={() => addToList("customization_options", newCustom, setNewCustom)}
-                    onRemove={(i) => removeFromList("customization_options", i)} placeholder="e.g. Custom branding" />
 
                 <Button type="submit" disabled={saving} className="w-full bg-foreground text-background font-heading font-bold text-base rounded-xl h-14 gap-2">
                     {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}

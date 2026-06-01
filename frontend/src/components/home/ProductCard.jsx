@@ -14,7 +14,15 @@ const CATEGORY_IMAGES = {
 
 export default function ProductCard({ product, index, featured = false }) {
   const [imgError, setImgError] = useState(false);
-  const img = product.image_url || CATEGORY_IMAGES[product.category] || CATEGORY_IMAGES.other;
+  
+  const demoUrl = product.demoUrl || product.demo_url;
+  const setupTime = product.setupTime || product.setup_time;
+  const plainEnglish = product.whatItDoes || product.plain_english;
+  const imageUrl = (product.images && product.images.length > 0 ? product.images[0] : null) || product.image_url;
+  const rating = product.rating || 0;
+  const reviewsCount = product.reviewCount || product.reviews_count || 0;
+  const installsCount = product.salesCount || product.installs_count || 0;
+  const img = imageUrl || CATEGORY_IMAGES[product.category] || CATEGORY_IMAGES.other;
 
   return (
     <motion.div
@@ -50,9 +58,9 @@ export default function ProductCard({ product, index, featured = false }) {
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
 
           {/* LIVE DEMO hover overlay */}
-          {product.demo_url && (
+          {demoUrl && (
             <a
-              href={product.demo_url}
+              href={demoUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="absolute inset-0 flex flex-col items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-black/40 backdrop-blur-[2px]"
@@ -66,9 +74,9 @@ export default function ProductCard({ product, index, featured = false }) {
           )}
 
           {/* Top-left: LIVE DEMO label (always visible on hover) */}
-          {product.demo_url && (
+          {demoUrl && (
             <a
-              href={product.demo_url}
+              href={demoUrl}
               target="_blank"
               rel="noopener noreferrer"
               onClick={(e) => e.stopPropagation()}
@@ -95,11 +103,11 @@ export default function ProductCard({ product, index, featured = false }) {
           </div>
 
           {/* Setup time — top right */}
-          {product.setup_time && (
+          {setupTime && (
             <div className="absolute top-3 right-3">
               <span className="px-2 py-0.5 rounded-full text-[10px] font-mono bg-black/50 text-white/70 border border-white/10 backdrop-blur-sm flex items-center gap-1">
                 <span className="w-1.5 h-1.5 rounded-full bg-green-400" />
-                {product.setup_time}
+                {setupTime}
               </span>
             </div>
           )}
@@ -108,22 +116,16 @@ export default function ProductCard({ product, index, featured = false }) {
         {/* ── Content ── */}
         <div className="p-5 flex flex-col flex-1">
           {/* Rating row */}
-          {product.rating && (
-            <div className="flex items-center gap-1.5 mb-3">
-              <Star className="w-3 h-3 text-yellow-400 fill-yellow-400" />
-              <span className="text-xs font-semibold text-white/70">{product.rating}</span>
-              {product.reviews_count && (
-                <span className="text-[10px] font-mono text-white/25">({product.reviews_count} reviews)</span>
-              )}
-              {product.installs_count && (
-                <span className="text-[10px] font-mono text-white/25 ml-auto">
-                  {product.installs_count >= 1000
-                    ? `${(product.installs_count / 1000).toFixed(1)}k`
-                    : product.installs_count} installs
-                </span>
-              )}
-            </div>
-          )}
+          <div className="flex items-center gap-1.5 mb-3">
+            <Star className="w-3 h-3 text-yellow-400 fill-yellow-400" />
+            <span className="text-xs font-semibold text-white/70">{rating.toFixed(1)}</span>
+            <span className="text-[10px] font-mono text-white/25">({reviewsCount} reviews)</span>
+            <span className="text-[10px] font-mono text-white/25 ml-auto">
+              {installsCount >= 1000
+                ? `${(installsCount / 1000).toFixed(1)}k`
+                : installsCount} installs
+            </span>
+          </div>
 
           <h3
             className="text-white font-bold text-base leading-snug mb-2"
@@ -133,11 +135,11 @@ export default function ProductCard({ product, index, featured = false }) {
           </h3>
 
           {/* Plain English box */}
-          {product.plain_english && (
+          {plainEnglish && (
             <div className="flex gap-2 mb-3 p-3 rounded-xl bg-white/5 border border-white/8">
               <MessageSquare className="w-3.5 h-3.5 text-white/30 shrink-0 mt-0.5" />
               <p className="text-white/55 text-xs leading-relaxed" style={{ letterSpacing: "-0.01em" }}>
-                {product.plain_english}
+                {plainEnglish}
               </p>
             </div>
           )}

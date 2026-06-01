@@ -12,8 +12,16 @@ const SOLUTION_IMAGES = {
 };
 
 export default function CustomCard({ solution, index }) {
-  const img = solution.image_url || SOLUTION_IMAGES[solution.category] || SOLUTION_IMAGES.other;
-  const demoUrl = solution.demo_url;
+  const demoUrl = solution.demoUrl || solution.demo_url;
+  const deliveryDays = solution.deliveryDays || solution.delivery_days || 5;
+  const developerName = solution.developer?.name || solution.developer_name || "AlphaDev";
+  const rating = solution.rating || 0;
+  const installsCount = solution.salesCount || solution.installs_count || 0;
+  const plainEnglish = solution.whatItDoes || solution.plain_english;
+  const priceMin = solution.price || solution.price_min || 0;
+  const priceMax = solution.price || solution.price_max || 0;
+  const imageUrl = (solution.images && solution.images.length > 0 ? solution.images[0] : null) || solution.image_url;
+  const img = imageUrl || SOLUTION_IMAGES[solution.category] || SOLUTION_IMAGES.other;
 
   return (
     <motion.div
@@ -82,11 +90,11 @@ export default function CustomCard({ solution, index }) {
           </div>
 
           {/* Delivery time top-right */}
-          {solution.delivery_days && (
+          {deliveryDays && (
             <div className="absolute top-3 right-3">
               <span className="px-2 py-0.5 rounded-full text-[10px] font-mono bg-black/50 text-white/70 border border-white/10 backdrop-blur-sm flex items-center gap-1">
                 <Clock className="w-2.5 h-2.5" />
-                {solution.delivery_days}d delivery
+                {deliveryDays}d delivery
               </span>
             </div>
           )}
@@ -95,17 +103,13 @@ export default function CustomCard({ solution, index }) {
         {/* ── Content ── */}
         <div className="p-5 flex flex-col flex-1">
           <div className="flex items-center justify-between mb-3">
-            {solution.rating && (
-              <div className="flex items-center gap-1.5">
-                <Star className="w-3 h-3 text-yellow-400 fill-yellow-400" />
-                <span className="text-xs font-semibold text-white/70">{solution.rating}</span>
-                {solution.installs_count && (
-                  <span className="text-[10px] font-mono text-white/25">({solution.installs_count} orders)</span>
-                )}
-              </div>
-            )}
-            {solution.developer_name && (
-              <span className="text-[10px] font-mono text-white/25">by {solution.developer_name}</span>
+            <div className="flex items-center gap-1.5">
+              <Star className="w-3 h-3 text-yellow-400 fill-yellow-400" />
+              <span className="text-xs font-semibold text-white/70">{rating.toFixed(1)}</span>
+              <span className="text-[10px] font-mono text-white/25">({installsCount} orders)</span>
+            </div>
+            {developerName && (
+              <span className="text-[10px] font-mono text-white/25">by {developerName}</span>
             )}
           </div>
 
@@ -117,11 +121,11 @@ export default function CustomCard({ solution, index }) {
           </h3>
 
           {/* Plain English box */}
-          {solution.plain_english && (
+          {plainEnglish && (
             <div className="flex gap-2 mb-3 p-3 rounded-xl bg-white/5 border border-white/8">
               <MessageSquare className="w-3.5 h-3.5 text-white/30 shrink-0 mt-0.5" />
               <p className="text-white/55 text-xs leading-relaxed" style={{ letterSpacing: "-0.01em" }}>
-                {solution.plain_english}
+                {plainEnglish}
               </p>
             </div>
           )}
@@ -133,10 +137,12 @@ export default function CustomCard({ solution, index }) {
           {/* Bottom: price + View only */}
           <div className="flex items-center justify-between mt-auto">
             <div className="text-white font-bold text-base" style={{ fontFamily: "Georgia, serif", letterSpacing: "-0.04em" }}>
-              ${solution.price_min}
-              <span className="text-white/30 text-xs font-mono font-normal ml-0.5">–${solution.price_max}</span>
+              ${priceMin}
+              {priceMin !== priceMax && (
+                <span className="text-white/30 text-xs font-mono font-normal ml-0.5">–${priceMax}</span>
+              )}
             </div>
-            <Link to={`/custom/${solution.id}`}>
+            <Link to={`/product/${solution.id}`}>
               <motion.div
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}

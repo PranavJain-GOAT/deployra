@@ -1,9 +1,9 @@
 import { useState, useEffect, useMemo, useRef } from "react";
-import { MOCK_PRODUCTS, MOCK_CUSTOM_SOLUTIONS } from "@/api/mockData";
 import { Search, X, Package, Layers, ChevronDown } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
 import SearchFiltersBar from "../components/home/SearchFiltersBar";
+import { useMarketplaceProducts } from "@/hooks/useMarketplace";
 
 import HeroSection from "../components/home/HeroSection";
 import ModeSwitch from "../components/home/ModeSwitch";
@@ -155,14 +155,13 @@ function SortDropdown({ value, onChange }) {
 
 /* ── Search result card ──────────────────────────────────────── */
 function SearchResultCard({ item, type, index }) {
-  const isProduct = type === "product";
-  const price = isProduct
-    ? `$${item.price}`
-    : item.price_min === item.price_max
-    ? `$${item.price_min}`
-    : `$${item.price_min}–$${item.price_max}`;
-  const to = isProduct ? `/product/${item.id}` : `/custom/${item.id}`;
-  const img = item.image_url || CATEGORY_IMAGES[item.category] || CATEGORY_IMAGES.other;
+  const isProduct = type === "product" || item.price !== undefined;
+  const price = `$${item.price}`;
+  const to = `/product/${item.id}`;
+  const imageUrl = (item.images && item.images.length > 0 ? item.images[0] : null) || item.image_url;
+  const img = imageUrl || CATEGORY_IMAGES[item.category] || CATEGORY_IMAGES.other;
+  const developerName = item.developer?.name || item.seller_name || "AlphaDev";
+  const rating = item.rating || 5.0;
 
   return (
     <motion.div
@@ -193,10 +192,10 @@ function SearchResultCard({ item, type, index }) {
           <div className="p-4 flex flex-col flex-1">
             <div className="flex items-center gap-2 mb-3">
               <div className="w-6 h-6 rounded-full bg-white/10 overflow-hidden border border-white/10">
-                <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${item.seller_name || 'dev'}`} alt="avatar" />
+                <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${developerName}`} alt="avatar" />
               </div>
               <div className="flex flex-col">
-                <span className="text-[11px] font-bold text-white hover:underline leading-none">{item.seller_name || "AlphaDev"}</span>
+                <span className="text-[11px] font-bold text-white hover:underline leading-none">{developerName}</span>
                 <span className="text-[9px] text-white/30 font-mono">Level 2 Seller</span>
               </div>
             </div>
@@ -206,8 +205,8 @@ function SearchResultCard({ item, type, index }) {
             </h3>
 
             <div className="flex items-center gap-1 mb-4">
-              <span className="text-white text-xs font-bold">★ 5.0</span>
-              <span className="text-white/20 text-[11px]">(1k+)</span>
+              <span className="text-white text-xs font-bold">★ {rating.toFixed(1)}</span>
+              <span className="text-white/20 text-[11px]">({item.reviewCount || 0})</span>
             </div>
 
             <div className="mt-auto pt-3 border-t border-white/5 flex items-center justify-between">
@@ -230,13 +229,9 @@ function SearchResultCard({ item, type, index }) {
 
 export default function Home() {
   const [mode, setMode] = useState("instant");
-  const [products, setProducts] = useState([]);
-  const [customSolutions, setCustomSolutions] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [filters, setFilters] = useState({ category: "", price: "", setupTime: "" });
 
-  // Search results filters (rich)
   const [searchFilters, setSearchFilters] = useState({
     category: "",
     serviceOptions: [],
@@ -254,15 +249,24 @@ export default function Home() {
     if (q) setSearchQuery(q);
   }, []);
 
-  useEffect(() => {
-    // Load products from mock data with a brief simulated delay
-    const timer = setTimeout(() => {
-      setProducts(MOCK_PRODUCTS);
-      setCustomSolutions(MOCK_CUSTOM_SOLUTIONS);
-      setLoading(false);
-    }, 400);
-    return () => clearTimeout(timer);
-  }, []);
+  const backendSortBy = useMemo(() => {
+    if (sortBy === "Price: Low to High") return "price-asc";
+    if (sortBy === "Price: High to Low") return "price-desc";
+    if (sortBy === "Newest") return "newest";
+    return undefined;
+  }, [sortBy]);
+
+  // Dynamic loading of products from backend
+  const { data: marketplaceData, isLoading: loading } = useMarketplaceProducts({
+    search: searchQuery || undefined,
+    category: searchQuery ? (searchFilters.category || undefined) : (filters.category || undefined),
+    sortBy: backendSortBy,
+    limit: 100
+  });
+
+  const dbProducts = useMemo(() => {
+    return marketplaceData?.data || [];
+  }, [marketplaceData]);
 
   const handleFilterChange = (key, value) => {
     setFilters((prev) => ({ ...prev, [key]: value }));
@@ -270,55 +274,34 @@ export default function Home() {
 
   /* Normal filtered lists (homepage) */
   const filteredProducts = useMemo(() => {
-    let items = products.filter((p) => p.status === "active" || !p.status);
-    if (filters.category) items = items.filter((p) => p.category === filters.category);
+    let items = dbProducts;
     if (filters.price) {
       if (filters.price === "Under $50") items = items.filter((p) => p.price < 50);
       else if (filters.price === "$50–$200") items = items.filter((p) => p.price >= 50 && p.price <= 200);
       else if (filters.price === "$200+") items = items.filter((p) => p.price > 200);
     }
     return items;
-  }, [products, filters]);
+  }, [dbProducts, filters.price]);
 
   const filteredCustom = useMemo(() => {
-    let items = customSolutions.filter((s) => s.status === "active");
-    if (filters.category) items = items.filter((s) => s.category === filters.category);
+    let items = dbProducts;
+    if (filters.price) {
+      if (filters.price === "Under $50") items = items.filter((p) => p.price < 50);
+      else if (filters.price === "$50–$200") items = items.filter((p) => p.price >= 50 && p.price <= 200);
+      else if (filters.price === "$200+") items = items.filter((p) => p.price > 200);
+    }
     return items;
-  }, [customSolutions, filters]);
+  }, [dbProducts, filters.price]);
 
-  /* Search results: combined + filtered */
-  const searchResults = useMemo(() => {
-    if (!searchQuery.trim()) return [];
-    const q = searchQuery.toLowerCase();
-    const match = (item) =>
-      item.title?.toLowerCase().includes(q) ||
-      item.description?.toLowerCase().includes(q) ||
-      item.category?.toLowerCase().includes(q) ||
-      (item.features || []).some((f) => f.toLowerCase().includes(q));
-
-    const matched = [
-      ...products.filter((p) => p.status === "active" || !p.status).filter(match).map((p) => ({ ...p, _type: "product" })),
-      ...customSolutions.filter((s) => s.status === "active").filter(match).map((s) => ({ ...s, _type: "custom" })),
-    ];
-    return matched;
-  }, [products, customSolutions, searchQuery]);
-
+  /* Search results */
   const displayedResults = useMemo(() => {
-    const { category, serviceOptions, budget, setupTime } = searchFilters;
-    let items = [...searchResults];
-    if (category) items = items.filter((r) => r.category === category);
-    if (serviceOptions?.includes("Instant Setup")) items = items.filter((r) => r._type === "product");
-    if (serviceOptions?.includes("Custom Solutions")) items = items.filter((r) => r._type === "custom");
-    if (budget === "value") items = items.filter((r) => (r.price || r.price_min || 0) < 50);
-    else if (budget === "mid") items = items.filter((r) => (r.price || r.price_min || 0) >= 50 && (r.price || r.price_max || 999) <= 200);
-    else if (budget === "high") items = items.filter((r) => (r.price || r.price_min || 0) > 200);
-    if (setupTime === "express") items = items.filter((r) => (r.setup_time || "").toLowerCase().includes("5") || (r.setup_time || "").toLowerCase().includes("min"));
-    else if (setupTime === "quick") items = items.filter((r) => (r.setup_time || "").toLowerCase().includes("hour"));
-    else if (setupTime === "sameday") items = items.filter((r) => (r.setup_time || "").toLowerCase().includes("day"));
-    if (sortBy === "Price: Low to High") items.sort((a, b) => (a.price || a.price_min || 0) - (b.price || b.price_min || 0));
-    else if (sortBy === "Price: High to Low") items.sort((a, b) => (b.price || b.price_min || 0) - (a.price || a.price_min || 0));
+    const { budget } = searchFilters;
+    let items = [...dbProducts];
+    if (budget === "value") items = items.filter((r) => r.price < 50);
+    else if (budget === "mid") items = items.filter((r) => r.price >= 50 && r.price <= 200);
+    else if (budget === "high") items = items.filter((r) => r.price > 200);
     return items;
-  }, [searchResults, searchFilters, sortBy]);
+  }, [dbProducts, searchFilters]);
 
   const clearAll = () => {
     setSearchQuery("");
@@ -365,7 +348,7 @@ export default function Home() {
             <SearchFiltersBar
               filters={searchFilters}
               onFiltersChange={setSearchFilters}
-              results={searchResults}
+              results={dbProducts}
             />
           </div>
           {/* Sort row */}
@@ -388,9 +371,6 @@ export default function Home() {
           {/* Result count + type breakdown */}
           <div className="flex items-center gap-4 text-[11px] font-mono text-white/25 mb-6">
             <span>{displayedResults.length} result{displayedResults.length !== 1 ? "s" : ""}</span>
-            <span>·</span>
-            <span><Package className="w-3 h-3 inline mr-1 opacity-50" />{displayedResults.filter((r) => r._type === "product").length} Instant</span>
-            <span><Layers className="w-3 h-3 inline mr-1 opacity-50" />{displayedResults.filter((r) => r._type === "custom").length} Custom</span>
           </div>
 
           {/* Grid */}
@@ -417,7 +397,7 @@ export default function Home() {
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
               {displayedResults.map((item, i) => (
-                <SearchResultCard key={`${item._type}-${item.id}`} item={item} type={item._type} index={i} />
+                <SearchResultCard key={`product-${item.id}`} item={item} type="product" index={i} />
               ))}
             </div>
           )}
