@@ -6,7 +6,7 @@ import LiveSearch from "./home/LiveSearch";
 import { useTheme } from "@/lib/ThemeContext";
 import { useAuth } from "@/lib/AuthContext";
 import ProfileMenu from "./ProfileMenu";
-import ThemeToggle from "./ThemeToggle";
+
 
 function GlitchLink({ to, label, onClick }) {
   const [glitching, setGlitching] = useState(false);
@@ -105,10 +105,6 @@ export default function Navbar() {
 
             {/* CTAs & Profile */}
             <div className="flex items-center gap-2.5 shrink-0 ml-auto z-50">
-              {/* Theme toggle — desktop */}
-              <div className="hidden md:flex">
-                <ThemeToggle />
-              </div>
 
               {isAuthenticated ? (
                 <>
