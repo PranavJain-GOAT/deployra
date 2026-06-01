@@ -32,34 +32,6 @@ router.get('/me', authenticate, async (req, res, next) => {
   }
 });
 
-// ── GET /users/profile ───────────────────────────────────────────────────────
-router.get('/profile', authenticate, async (req, res, next) => {
-  try {
-    const user = await prisma.user.findUnique({
-      where: { id: req.user.id },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        role: true,
-        firstName: true,
-        lastName: true,
-        country: true,
-        isEmailVerified: true,
-        profileImage: true,
-        authProvider: true,
-        twoFactorEnabled: true,
-        createdAt: true,
-        lastLogin: true,
-        preferencesJson: true
-      }
-    });
-    res.status(200).json({ success: true, data: user });
-  } catch (error) {
-    next(error);
-  }
-});
-
 // ── PATCH /users/me ──────────────────────────────────────────────────────────
 // Update profile: name, firstName, lastName, country, profileImage
 router.patch('/me', authenticate, async (req, res, next) => {

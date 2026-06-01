@@ -205,10 +205,6 @@ export default function HeroSection() {
             </motion.p>
 
 
-
-
-
-
           </motion.div>
 
           {/* Right: Live Terminal */}

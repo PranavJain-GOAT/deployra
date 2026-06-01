@@ -63,7 +63,7 @@ const ClientTeam = () => <div className="p-8 text-white text-sm opacity-50">Team
 const DevPayouts = () => <div className="p-8 text-white text-sm opacity-50">Payout Settings — Coming soon</div>;
 
 const AuthenticatedApp = () => {
-  const { isLoadingAuth, authError } = useAuth();
+  const { authError } = useAuth();
 
   if (authError) {
     if (authError.type === 'user_not_registered') {
