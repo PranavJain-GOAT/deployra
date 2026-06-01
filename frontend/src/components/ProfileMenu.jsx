@@ -301,7 +301,6 @@ export default function ProfileMenu() {
   const dashPath = isAdmin ? '/admin' : isDev ? '/developer' : '/client';
 
   const prefs = user?.preferencesJson ? (typeof user.preferencesJson === 'string' ? JSON.parse(user.preferencesJson) : user.preferencesJson) : {};
-  const onboarded = prefs.onboarded === true;
 
   // outside clicks
   useEffect(() => {
@@ -453,18 +452,10 @@ export default function ProfileMenu() {
                 </div>
                 <span className="text-[9px] font-bold">Inbox</span>
               </button>
-              {onboarded ? (
-                <button onClick={() => { navigate('/onboarding'); close(); }} className={`flex flex-col items-center justify-center p-2 rounded-xl transition-all ${isDark ? 'hover:bg-white/5 text-white/70 hover:text-white' : 'hover:bg-black/5 text-neutral-600 hover:text-neutral-900'}`}>
-                  <User className="w-4 h-4 mb-1" />
-                  <span className="text-[9px] font-bold">Profile</span>
-                </button>
-              ) : (
-                <button onClick={() => { navigate('/onboarding'); close(); }} className={`flex flex-col items-center justify-center p-2 rounded-xl transition-all relative border border-white/20 bg-white/5 pulse-aura ${isDark ? 'text-white' : 'text-neutral-900'}`}>
-                  <User className="w-4 h-4 mb-1 text-white animate-pulse" />
-                  <span className="text-[9px] font-bold text-white">Setup</span>
-                  <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-red-500 animate-ping" />
-                </button>
-              )}
+              <button onClick={() => { navigate('/settings?tab=profile'); close(); }} className={`flex flex-col items-center justify-center p-2 rounded-xl transition-all ${isDark ? 'hover:bg-white/5 text-white/70 hover:text-white' : 'hover:bg-black/5 text-neutral-600 hover:text-neutral-900'}`}>
+                <User className="w-4 h-4 mb-1" />
+                <span className="text-[9px] font-bold">Profile</span>
+              </button>
               <button onClick={() => { navigate('/settings?tab=billing'); close(); }} className={`flex flex-col items-center justify-center p-2 rounded-xl transition-all ${isDark ? 'hover:bg-white/5 text-white/70 hover:text-white' : 'hover:bg-black/5 text-neutral-600 hover:text-neutral-900'}`}>
                 <CreditCard className="w-4 h-4 mb-1" />
                 <span className="text-[9px] font-bold">Billing</span>
@@ -482,20 +473,7 @@ export default function ProfileMenu() {
               <AccordionGroup title="Navigation" icon={Home} isOpen={activeAccordion === 'nav'} onToggle={() => toggleAccordion('nav')} isDark={isDark}>
                 <DropdownItem icon={LayoutDashboard} label="Dashboard" to={dashPath} isDark={isDark} onClose={close} />
                 <DropdownItem icon={Home} label="Marketplace" to="/" isDark={isDark} onClose={close} />
-                {onboarded ? (
-                  <DropdownItem icon={User} label="My Profile" to="/onboarding" isDark={isDark} onClose={close} />
-                ) : (
-                  <button
-                    onClick={() => { navigate('/onboarding'); close(); }}
-                    className="w-full flex items-center justify-between px-3 py-1.5 rounded-lg text-[11px] font-bold bg-white text-black pulse-aura text-left transition-all my-0.5"
-                  >
-                    <div className="flex items-center gap-2">
-                      <User className="w-3.5 h-3.5" />
-                      <span>Setup Profile</span>
-                    </div>
-                    <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse mr-1" />
-                  </button>
-                )}
+                <DropdownItem icon={User} label="My Profile" to="/settings?tab=profile" isDark={isDark} onClose={close} />
                 <DropdownItem icon={Bell} label="Notifications" to="/settings?tab=notifications" isDark={isDark} onClose={close} />
                 <DropdownItem icon={Activity} label="Recent Activity" to="/settings?tab=security" isDark={isDark} onClose={close} />
                 {!isDev && !isAdmin && (

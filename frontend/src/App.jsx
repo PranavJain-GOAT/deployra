@@ -23,7 +23,6 @@ import AuthCallback from './pages/AuthCallback';
 import VerifyEmail from './pages/VerifyEmail';
 import Pricing from './pages/Pricing';
 import SettingsPage from './pages/SettingsPage';
-import Onboarding from './pages/Onboarding';
 import PaymentHistory from './pages/PaymentHistory';
 import About from './pages/About';
 import Features from './pages/Features';
@@ -120,7 +119,7 @@ const AuthenticatedApp = () => {
           <Route path="/developer/logs"           element={<LogsDebugger />} />
           <Route path="/developer/sandbox"        element={<AiSandbox />} />
           {/* Account */}
-          <Route path="/developer/profile"        element={<Onboarding />} />
+          <Route path="/developer/profile"        element={<DevProfile />} />
           <Route path="/developer/team"           element={<DevTeam />} />
         </Route>
       </Route>
@@ -154,7 +153,6 @@ const AuthenticatedApp = () => {
       <Route element={<ProtectedRoute allowedRoles={['CLIENT', 'DEVELOPER', 'ADMIN']} unauthenticatedElement={<Navigate to="/auth" replace />} />}>
         <Route element={<Layout />}>
           <Route path="/settings"   element={<SettingsPage />} />
-          <Route path="/onboarding" element={<Onboarding />} />
         </Route>
       </Route>
 
