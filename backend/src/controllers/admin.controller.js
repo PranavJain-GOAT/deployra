@@ -57,27 +57,6 @@ const reviewProduct = async (req, res, next) => {
       data: { status }
     });
 
-    // Create Notification & Activity for the developer
-    const statusText = status.toLowerCase();
-    await prisma.notification.create({
-      data: {
-        userId: product.developerId,
-        type: `PRODUCT_${status}`,
-        title: `Product ${status === 'APPROVED' ? 'Approved!' : 'Rejected'}`,
-        message: `Your product "${product.title}" has been ${statusText} by the admin.`
-      }
-    });
-
-    await prisma.activity.create({
-      data: {
-        userId: product.developerId,
-        type: `PRODUCT_${status}`,
-        title: `Product ${status === 'APPROVED' ? 'Approved' : 'Rejected'}`,
-        body: `Your product "${product.title}" has been ${statusText} by the administrator.`,
-        meta: JSON.stringify({ productId: product.id })
-      }
-    });
-
     res.status(200).json({ success: true, data: product });
   } catch (error) {
     next(error);

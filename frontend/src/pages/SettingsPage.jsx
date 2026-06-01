@@ -845,27 +845,51 @@ export default function SettingsPage() {
           <p className={`text-xs ${isDark ? 'text-white/40' : 'text-neutral-500'}`}>Update system config and credentials</p>
         </div>
 
-        {/* Group: Profile */}
+        {/* Group: Profile & Org */}
         <div className="space-y-1">
-          <p className="text-[10px] uppercase font-bold tracking-widest text-white/30 px-3 mb-1">Identity & Profile</p>
+          <p className="text-[10px] uppercase font-bold tracking-widest text-white/30 px-3 mb-1">Identity & Workspace</p>
           <button onClick={() => setSearchParams({ tab: 'profile' })} className={tabStyle('profile')}>
             <User className="w-4 h-4" />
             Profile & Account
+          </button>
+          <button onClick={() => setSearchParams({ tab: 'teams' })} className={tabStyle('teams')}>
+            <Users className="w-4 h-4" />
+            Team Workspace
           </button>
         </div>
 
         {/* Group: Security Suite */}
         <div className="space-y-1">
-          <p className="text-[10px] uppercase font-bold tracking-widest text-white/30 px-3 mb-1">Security</p>
+          <p className="text-[10px] uppercase font-bold tracking-widest text-white/30 px-3 mb-1">Security & Access</p>
           <button onClick={() => setSearchParams({ tab: 'security' })} className={tabStyle('security')}>
             <Shield className="w-4 h-4" />
             Security Dashboard
           </button>
+          <button onClick={() => setSearchParams({ tab: 'password' })} className={tabStyle('password')}>
+            <KeyRound className="w-4 h-4" />
+            Change Password
+          </button>
+          <button onClick={() => setSearchParams({ tab: 'sessions' })} className={tabStyle('sessions')}>
+            <Smartphone className="w-4 h-4" />
+            Sessions & Devices
+          </button>
+          <button onClick={() => setSearchParams({ tab: '2fa' })} className={tabStyle('2fa')}>
+            <Fingerprint className="w-4 h-4" />
+            Two-Factor Auth
+          </button>
+          <button onClick={() => setSearchParams({ tab: 'api-keys' })} className={tabStyle('api-keys')}>
+            <Lock className="w-4 h-4" />
+            API Keys Vault
+          </button>
         </div>
 
-        {/* Group: General */}
+        {/* Group: Billing & Logs */}
         <div className="space-y-1">
-          <p className="text-[10px] uppercase font-bold tracking-widest text-white/30 px-3 mb-1">Preferences & General</p>
+          <p className="text-[10px] uppercase font-bold tracking-widest text-white/30 px-3 mb-1">Billing & General</p>
+          <button onClick={() => setSearchParams({ tab: 'billing' })} className={tabStyle('billing')}>
+            <CreditCard className="w-4 h-4" />
+            Billing Center
+          </button>
           <button onClick={() => setSearchParams({ tab: 'preferences' })} className={tabStyle('preferences')}>
             <Settings className="w-4 h-4" />
             Preferences
@@ -1259,6 +1283,424 @@ export default function SettingsPage() {
               </div>
             )}
 
+            {/* ── Tab: Change Password ── */}
+            {activeTab === 'password' && (
+              <div className="space-y-8">
+                <div>
+                  <h3 className="text-xl font-bold font-serif">Credentials Settings</h3>
+                  <p className={`text-xs ${isDark ? 'text-white/40' : 'text-neutral-500'} mt-1`}>Configure profile system password and verification credentials</p>
+                </div>
+
+                {isGoogle ? (
+                  <div className={`p-5 rounded-xl border border-white/5 bg-white/3 flex items-start gap-3`}>
+                    <Info className="w-5 h-5 text-emerald-400 shrink-0 mt-0.5" />
+                    <div>
+                      <h4 className="text-xs font-bold text-white">Google OAuth Active</h4>
+                      <p className="text-[11px] text-white/50 mt-1 leading-relaxed">Your account is fully integrated with Google. Password details are secured and managed directly inside your Google Account parameters. No passwords are stored locally.</p>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <form onSubmit={handleChangePassword} className="space-y-4 max-w-md">
+                      <div>
+                        <label className="block text-[10px] uppercase tracking-wider font-bold text-white/40 mb-2">Current System Password</label>
+                        <div className="relative">
+                          <input 
+                            type={showPw ? "text" : "password"}
+                            value={oldPassword} 
+                            onChange={e => setOldPassword(e.target.value)} 
+                            className={`w-full px-4 py-2.5 rounded-xl border text-xs bg-transparent focus:outline-none focus:border-white/40 focus:ring-1 focus:ring-white/20 ${isDark ? 'border-white/10 text-white' : 'border-black/10 text-black'}`} 
+                          />
+                          <button 
+                            type="button" 
+                            onClick={() => setShowPw(!showPw)}
+                            className="absolute right-3 top-3 text-white/40 hover:text-white"
+                          >
+                            {showPw ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                          </button>
+                        </div>
+                      </div>
+                      <div>
+                        <label className="block text-[10px] uppercase tracking-wider font-bold text-white/40 mb-2">New Password Option</label>
+                        <input 
+                          type="password" 
+                          value={newPassword} 
+                          onChange={e => setNewPassword(e.target.value)} 
+                          className={`w-full px-4 py-2.5 rounded-xl border text-xs bg-transparent focus:outline-none focus:border-white/40 focus:ring-1 focus:ring-white/20 ${isDark ? 'border-white/10 text-white' : 'border-black/10 text-black'}`} 
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[10px] uppercase tracking-wider font-bold text-white/40 mb-2">Confirm New Password</label>
+                        <input 
+                          type="password" 
+                          value={confirmPassword} 
+                          onChange={e => setConfirmPassword(e.target.value)} 
+                          className={`w-full px-4 py-2.5 rounded-xl border text-xs bg-transparent focus:outline-none focus:border-white/40 focus:ring-1 focus:ring-white/20 ${isDark ? 'border-white/10 text-white' : 'border-black/10 text-black'}`} 
+                        />
+                      </div>
+
+                      {pwMsg.text && (
+                        <p className={`text-xs font-semibold ${pwMsg.isError ? 'text-red-400' : 'text-emerald-400'}`}>{pwMsg.text}</p>
+                      )}
+
+                      <button type="submit" disabled={pwLoading} className="px-5 py-2.5 bg-white text-black hover:bg-neutral-200 text-xs font-bold rounded-xl transition-all shadow-md">
+                        {pwLoading ? 'Saving System Password...' : 'Save New Password'}
+                      </button>
+                    </form>
+
+                    {/* Strength Analyzer */}
+                    <div className={`p-6 rounded-xl border ${isDark ? 'bg-white/3 border-white/5' : 'bg-black/3 border-black/5'} h-fit`}>
+                      <h4 className="text-xs uppercase tracking-wider font-bold text-white/40 mb-3">Password requirements</h4>
+                      
+                      {/* Strength meter bar */}
+                      <div className="h-1.5 rounded-full bg-white/5 overflow-hidden mb-4">
+                        <div 
+                          className={`h-full transition-all duration-300 ${
+                            pwStrength.score === 4 ? 'bg-emerald-400' : pwStrength.score >= 2 ? 'bg-amber-400' : 'bg-red-400'
+                          }`}
+                          style={{ width: `${(pwStrength.score / 4) * 100}%` }}
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        {[
+                          { id: 1, rule: 'Minimum 8 characters' },
+                          { id: 2, rule: 'At least one uppercase letter' },
+                          { id: 3, rule: 'At least one digit' },
+                          { id: 4, rule: 'At least one special character' }
+                        ].map(r => {
+                          const met = pwStrength.rules.find(rule => rule.id === r.id)?.met;
+                          return (
+                            <div key={r.id} className="flex items-center gap-2 text-xs">
+                              {met ? (
+                                <Check className="w-4 h-4 text-emerald-400 shrink-0" />
+                              ) : (
+                                <div className="w-4 h-4 rounded-full border border-white/10 shrink-0" />
+                              )}
+                              <span className={met ? 'text-white/80' : 'text-white/40'}>{r.rule}</span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+              </div>
+            )}
+
+            {/* ── Tab: Sessions & Devices ── */}
+            {activeTab === 'sessions' && (
+              <div className="space-y-8">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                  <div>
+                    <h3 className="text-xl font-bold font-serif">Sessions & Devices</h3>
+                    <p className={`text-xs ${isDark ? 'text-white/40' : 'text-neutral-500'} mt-1`}>Manage active JSON web login tokens and authentication devices</p>
+                  </div>
+                  <button 
+                    onClick={revokeAllOtherSessions}
+                    className="px-4 py-2 border border-red-500/20 text-red-400 hover:bg-red-500/10 text-xs font-bold rounded-xl transition-all w-fit"
+                  >
+                    Revoke All Other Sessions
+                  </button>
+                </div>
+
+                {sessionsLoading ? (
+                  <div className="flex flex-col items-center justify-center py-12 text-white/30 font-mono text-xs">
+                    <RefreshCw className="w-5 h-5 animate-spin mb-2" />
+                    Fetching active device sessions...
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {sessions.map(s => {
+                      const Icon = getDeviceIcon(s.userAgent || '');
+                      const isCurrent = s.ipAddress === '127.0.0.1'; // mock current session logic
+
+                      return (
+                        <div key={s.id} className={`p-5 rounded-xl border flex flex-col justify-between gap-4 ${isDark ? 'bg-white/3 border-white/5' : 'bg-black/3 border-black/5'}`}>
+                          <div className="flex items-start gap-4">
+                            <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center shrink-0">
+                              <Icon className="w-5 h-5 text-white/60" />
+                            </div>
+                            <div className="min-w-0">
+                              <div className="flex items-center gap-2">
+                                <h4 className="text-xs font-bold text-white truncate max-w-[180px]">{s.userAgent || 'API daemon client'}</h4>
+                                {isCurrent && (
+                                  <span className="text-[8px] font-bold uppercase tracking-wide px-1.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400">Current</span>
+                                )}
+                              </div>
+                              <p className="text-[10px] text-white/40 mt-1 font-mono">{s.ipAddress} · {getIpLocationLabel(s.ipAddress)}</p>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center justify-between pt-3 border-t border-white/5 text-[10px] text-white/40">
+                            <span>Created: {new Date(s.createdAt).toLocaleDateString()}</span>
+                            <button 
+                              onClick={() => revokeSession(s.id)}
+                              className="text-red-400 hover:text-white font-bold"
+                            >
+                              Revoke Access
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                    {sessions.length === 0 && (
+                      <div className="col-span-2 text-center py-12 text-white/40">
+                        <Smartphone className="w-8 h-8 mx-auto mb-2 opacity-20" />
+                        <p className="text-xs">No active sessions located.</p>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+              </div>
+            )}
+
+            {/* ── Tab: Two-Factor Auth ── */}
+            {activeTab === '2fa' && (
+              <div className="space-y-8">
+                <div>
+                  <h3 className="text-xl font-bold font-serif">Multi-Factor Authentication</h3>
+                  <p className={`text-xs ${isDark ? 'text-white/40' : 'text-neutral-500'} mt-1`}>Secure critical workspace listings, updates and payouts using authentication devices</p>
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                  {/* TOTP Config Card */}
+                  <div className={`p-6 rounded-xl border ${isDark ? 'bg-white/3 border-white/5' : 'bg-black/3 border-black/5'} space-y-6`}>
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center shrink-0">
+                        <Smartphone className="w-5 h-5 text-white/60" />
+                      </div>
+                      <div>
+                        <h4 className="text-xs font-bold text-white uppercase tracking-wider">Authenticator App</h4>
+                        <p className="text-[10px] text-white/40 mt-0.5">Use Google Authenticator or Authy</p>
+                      </div>
+                    </div>
+
+                    {user?.twoFactorEnabled ? (
+                      <div className="space-y-4">
+                        <div className="flex items-center gap-2 text-xs text-emerald-400 font-bold">
+                          <CheckCircle2 className="w-5 h-5 text-emerald-400" />
+                          Two-factor authentication is active.
+                        </div>
+                        
+                        <div className="space-y-2 pt-4 border-t border-white/5">
+                          <label className="block text-[10px] uppercase tracking-wider font-bold text-white/40">Deactivate authenticator</label>
+                          <div className="flex gap-2">
+                            <input 
+                              type="text" 
+                              placeholder="Enter 6-digit verification code" 
+                              value={disableTotpCode}
+                              onChange={e => setDisableTotpCode(e.target.value)}
+                              className={`w-full max-w-[200px] px-3 py-2 rounded-xl border text-xs bg-transparent focus:outline-none ${isDark ? 'border-white/10 text-white' : 'border-black/10 text-black'}`}
+                            />
+                            <button onClick={disable2FA} className="px-4 py-2 border border-red-500/20 text-red-400 hover:bg-red-600 hover:text-white text-xs font-bold rounded-xl transition-all">Disable 2FA</button>
+                          </div>
+                          {disableError && <p className="text-xs text-red-400">{disableError}</p>}
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="space-y-4">
+                        <p className="text-xs text-white/50 leading-relaxed">Protect your account and purchases by adding an additional layer of login authorization. Authenticate with a mobile code key during login challenges.</p>
+                        
+                        {!is2faSetup ? (
+                          <button 
+                            onClick={setup2FA} 
+                            disabled={totpLoading}
+                            className="px-5 py-2.5 bg-white text-black hover:bg-neutral-200 text-xs font-bold rounded-xl transition-all shadow-md"
+                          >
+                            {totpLoading ? 'Registering...' : 'Setup Authenticator app'}
+                          </button>
+                        ) : (
+                          <div className="p-4 rounded-xl border border-white/5 bg-black/40 space-y-4">
+                            <p className="text-xs font-bold text-white">Scan the QR code with your security app:</p>
+                            {totpQr && <img src={totpQr} alt="2FA QR Code" className="w-40 h-40 border border-white/10 rounded-lg mx-auto bg-white p-2" />}
+                            
+                            <div className="p-2.5 rounded-lg bg-white/3 border border-white/5 flex items-center justify-between">
+                              <span className="font-mono text-xs text-white truncate mr-2">{totpSecret}</span>
+                              <button 
+                                onClick={() => navigator.clipboard.writeText(totpSecret)}
+                                className="text-[10px] text-white/50 hover:text-white"
+                              >
+                                <Copy className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                            
+                            <div className="space-y-2">
+                              <label className="block text-xs font-bold text-white/60">Verification Code</label>
+                              <div className="flex gap-2">
+                                <input 
+                                  type="text" 
+                                  placeholder="Enter 6-digit OTP code" 
+                                  value={totpCode}
+                                  onChange={e => setTotpCode(e.target.value)}
+                                  className={`w-full px-3 py-2 rounded-xl border text-xs bg-transparent focus:outline-none ${isDark ? 'border-white/10 text-white' : 'border-black/10 text-black'}`}
+                                />
+                                <button onClick={enable2FA} className="px-4 py-2 bg-white text-black hover:bg-neutral-200 text-xs font-bold rounded-xl transition-all shrink-0">Verify & Enable</button>
+                              </div>
+                              {totpError && <p className="text-xs text-red-400">{totpError}</p>}
+                            </div>
+                          </div>
+                        )}
+
+                        {recoveryCodes.length > 0 && (
+                          <div className="p-4 rounded-xl border border-emerald-500/20 bg-emerald-500/5 space-y-3">
+                            <p className="text-xs font-bold text-emerald-400">Authenticator Recovery Codes</p>
+                            <p className="text-[10px] text-white/60 leading-relaxed">Save these backup authorization keys somewhere secure. They can bypass 2FA checkouts if you lose your phone.</p>
+                            
+                            <div className="grid grid-cols-2 gap-1.5 font-mono text-xs text-white">
+                              {recoveryCodes.map((code, idx) => (
+                                <div key={idx} className="bg-white/5 p-1.5 rounded text-center border border-white/5">{code}</div>
+                              ))}
+                            </div>
+
+                            <div className="flex flex-wrap items-center gap-2 pt-2">
+                              <a 
+                                href={`data:text/plain;charset=utf-8,${encodeURIComponent(`Deployra Backup Recovery Codes:\n\n${recoveryCodes.join('\n')}`)}`} 
+                                download="deployra_recovery_codes.txt"
+                                className="px-3 py-1.5 rounded bg-white/10 hover:bg-white/15 text-[10px] font-bold text-white border border-white/10 flex items-center gap-1.5"
+                              >
+                                <Download className="w-3.5 h-3.5" />
+                                Download codes
+                              </a>
+                              <button 
+                                onClick={() => navigator.clipboard.writeText(recoveryCodes.join(', '))}
+                                className="px-3 py-1.5 rounded bg-white/10 hover:bg-white/15 text-[10px] font-bold text-white border border-white/10"
+                              >
+                                Copy All
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Passkeys/FIDO2 Setup Card */}
+                  <div className={`p-6 rounded-xl border ${isDark ? 'bg-white/3 border-white/5' : 'bg-black/3 border-black/5'} space-y-6`}>
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center shrink-0">
+                        <Fingerprint className="w-5 h-5 text-white/60" />
+                      </div>
+                      <div>
+                        <h4 className="text-xs font-bold text-white uppercase tracking-wider">Passkeys & Hardware Keys</h4>
+                        <p className="text-[10px] text-white/40 mt-0.5">Use biometric sensors or USB YubiKeys</p>
+                      </div>
+                    </div>
+
+                    <div className="space-y-4">
+                      <p className="text-xs text-white/50 leading-relaxed">Sign in quickly and securely with Windows Hello, Apple Touch ID/Face ID, or FIDO2 keys. Passkeys bypass email/password entry entirely.</p>
+
+                      <div className="space-y-2">
+                        {passkeys.map(pk => (
+                          <div key={pk.id} className="p-3.5 rounded-lg bg-black/40 border border-white/5 flex items-center justify-between text-xs">
+                            <div className="min-w-0">
+                              <span className="font-bold text-white block truncate">{pk.name}</span>
+                              <span className="text-[9px] text-white/30 block mt-0.5">Registered: {new Date(pk.created).toLocaleDateString()} · Last used: {pk.lastUsed}</span>
+                            </div>
+                            <button 
+                              onClick={() => handleRevokePasskey(pk.id)}
+                              className="text-[10px] text-red-400 hover:text-white font-bold"
+                            >
+                              Revoke
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+
+                      <button 
+                        onClick={handleRegisterPasskey}
+                        className="px-5 py-2.5 bg-white text-black hover:bg-neutral-200 text-xs font-bold rounded-xl transition-all shadow-md"
+                      >
+                        Register a passkey
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+            )}
+
+            {/* ── Tab: API Keys Vault ── */}
+            {activeTab === 'api-keys' && (
+              <div className="space-y-8">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                  <div>
+                    <h3 className="text-xl font-bold font-serif">API Keys Vault</h3>
+                    <p className={`text-xs ${isDark ? 'text-white/40' : 'text-neutral-500'} mt-1`}>Provision authentication credentials for CLI agents, CI pipelines and webhooks</p>
+                  </div>
+                  <button 
+                    onClick={() => {
+                      setNewKeyName('');
+                      setNewKeyScope('read');
+                      setNewKeyExpires('never');
+                      setGeneratedKey('');
+                      setApiKeyModal(true);
+                    }}
+                    className="px-4 py-2 bg-white text-black hover:bg-neutral-200 text-xs font-bold rounded-xl transition-all shadow-md flex items-center gap-1.5 w-fit"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Create Secret Key
+                  </button>
+                </div>
+
+                <div className="border border-white/5 rounded-xl overflow-hidden">
+                  <table className="w-full text-left border-collapse">
+                    <thead>
+                      <tr className={`border-b border-white/5 text-[10px] font-bold uppercase tracking-wider ${isDark ? 'bg-white/3' : 'bg-neutral-50'} text-white/60`}>
+                        <th className="p-3">Key Identifier</th>
+                        <th className="p-3">Scope Options</th>
+                        <th className="p-3">Expiration Date</th>
+                        <th className="p-3">Last Active</th>
+                        <th className="p-3">Created</th>
+                        <th className="p-3 text-right">Settings</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-white/5 text-xs">
+                      {apiKeys.map(k => (
+                        <tr key={k.id} className="hover:bg-white/2">
+                          <td className="p-3 font-semibold text-white">
+                            <div>
+                              <span>{k.name}</span>
+                              <span className="block font-mono text-[10px] text-white/40 mt-0.5">{k.prefix}</span>
+                            </div>
+                          </td>
+                          <td className="p-3">
+                            <span className="text-[10px] font-mono bg-white/5 px-2 py-0.5 rounded border border-white/5">
+                              {k.scope}
+                            </span>
+                          </td>
+                          <td className="p-3 text-white/50 font-mono text-[11px]">{k.expires}</td>
+                          <td className="p-3 text-white/40">{k.lastUsed}</td>
+                          <td className="p-3 text-white/40 font-mono text-[11px]">{k.created}</td>
+                          <td className="p-3 text-right">
+                            <button 
+                              onClick={() => handleRevokeApiKey(k.id)}
+                              className="text-[10px] font-bold text-red-400 hover:text-white"
+                            >
+                              Revoke Key
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                      {apiKeys.length === 0 && (
+                        <tr>
+                          <td colSpan="6" className="p-6 text-center text-white/30 font-mono">No active API keys found.</td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+
+                <div className={`p-4 rounded-xl border border-white/5 bg-white/3 flex items-start gap-3`}>
+                  <Shield className="w-5 h-5 text-white/40 shrink-0 mt-0.5" />
+                  <p className="text-[11px] text-white/50 leading-relaxed">Ensure security practices are observed for credentials. Secret keys are encrypted. You can roll keys instantly if you suspect unauthorized network behavior.</p>
+                </div>
+
+              </div>
+            )}
+
             {/* ── Tab: Privacy & GDPR ── */}
             {activeTab === 'privacy' && (
               <div className="space-y-8">
@@ -1344,7 +1786,123 @@ export default function SettingsPage() {
               </div>
             )}
 
+            {/* ── Tab: Billing Center ── */}
+            {activeTab === 'billing' && (
+              <div className="space-y-8">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-xl font-bold font-serif">Billing Center</h3>
+                  <span className="text-[10px] uppercase font-bold tracking-widest px-2.5 py-1 bg-white/5 text-white/60 rounded-full border border-white/10">Stripe Sandbox</span>
+                </div>
 
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className={`p-5 rounded-xl border ${isDark ? 'bg-white/3 border-white/5' : 'bg-black/3 border-black/5'}`}>
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-[10px] uppercase font-bold tracking-wider text-white/40">Credits Balance</span>
+                      <Wallet className="w-4 h-4 text-white/60" />
+                    </div>
+                    <p className="text-3xl font-bold font-serif">$124.50</p>
+                    <p className="text-[10px] text-white/40 mt-1.5 font-mono">Reset cycle: June 15, 2026</p>
+                  </div>
+
+                  <div className={`p-5 rounded-xl border ${isDark ? 'bg-white/3 border-white/5' : 'bg-black/3 border-black/5'}`}>
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-[10px] uppercase font-bold tracking-wider text-white/40">API Calls Consumed</span>
+                      <BarChart3 className="w-4 h-4 text-emerald-400" />
+                    </div>
+                    <p className="text-3xl font-bold font-serif">58,410 <span className="text-xs text-white/30 font-normal">/ 100K API calls</span></p>
+                    <p className="text-[10px] text-emerald-400 mt-1.5 font-mono">58.4% monthly bandwidth allocation utilized</p>
+                  </div>
+                </div>
+
+                <div className="p-6 rounded-xl border bg-gradient-to-br from-neutral-900/60 to-transparent border-white/10 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                  <div>
+                    <h4 className="text-xs uppercase tracking-wider font-bold text-white/60 flex items-center gap-1.5">
+                      <Zap className="w-4 h-4 text-white" />
+                      Multiregion cluster scaling
+                    </h4>
+                    <p className="text-xs text-white/40 mt-1">Upgrade to Enterprise Pro subscription to provision active edge nodes across AWS/GCP regions.</p>
+                  </div>
+                  <button onClick={() => navigate('/pricing')} className="px-4 py-2 bg-white text-black hover:bg-neutral-200 text-xs font-bold rounded-xl transition-all shadow-md shrink-0">Upgrade cluster</button>
+                </div>
+
+                {/* Invoices */}
+                <div>
+                  <h4 className="text-sm font-bold font-serif mb-3">Invoice history</h4>
+                  <div className="space-y-2">
+                    {[
+                      { id: 'INV-0042', amount: 39, date: '2026-05-12', desc: 'Deployra SaaS Enterprise Pro Plan' },
+                      { id: 'INV-0021', amount: 19, date: '2026-04-12', desc: 'Credits Wallet Top-Up Transaction' }
+                    ].map(inv => (
+                      <div key={inv.id} className={`p-4 rounded-xl border flex items-center justify-between ${isDark ? 'bg-white/3 border-white/5' : 'bg-black/3 border-black/5'}`}>
+                        <div>
+                          <p className="text-xs font-bold text-white">{inv.desc}</p>
+                          <p className="text-[10px] text-white/40 mt-1 font-mono">{inv.id} · {inv.date}</p>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <span className="text-xs font-bold font-mono">${inv.amount}.00</span>
+                          <a 
+                            href={`data:text/plain;charset=utf-8,${encodeURIComponent(`Deployra Invoice ${inv.id}\nDate: ${inv.date}\nAmount: $${inv.amount}.00\nStatus: Paid`)}`} 
+                            download={`deployra_${inv.id}.txt`}
+                            className="p-1.5 text-white/40 hover:text-white hover:bg-white/5 rounded-lg border border-white/5"
+                          >
+                            <Download className="w-4 h-4" />
+                          </a>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* ── Tab: Team Workspace ── */}
+            {activeTab === 'teams' && (
+              <div className="space-y-6">
+                <div>
+                  <h3 className="text-xl font-bold font-serif">Workspace Team</h3>
+                  <p className={`text-xs ${isDark ? 'text-white/40' : 'text-neutral-500'} mt-1`}>Add developers, administrators, or finance view-only profiles to the workspace</p>
+                </div>
+
+                <form onSubmit={handleInviteTeam} className="flex gap-2 max-w-md">
+                  <input 
+                    type="email" 
+                    placeholder="name@organization.com" 
+                    value={inviteEmail} 
+                    onChange={e => setInviteEmail(e.target.value)} 
+                    className={`flex-1 px-3 py-2 rounded-xl border text-xs bg-transparent focus:outline-none focus:border-white/40 focus:ring-1 focus:ring-white/20 ${isDark ? 'border-white/10 text-white' : 'border-black/10 text-black'}`} 
+                  />
+                  <select 
+                    value={inviteRole} 
+                    onChange={e => setInviteRole(e.target.value)} 
+                    className={`px-3 py-2 rounded-xl border text-xs bg-transparent focus:outline-none ${isDark ? 'border-white/10 text-white bg-[#090d16]' : 'border-black/10 text-black bg-white'}`}
+                  >
+                    <option value="Admin">Admin</option>
+                    <option value="Developer">Developer</option>
+                    <option value="Member">Member</option>
+                  </select>
+                  <button type="submit" className="px-4 py-2 bg-white text-black hover:bg-neutral-200 text-xs font-bold rounded-xl transition-all">Invite</button>
+                </form>
+                {inviteMsg && <p className="text-xs text-emerald-400 font-bold">{inviteMsg}</p>}
+
+                <div className="pt-4 space-y-3">
+                  <h4 className="text-xs uppercase tracking-wider font-bold text-white/40">Active workspace members</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {teamMembers.map(m => (
+                      <div key={m.id} className={`p-4 rounded-xl border flex items-center justify-between ${isDark ? 'bg-white/3 border-white/5' : 'bg-black/3 border-black/5'}`}>
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-xs text-white font-bold">{m.avatar}</div>
+                          <div>
+                            <p className="text-xs font-bold text-white">{m.name}</p>
+                            <p className="text-[10px] text-white/40">{m.email}</p>
+                          </div>
+                        </div>
+                        <span className="text-[10px] px-2 py-0.5 bg-white/5 border border-white/10 rounded-full font-bold text-white/60">{m.role}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* ── Tab: Preferences ── */}
             {activeTab === 'preferences' && (
@@ -1399,7 +1957,46 @@ export default function SettingsPage() {
                   </select>
                 </div>
 
+                {/* Accessibility */}
+                <div className="space-y-4 pt-4 border-t border-white/5">
+                  <label className="block text-xs font-bold text-white/60">Accessibility Adjustments</label>
+                  
+                  <div className="space-y-3 max-w-xl">
+                    <label className="flex items-center justify-between p-3.5 rounded-xl border border-white/5 bg-white/3 cursor-pointer">
+                      <div>
+                        <p className="text-xs font-bold">Reduced Motion</p>
+                        <p className="text-[10px] text-white/40 mt-0.5">Disable transitions and spring dynamics.</p>
+                      </div>
+                      <input 
+                        type="checkbox" 
+                        checked={accessibility.reducedMotion} 
+                        onChange={e => {
+                          const val = { ...accessibility, reducedMotion: e.target.checked };
+                          setAccessibility(val);
+                          savePreferences({ theme: prefTheme, lang: prefLang, accessibility: val, notifications: notifPreferences });
+                        }} 
+                        className="w-4 h-4 accent-white" 
+                      />
+                    </label>
 
+                    <label className="flex items-center justify-between p-3.5 rounded-xl border border-white/5 bg-white/3 cursor-pointer">
+                      <div>
+                        <p className="text-xs font-bold">High Contrast Mode</p>
+                        <p className="text-[10px] text-white/40 mt-0.5">Increase borders contrast index for visibility.</p>
+                      </div>
+                      <input 
+                        type="checkbox" 
+                        checked={accessibility.highContrast} 
+                        onChange={e => {
+                          const val = { ...accessibility, highContrast: e.target.checked };
+                          setAccessibility(val);
+                          savePreferences({ theme: prefTheme, lang: prefLang, accessibility: val, notifications: notifPreferences });
+                        }} 
+                        className="w-4 h-4 accent-white" 
+                      />
+                    </label>
+                  </div>
+                </div>
               </div>
             )}
 

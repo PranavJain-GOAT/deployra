@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
+import { MOCK_PRODUCTS, MOCK_CUSTOM_SOLUTIONS } from "@/api/mockData";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, ArrowLeft, Check, Upload, Settings, CreditCard, Loader2, Link as LinkIcon, ExternalLink, Plus, X, Image as ImageIcon, FileText, FileBadge, Building2, MapPin, Mail, Phone, Globe, Briefcase, UserRoundSearch } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -12,7 +13,6 @@ const loadScript = src => new Promise((resolve) => {
   script.onload = () => resolve(true);
   script.onerror = () => resolve(false);
   document.body.appendChild(script);
-  document.body.removeChild(script);
 });
 
 const STEPS = [
@@ -29,6 +29,7 @@ export default function InstallFlow() {
   const [payMethod, setPayMethod] = useState("card");
   
   // Delivery State Tracking
+  // 0: Payment Completed, 1: Setup in Progress, 2: Delivered
   const [deliveryStatus, setDeliveryStatus] = useState(0);
 
   const [formData, setFormData] = useState({
@@ -49,18 +50,17 @@ export default function InstallFlow() {
   const type = urlParams.get("type") || "instant";
 
   useEffect(() => {
-    const fetchProduct = async () => {
-      try {
-        const res = await axios.get(`${API_URL}/products/${id}`);
-        setProduct(res.data.data);
-      } catch (err) {
-        console.error("Error loading product", err);
-      } finally {
-        setLoading(false);
+    setTimeout(() => {
+      if (type === "instant") {
+        const found = MOCK_PRODUCTS.find(p => p.id === id);
+        setProduct(found || null);
+      } else {
+        const found = MOCK_CUSTOM_SOLUTIONS.find(s => s.id === id);
+        setProduct(found || null);
       }
-    };
-    fetchProduct();
-  }, [id]);
+      setLoading(false);
+    }, 400);
+  }, [id, type]);
 
   const handleRazorpayCheckout = async () => {
     const amount = product?.price || product?.price_min || 0;
@@ -95,8 +95,7 @@ export default function InstallFlow() {
             const verifyData = await axios.post(`${API_URL}/payment/verify`, {
               orderId: data.order_id,
               paymentId: response.razorpay_payment_id,
-              signature: response.razorpay_signature,
-              productId: id
+              signature: response.razorpay_signature
             });
             
             if (verifyData.data.success) {

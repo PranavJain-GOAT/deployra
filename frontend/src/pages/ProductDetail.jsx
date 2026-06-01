@@ -1,9 +1,11 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
+import { MOCK_PRODUCTS } from "@/api/mockData";
 import { Check, X, Clock, Users, Play, CreditCard, Shield, Loader2, ChevronLeft, Zap, Activity, ArrowUpRight, ListChecks, LifeBuoy } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import confetti from "canvas-confetti";
-import { useProductById, useIncrementViews, usePurchaseProduct, useIncrementDemoViews } from "@/hooks/useMarketplace";
+
+
 
 function FloatField({ label, type = "text", placeholder: _placeholder, value, onChange, required }) {
   return (
@@ -23,60 +25,41 @@ function FloatField({ label, type = "text", placeholder: _placeholder, value, on
 
 export default function ProductDetail() {
   const { id } = useParams();
+  const [product, setProduct] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [showDemo, setShowDemo] = useState(false);
   const [showPayment, setShowPayment] = useState(false);
   const [payStage, setPayStage] = useState("idle"); // idle | paying | success
   const [cardData, setCardData] = useState({ name: "", number: "", expiry: "", cvc: "" });
 
-  const { data: product, isLoading: loading } = useProductById(id);
-  const incrementViewsMutation = useIncrementViews();
-  const incrementDemoViewsMutation = useIncrementDemoViews();
-  const purchaseMutation = usePurchaseProduct();
-
-  const imageUrl = (product?.images && product?.images.length > 0 ? product?.images[0] : null) || product?.image_url;
-  const demoUrl = product?.demoUrl || product?.demo_url;
-  const setupTime = product?.setupTime || product?.setup_time || "Under 5 min";
-  const plainEnglish = product?.whatItDoes || product?.plain_english;
-  const reviewsCount = product?.reviewCount || product?.reviews_count || 0;
-  const deliveryDays = product?.deliveryDays || product?.delivery_days || 5;
-
   useEffect(() => {
-    if (id) {
-      incrementViewsMutation.mutate(id);
-    }
+    // Use mock data directly - no API needed
+    const found = MOCK_PRODUCTS.find((p) => p.id === id);
+    setProduct(found || null);
+    setLoading(false);
   }, [id]);
+
 
   const handlePay = async (e) => {
     e.preventDefault();
     setPayStage("paying");
-    try {
-      await purchaseMutation.mutateAsync(id);
-      setPayStage("success");
-      // Silver confetti burst
-      confetti({
-        particleCount: 80,
-        spread: 70,
-        origin: { y: 0.6 },
-        colors: ["#C0C0C0", "#ffffff", "#a8a8a8", "#e8e8e8", "#888888"],
-      });
-      setTimeout(() => confetti({
-        particleCount: 40,
-        spread: 50,
-        origin: { y: 0.5, x: 0.3 },
-        colors: ["#C0C0C0", "#ffffff", "#4D9FFF"],
-      }), 300);
-    } catch (err) {
-      console.error(err);
-      alert(err.response?.data?.message || "Failed to complete purchase");
-      setPayStage("idle");
-    }
-  };
-
-  const handleDemoClick = () => {
-    setShowDemo(true);
-    if (id) {
-      incrementDemoViewsMutation.mutate(id);
-    }
+    await new Promise((r) => setTimeout(r, 2000));
+    // Simulate order creation locally
+    console.log("Order placed:", { product_id: id, product_title: product.title, amount: product.price, status: "paid" });
+    setPayStage("success");
+    // Silver confetti burst
+    confetti({
+      particleCount: 80,
+      spread: 70,
+      origin: { y: 0.6 },
+      colors: ["#C0C0C0", "#ffffff", "#a8a8a8", "#e8e8e8", "#888888"],
+    });
+    setTimeout(() => confetti({
+      particleCount: 40,
+      spread: 50,
+      origin: { y: 0.5, x: 0.3 },
+      colors: ["#C0C0C0", "#ffffff", "#4D9FFF"],
+    }), 300);
   };
 
   if (loading) return (
@@ -127,14 +110,13 @@ export default function ProductDetail() {
                   </button>
                 </div>
                 <div className="aspect-video bg-black flex items-center justify-center relative">
-                  {demoUrl ? (
-                    <iframe src={demoUrl} className="w-full h-full" title="Demo" />
+                  {product.demo_url ? (
+                    <iframe src={product.demo_url} className="w-full h-full" title="Demo" />
                   ) : (
                     <div className="text-center p-10">
                       <motion.div
                         whileHover={{ scale: 1.1 }}
                         className="w-20 h-20 glass rounded-full flex items-center justify-center mx-auto mb-4 cursor-pointer"
-                        onClick={handleDemoClick}
                       >
                         <Play className="w-7 h-7 text-white ml-1" />
                       </motion.div>
@@ -177,10 +159,10 @@ export default function ProductDetail() {
                   </span>
                   <span className="cyber-tag">
                     <Activity className="w-2.5 h-2.5" />
-                    {(product.rating || 5.0).toFixed(1)} · {reviewsCount} reviews
+                    {product.rating || 4.8} · {product.reviews_count || 120} reviews
                   </span>
-                  {product.salesCount !== undefined && (
-                    <span className="cyber-tag">{product.salesCount}+ installs</span>
+                  {product.installs_count && (
+                    <span className="cyber-tag">{product.installs_count}+ installs</span>
                   )}
                 </div>
                 <h1 className="text-white font-bold leading-none mb-5" style={{ fontFamily: 'Georgia, serif', fontSize: 'clamp(2.2rem, 5vw, 3.5rem)', letterSpacing: '-0.04em' }}>
@@ -204,7 +186,7 @@ export default function ProductDetail() {
               {/* Clean product screenshot with permanently visible demo overlay */}
               <motion.div
                 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}
-                onClick={handleDemoClick}
+                onClick={() => setShowDemo(true)}
                 className="rounded-3xl overflow-hidden border border-white/10 shadow-2xl relative cursor-pointer group"
               >
                 <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center z-10 backdrop-blur-[2px]">
@@ -215,9 +197,9 @@ export default function ProductDetail() {
                     View Demo <ArrowUpRight className="w-5 h-5 text-cyber-green" />
                   </p>
                 </div>
-                {imageUrl ? (
+                {product.image_url ? (
                   <img
-                    src={imageUrl}
+                    src={product.image_url}
                     alt={product.title}
                     className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                     style={{ maxHeight: '420px', objectPosition: 'top' }}
@@ -235,15 +217,15 @@ export default function ProductDetail() {
         {/* Content */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-12">
           <div className="space-y-10">
-              {plainEnglish && (
+              {product.what_it_does && (
                 <Section title="What this does">
-                  <p className="text-white/50 leading-relaxed" style={{ letterSpacing: '-0.01em' }}>{plainEnglish}</p>
+                  <p className="text-white/50 leading-relaxed" style={{ letterSpacing: '-0.01em' }}>{product.what_it_does}</p>
                 </Section>
               )}
-              {product.whoItsFor?.length > 0 && (
+              {product.who_its_for?.length > 0 && (
                 <Section title="Who this is for">
                   <div className="flex flex-wrap gap-2">
-                    {product.whoItsFor.map((w) => (
+                    {product.who_its_for.map((w) => (
                       <span key={w} className="cyber-tag gap-2 py-2">
                         <Users className="w-3 h-3" /> {w}
                       </span>
@@ -252,13 +234,13 @@ export default function ProductDetail() {
                 </Section>
               )}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {product.whatsIncluded?.length > 0 && (
+                {product.whats_included?.length > 0 && (
                   <div className="glass rounded-2xl p-5 border border-white/6">
                     <h3 className="text-white/70 text-xs font-mono tracking-widest mb-4 flex items-center gap-2">
                       <span style={{ color: '#4D9FFF' }}>+</span> INCLUDED
                     </h3>
                     <ul className="space-y-2.5">
-                      {product.whatsIncluded.map((item) => (
+                      {product.whats_included.map((item) => (
                         <li key={item} className="flex items-start gap-2.5">
                           <Check className="w-3.5 h-3.5 mt-0.5 shrink-0" style={{ color: '#4D9FFF' }} />
                           <span className="text-sm text-white/60" style={{ letterSpacing: '-0.01em' }}>{item}</span>
@@ -267,13 +249,13 @@ export default function ProductDetail() {
                     </ul>
                   </div>
                 )}
-                {product.whatsNotIncluded?.length > 0 && (
+                {product.whats_not_included?.length > 0 && (
                   <div className="glass rounded-2xl p-5 border border-white/6">
                     <h3 className="text-white/70 text-xs font-mono tracking-widest mb-4 flex items-center gap-2">
                       <span className="text-red-400">−</span> NOT INCLUDED
                     </h3>
                     <ul className="space-y-2.5">
-                      {product.whatsNotIncluded.map((item) => (
+                      {product.whats_not_included.map((item) => (
                         <li key={item} className="flex items-start gap-2.5">
                           <X className="w-3.5 h-3.5 mt-0.5 shrink-0 text-red-400/60" />
                           <span className="text-sm text-white/35" style={{ letterSpacing: '-0.01em' }}>{item}</span>
@@ -301,13 +283,13 @@ export default function ProductDetail() {
                 </Section>
               )}
 
-              {deliveryDays && (
+              {product.delivery_info && (
                 <Section title="Delivery">
                   <div className="glass rounded-2xl p-5 flex items-start gap-4">
                     <Clock className="w-5 h-5 text-white/30 mt-0.5 shrink-0" />
                     <div>
-                      <p className="text-white/80 font-semibold text-sm mb-1">Estimated delivery</p>
-                      <p className="text-sm text-white/40">{deliveryDays} days</p>
+                      <p className="text-white/80 font-semibold text-sm mb-1">Instant delivery</p>
+                      <p className="text-sm text-white/40">{product.delivery_info}</p>
                     </div>
                   </div>
                 </Section>
@@ -363,7 +345,7 @@ export default function ProductDetail() {
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6">
                     {product.preview_images.map((img, i) => (
                       <div key={i} className="rounded-2xl overflow-hidden border border-white/10 glass aspect-video group cursor-pointer relative">
-                        <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity z-10 flex items-center justify-center">-center">
+                        <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity z-10 flex items-center justify-center">
                           <div className="bg-white/10 backdrop-blur-md px-4 py-2 rounded-full border border-white/20">
                             <span className="text-white text-xs font-bold tracking-widest uppercase">Expand</span>
                           </div>

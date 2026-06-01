@@ -1,8 +1,9 @@
 const Razorpay = require('razorpay');
 const crypto = require('crypto');
-const { prisma } = require('../config/database');
 
 // Initialize Razorpay conditionally based on env vars
+// In a real production app, this would throw an error if missing, but we'll allow initialization 
+// to fail gracefully if the user hasn't set keys yet.
 let razorpayInstance = null;
 
 const getRazorpayInstance = () => {
@@ -56,7 +57,7 @@ exports.createOrder = async (req, res, next) => {
 
 exports.verifyPayment = async (req, res, next) => {
     try {
-        const { orderId, paymentId, signature, productId } = req.body;
+        const { orderId, paymentId, signature } = req.body;
 
         if (!orderId || !paymentId || !signature) {
             return res.status(400).json({ success: false, message: "Missing required payment parameters." });
@@ -77,76 +78,14 @@ exports.verifyPayment = async (req, res, next) => {
         const isAuthentic = expectedSignature === signature;
 
         if (isAuthentic) {
-            let purchase = null;
-
-            if (productId) {
-                const product = await prisma.product.findUnique({ where: { id: productId } });
-                if (product) {
-                    purchase = await prisma.purchase.create({
-                      data: {
-                        userId: req.user.id,
-                        productId,
-                        pricePaid: product.price,
-                        status: 'COMPLETED'
-                      }
-                    });
-
-                    // 1. Create linked Order
-                    await prisma.order.create({
-                      data: {
-                        userId: req.user.id,
-                        productId,
-                        details: `Razorpay Purchase of "${product.title}" for $${product.price}`
-                      }
-                    });
-
-                    // 2. Create Notifications
-                    await prisma.notification.create({
-                      data: {
-                        userId: product.developerId,
-                        type: 'SALE_RECEIVED',
-                        title: 'New Product Sale!',
-                        message: `Your product "${product.title}" was purchased by ${req.user.name || req.user.email} for $${product.price}.`
-                      }
-                    });
-
-                    await prisma.notification.create({
-                      data: {
-                        userId: req.user.id,
-                        type: 'PURCHASE_CONFIRMED',
-                        title: 'Purchase Confirmed',
-                        message: `Thank you for purchasing "${product.title}". You can now access/download it from your dashboard.`
-                      }
-                    });
-
-                    // 3. Create Activities
-                    await prisma.activity.create({
-                      data: {
-                        userId: product.developerId,
-                        type: 'ORDER_RECEIVED',
-                        title: 'New Order Received',
-                        body: `Your product "${product.title}" has been purchased by ${req.user.name || req.user.email} for $${product.price}.`,
-                        meta: JSON.stringify({ productId, purchaseId: purchase.id })
-                      }
-                    });
-
-                    await prisma.activity.create({
-                      data: {
-                        userId: req.user.id,
-                        type: 'PRODUCT_PURCHASED',
-                        title: 'Product Purchased',
-                        body: `You successfully purchased "${product.title}" for $${product.price}.`,
-                        meta: JSON.stringify({ productId, purchaseId: purchase.id })
-                      }
-                    });
-                }
-            }
-
+            // Payment is successful and verified
+            // Here you would typically update your database with the paymentId and status
+            console.log('Payment request is legitimate:', { orderId, paymentId });
+            
             res.status(200).json({
                 success: true,
                 message: "Payment verified successfully",
-                paymentId,
-                data: purchase
+                paymentId
             });
         } else {
             res.status(400).json({
