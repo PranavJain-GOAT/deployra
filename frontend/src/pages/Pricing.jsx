@@ -2,7 +2,6 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { Check, X, Zap, Crown, Building2, ArrowRight, ChevronDown } from "lucide-react";
-import ROICalculator from "@/components/pricing/ROICalculator";
 
 const PLANS = [
   {
@@ -204,8 +203,6 @@ export default function Pricing() {
         </div>
       </section>
 
-      {/* ROI Calculator */}
-      <ROICalculator />
 
       {/* FAQ */}
       <section className="max-w-2xl mx-auto px-4 pb-24">
