@@ -1,15 +1,26 @@
 {
-  "name": "AIInstall Marketplace",
-  "short_name": "AIInstall",
+  "name": "Deployra",
+  "short_name": "Deployra",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#010101",
-  "theme_color": "#00FF41",
+  "theme_color": "#010101",
   "icons": [
     {
-      "src": "favicon.svg",
+      "src": "logo.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "logo.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "logo.png",
       "sizes": "any",
-      "type": "image/svg+xml"
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ]
 }
