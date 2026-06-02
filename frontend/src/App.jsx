@@ -160,7 +160,6 @@ const AuthenticatedApp = () => {
       <Route path="/auth" element={<Auth />} />
       <Route path="/auth/verify-email" element={<VerifyEmail />} />
       <Route path="/auth/google/callback" element={<AuthCallback />} />
-      <Route path="/auth-callback" element={<AuthCallback />} />
     </Routes>
   );
 };

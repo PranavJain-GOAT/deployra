@@ -8,8 +8,7 @@ const {
   sendWelcomeEmail,
   sendEmailVerificationEmail,
   sendPasswordResetEmail,
-  sendPasswordChangedEmail,
-  sendSecurityAlertEmail
+  sendPasswordChangedEmail
 } = require('../services/email.service');
 const logger = require('../utils/logger');
 

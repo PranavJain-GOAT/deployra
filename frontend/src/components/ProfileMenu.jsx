@@ -288,18 +288,14 @@ export default function ProfileMenu() {
   const { user, logout } = useAuth();
   const { isDark } = useTheme();
   const { uploadAvatar, removeAvatar, isUploading } = useProfile();
-  const { unreadCount } = useNotifications();
-  const navigate = useNavigate();
+  useNotifications(); // keep polling alive for bell badge
 
   const plan = PLAN_CONFIG[user?.role] || PLAN_CONFIG.CLIENT;
   const PlanIcon = plan.icon;
-  const isGoogle = user?.authProvider === 'google';
   const isVerified = user?.isEmailVerified;
   const isDev = user?.role === 'DEVELOPER';
   const isAdmin = user?.role === 'ADMIN';
   const dashPath = isAdmin ? '/admin' : isDev ? '/developer' : '/client';
-
-  const prefs = user?.preferencesJson ? (typeof user.preferencesJson === 'string' ? JSON.parse(user.preferencesJson) : user.preferencesJson) : {};
 
   // outside clicks
   useEffect(() => {

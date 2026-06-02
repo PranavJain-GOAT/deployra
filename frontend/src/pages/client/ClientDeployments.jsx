@@ -1,9 +1,8 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Rocket, Cpu, Activity, AlertTriangle, CheckCircle, Clock,
-  RefreshCw, RotateCcw, Terminal, ChevronRight, Circle,
-  MoreHorizontal, ExternalLink, Server, Zap, Globe
+  RefreshCw, RotateCcw, Terminal, ChevronRight,
+  ExternalLink, Server, Globe
 } from "lucide-react";
 
 const DEPLOYMENTS = [

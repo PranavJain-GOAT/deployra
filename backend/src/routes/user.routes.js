@@ -1,6 +1,9 @@
 const express = require('express');
+const bcrypt = require('bcrypt');
+const crypto = require('crypto');
 const { authenticate } = require('../middleware/auth.middleware');
 const { prisma } = require('../config/database');
+const { verifyTOTP, generateBase32Secret } = require('../utils/totp');
 
 const router = express.Router();
 
@@ -151,7 +154,6 @@ router.get('/login-history', authenticate, async (req, res, next) => {
 });
 
 // ── Password Update ──────────────────────────────────────────────────────────
-const bcrypt = require('bcrypt');
 router.post('/change-password', authenticate, async (req, res, next) => {
   try {
     const { oldPassword, newPassword } = req.body;
@@ -188,9 +190,6 @@ router.post('/change-password', authenticate, async (req, res, next) => {
 });
 
 // ── Two-Factor Authentication ────────────────────────────────────────────────
-const crypto = require('crypto');
-const { verifyTOTP, generateBase32Secret } = require('../utils/totp');
-
 router.post('/2fa/setup', authenticate, async (req, res, next) => {
   try {
     const user = await prisma.user.findUnique({ where: { id: req.user.id } });
@@ -378,4 +377,3 @@ router.get('/preferences', authenticate, async (req, res, next) => {
 });
 
 module.exports = router;
-
