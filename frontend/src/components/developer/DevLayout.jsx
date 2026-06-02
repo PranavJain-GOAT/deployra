@@ -98,8 +98,8 @@ export default function DevLayout() {
           style={{ background: "rgba(0,0,0,0.9)", backdropFilter: "blur(20px)", borderBottom: "1px solid rgba(150,150,150,0.1)" }}
         >
           <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg flex items-center justify-center" style={{ background: "linear-gradient(135deg,hsl(var(--foreground)),hsl(var(--foreground)))" }}>
-              <span className="text-white font-bold text-xs" style={{ fontFamily: "Georgia, serif" }}>D</span>
+            <div className="w-7 h-7 rounded-lg flex items-center justify-center overflow-hidden bg-transparent">
+              <img src="/logo.png" alt="Deployra Logo" className="w-6 h-6 object-contain" />
             </div>
             <span className="text-white font-bold text-sm" style={{ fontFamily: "Georgia, serif" }}>Developer Hub</span>
           </div>

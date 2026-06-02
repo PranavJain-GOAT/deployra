@@ -1,9 +1,9 @@
 import { Link, useLocation } from "react-router-dom";
 import {
-  LayoutDashboard, ShoppingBag, Rocket, DollarSign, Search,
+  LayoutDashboard, ShoppingBag, Rocket, Search,
   Heart, MessageSquare, CreditCard, ArrowLeft, Users,
   HeadphonesIcon, FileText, Layers, Building2, Settings,
-  Globe, Shield
+  Shield
 } from "lucide-react";
 import { useRef } from "react";
 
@@ -126,8 +126,8 @@ export default function ClientSidebar() {
         </Link>
 
         <div className="flex items-center gap-3">
-          <div className="logo-mark w-10 h-10 rounded-xl flex items-center justify-center bg-foreground text-background">
-            <Globe className="w-5 h-5" />
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center overflow-hidden bg-transparent">
+            <img src="/logo.png" alt="Deployra Logo" className="w-9 h-9 object-contain" />
           </div>
           <div>
             <span className="text-foreground font-bold text-sm block" style={{ fontFamily: "Georgia, serif", letterSpacing: "-0.03em" }}>

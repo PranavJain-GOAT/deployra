@@ -1,9 +1,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Search, Filter, Star, Shield, Zap, TrendingUp, Tag,
-  ChevronRight, SlidersHorizontal, Package, Award, Clock,
-  ArrowUpRight, Heart, ShoppingCart, Check, X, RefreshCw, Globe
+  Search, Star, Shield, Zap, TrendingUp, SlidersHorizontal, Package, Award, Heart, ShoppingCart, Check, X, RefreshCw
 } from "lucide-react";
 
 const PRODUCTS = [

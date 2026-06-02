@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Trophy, ArrowUp, ArrowDown, TrendingUp, Package, Star, Eye, DollarSign, Award, Target, Zap, ChevronRight } from "lucide-react";
+import { ArrowUp, ArrowDown, Star } from "lucide-react";
 
 const RANKINGS = [
   { rank: 1,  name: "DataFlow AI",      dev: "Priya Systems",     category: "Data",       rating: 4.9, revenue: 128400, installs: 312, change: 0    },

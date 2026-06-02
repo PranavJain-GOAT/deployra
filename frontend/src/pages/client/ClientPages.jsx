@@ -34,13 +34,6 @@ function SectionHeader({ title, subtitle, badge }) {
   );
 }
 
-function StatOrb({ active }) {
-  return active ? (
-    <span className="status-orb-active" />
-  ) : (
-    <span className="status-orb-idle" />
-  );
-}
 
 /* ════════════════════════════════════════════════════════════
    PURCHASE HISTORY (OVERVIEW HOME)

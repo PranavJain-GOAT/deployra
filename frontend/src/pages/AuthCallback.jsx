@@ -120,7 +120,7 @@ export default function AuthCallback() {
     };
 
     handleCallback();
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []);  
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-white dark:bg-[#030712]">

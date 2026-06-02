@@ -1,14 +1,12 @@
-import { useState, useEffect, useRef } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { useState, useEffect } from "react";
+import { motion } from "framer-motion";
 import {
-  DollarSign, Package, ShoppingBag, TrendingUp, Star, Users,
-  ArrowUpRight, ArrowDownRight, ChevronRight, Check, Clock,
-  Zap, Award, RefreshCw, Eye, Download, AlertCircle,
-  BarChart3, Repeat, Target, Activity
+  DollarSign, Package, ShoppingBag, TrendingUp, Star,
+  ArrowUpRight, ArrowDownRight, ChevronRight,
+  Zap, Award, RefreshCw, Repeat, Target
 } from "lucide-react";
 import axios from "axios";
 import { API_URL } from "@/lib/config";
-import { useAuth } from "@/lib/AuthContext";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 
 // ─── Sparkline ────────────────────────────────────────────────────────────────
@@ -162,10 +160,8 @@ function ProductRow({ product, idx }) {
 
 // ─── Main Dashboard ────────────────────────────────────────────────────────────
 export default function Dashboard() {
-  const { user } = useAuth();
   const [products, setProducts] = useState([]);
   const [orders, setOrders] = useState([]);
-  const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [chartPeriod, setChartPeriod] = useState("30d");
   const [refreshing, setRefreshing] = useState(false);
@@ -178,7 +174,7 @@ export default function Dashboard() {
       ]);
       setProducts(prodRes.data?.data || prodRes.data?.products || []);
       setOrders(orderRes.data?.data || orderRes.data?.orders || []);
-    } catch (_) {}
+    } catch {}
     setLoading(false);
   };
 

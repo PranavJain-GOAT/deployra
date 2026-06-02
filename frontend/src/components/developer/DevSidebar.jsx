@@ -1,8 +1,7 @@
 import { Link, useLocation } from "react-router-dom";
 import {
   LayoutDashboard, Package, Plus, ArrowLeft, MessageSquare, User,
-  BarChart3, Zap, Terminal, Shield, DollarSign, Star,
-  TrendingUp, Users, GitBranch, CheckSquare, Wallet, FileText,
+  BarChart3, Zap, Terminal, Shield, DollarSign, Star, Users, GitBranch, CheckSquare, Wallet,
   Trophy, ShoppingBag, Settings
 } from "lucide-react";
 import { useRef } from "react";
@@ -147,8 +146,8 @@ export default function DevSidebar() {
         </Link>
 
         <div className="flex items-center gap-3">
-          <div className="logo-mark w-10 h-10 rounded-xl flex items-center justify-center bg-foreground text-background">
-            <span className="font-bold text-sm relative z-10" style={{ fontFamily: "Georgia, serif" }}>D</span>
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center overflow-hidden bg-transparent">
+            <img src="/logo.png" alt="Deployra Logo" className="w-9 h-9 object-contain" />
           </div>
           <div>
             <span className="text-foreground font-bold text-sm block" style={{ fontFamily: "Georgia, serif", letterSpacing: "-0.03em" }}>

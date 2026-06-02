@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  HeadphonesIcon, Plus, X, Clock, CheckCircle, AlertTriangle,
+  HeadphonesIcon, Plus, X, Clock, CheckCircle,
   MessageSquare, Send, Paperclip, ChevronDown, ChevronUp,
-  RefreshCw, Search, Filter, ArrowUpRight, Zap, AlertCircle
+  RefreshCw
 } from "lucide-react";
 
 const PRIORITY_CONFIG = {

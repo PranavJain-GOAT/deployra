@@ -137,11 +137,8 @@ export default function ClientLayout() {
           }}
         >
           <div className="flex items-center gap-2">
-            <div
-              className="w-7 h-7 rounded-lg flex items-center justify-center"
-              style={{ background: "linear-gradient(135deg, hsl(var(--foreground)), hsl(var(--foreground)))" }}
-            >
-              <span className="text-white font-bold text-xs" style={{ fontFamily: "Georgia, serif" }}>C</span>
+            <div className="w-7 h-7 rounded-lg flex items-center justify-center overflow-hidden bg-transparent">
+              <img src="/logo.png" alt="Deployra Logo" className="w-6 h-6 object-contain" />
             </div>
             <span className="text-white font-bold text-sm" style={{ fontFamily: "Georgia, serif" }}>Client Hub</span>
           </div>

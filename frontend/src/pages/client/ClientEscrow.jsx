@@ -1,9 +1,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import {
-  Shield, CheckCircle, Clock, AlertTriangle, DollarSign,
-  FileText, ChevronRight, RefreshCw, AlertCircle, ArrowRight,
-  X, Info
+  Shield, CheckCircle, Clock, AlertTriangle, RefreshCw, Info
 } from "lucide-react";
 
 const ESCROW_ITEMS = [
@@ -71,8 +69,7 @@ const STATUS_CFG = {
 function EscrowCard({ item, idx }) {
   const [releasing, setReleasing] = useState(false);
   const [released, setReleased] = useState(item.status === "RELEASED");
-  const [showDispute, setShowDispute] = useState(false);
-  const [expanded, setExpanded] = useState(false);
+
 
   const cfg = STATUS_CFG[item.status] || STATUS_CFG.FUNDED;
   const CFGIcon = cfg.icon;
@@ -141,7 +138,7 @@ function EscrowCard({ item, idx }) {
                   {releasing ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <CheckCircle className="w-3.5 h-3.5" />}
                   {releasing ? "Releasing..." : "Release Funds"}
                 </button>
-                <button onClick={() => setShowDispute(true)}
+                <button onClick={() => alert("Your dispute request has been sent to our mediation team. We will contact you within 24 hours.")}
                   className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold border border-red-400/20 text-red-400 hover:bg-red-400/5 transition-all"
                 >
                   <AlertTriangle className="w-3.5 h-3.5" />

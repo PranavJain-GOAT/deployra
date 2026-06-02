@@ -4,10 +4,9 @@ import {
   User, Shield, CreditCard, Users, Settings, Bell, Camera, 
   BarChart3, Zap, HelpCircle, Sun, Moon, Info, ShieldCheck, 
   RefreshCw, Plus, Minus, Download, ThumbsUp, X, Search,
-  Smartphone, Wallet, KeyRound, Fingerprint, Lock, Unlock, Eye, 
-  EyeOff, Check, Copy, Trash2, AlertTriangle, AlertCircle, Laptop,
-  Globe, CheckCircle2, MoreVertical, Link2, ExternalLink, ShieldAlert, Key,
-  Mail, Calendar, MapPin, Activity, Terminal
+  Smartphone, Wallet, KeyRound, Fingerprint, Lock, Eye, 
+  EyeOff, Check, Copy, Laptop,
+  Globe, CheckCircle2, ShieldAlert
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';

@@ -1,13 +1,11 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
-  Package, Rocket, Shield, HeadphonesIcon, TrendingUp, RefreshCw,
-  ArrowUpRight, CheckCircle, AlertTriangle, Clock, DollarSign,
-  BarChart3, Activity, Calendar, ChevronRight
+  Package, Rocket, Shield, HeadphonesIcon, TrendingUp,
+  ArrowUpRight, CheckCircle, AlertTriangle, Clock, DollarSign, Activity, Calendar
 } from "lucide-react";
 import axios from "axios";
 import { API_URL } from "@/lib/config";
-import { useAuth } from "@/lib/AuthContext";
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 
 function Skeleton({ h = 120 }) {
@@ -72,7 +70,6 @@ const STATUS_ICON = {
 };
 
 export default function ClientDashboard() {
-  const { user } = useAuth();
   const [purchases, setPurchases] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -194,7 +191,7 @@ export default function ClientDashboard() {
               <tr><th className="text-left">Vendor</th><th className="text-left">Product</th><th className="text-center">Reliability</th><th className="text-center">Last Deploy</th><th className="text-right">Status</th></tr>
             </thead>
             <tbody>
-              {VENDORS.map((v, i) => (
+              {VENDORS.map((v) => (
                 <tr key={v.name}>
                   <td><span className="font-semibold text-sm text-foreground">{v.name}</span></td>
                   <td><span className="text-xs text-foreground/50">{v.product}</span></td>
@@ -224,7 +221,7 @@ export default function ClientDashboard() {
           <span className="stat-label-caps">Next 30 days</span>
         </div>
         <div className="space-y-2">
-          {RENEWALS.map((r, i) => (
+          {RENEWALS.map((r) => (
             <div key={r.name} className="flex items-center gap-3 p-3 rounded-xl" style={{ background: "rgba(150,150,150,0.03)", border: "0.5px solid rgba(150,150,150,0.07)" }}>
               <Calendar className="w-4 h-4 text-foreground/30 shrink-0" />
               <div className="flex-1">

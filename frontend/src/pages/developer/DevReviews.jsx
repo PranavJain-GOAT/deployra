@@ -1,9 +1,8 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Star, MessageSquare, TrendingUp, Award, RefreshCw,
-  ThumbsUp, ChevronDown, ChevronUp, Send, Filter,
-  BarChart3, Repeat, Shield, Clock
+  Star, MessageSquare, RefreshCw,
+  ThumbsUp, ChevronDown, ChevronUp, Send, Repeat, Shield
 } from "lucide-react";
 
 const REVIEWS = [

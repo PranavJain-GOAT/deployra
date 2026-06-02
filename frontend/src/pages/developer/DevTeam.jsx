@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Users, Plus, X, Shield, Crown, BarChart3, Code2, Mail, Check, RefreshCw, Trash2, Clock, Activity } from "lucide-react";
+import { Users, Plus, X, Shield, Crown, BarChart3, Code2, Mail, Check, RefreshCw, Trash2, Clock } from "lucide-react";
 
 const ROLES = [
   { value: "owner",     label: "Owner",     desc: "Full access. Can delete org.",          color: "text-amber-400",  icon: Crown    },

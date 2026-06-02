@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { CheckSquare, Clock, AlertCircle, CheckCircle, X, Upload, FileText, RefreshCw, ChevronRight, AlertTriangle, Eye, MessageSquare } from "lucide-react";
+import { Clock, CheckCircle, X, Upload, RefreshCw, AlertTriangle, Eye } from "lucide-react";
 
 const VERIFICATION_ITEMS = [
   { id: "docs",      label: "Technical Documentation",    desc: "README, API docs, setup guide uploaded", required: true  },

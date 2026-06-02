@@ -1,7 +1,7 @@
-import { useState, useEffect, useMemo, useRef } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { MOCK_PRODUCTS, MOCK_CUSTOM_SOLUTIONS } from "@/api/mockData";
-import { Search, X, Package, Layers, ChevronDown } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { Search, X, Package, Layers } from "lucide-react";
+import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import SearchFiltersBar from "../components/home/SearchFiltersBar";
 
@@ -27,131 +27,7 @@ const CATEGORY_IMAGES = {
   other: "https://images.unsplash.com/photo-1635070041078-e363dbe005cb?w=600&q=80",
 };
 
-/* ── Dropdown filter pill ────────────────────────────────────── */
-function FilterDropdown({ label, options, value, onChange }) {
-  const [open, setOpen] = useState(false);
-  const ref = useRef(null);
 
-  useEffect(() => {
-    const handler = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, []);
-
-  const active = !!value;
-
-  return (
-    <div ref={ref} className="relative">
-      <button
-        onClick={() => setOpen(!open)}
-        className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-xs font-semibold border transition-all whitespace-nowrap ${
-          active
-            ? "bg-white text-black border-white"
-            : "glass text-white/60 border-white/15 hover:text-white hover:border-white/30"
-        }`}
-        style={{ letterSpacing: "-0.01em" }}
-      >
-        {active ? value : label}
-        <ChevronDown className={`w-3 h-3 transition-transform ${open ? "rotate-180" : ""}`} />
-      </button>
-
-      <AnimatePresence>
-        {open && (
-          <motion.div
-            initial={{ opacity: 0, y: -6 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -6 }}
-            transition={{ duration: 0.15 }}
-            className="absolute top-full mt-2 left-0 z-50 rounded-2xl overflow-hidden min-w-[160px]"
-            style={{
-              background: "rgba(12,12,12,0.97)",
-              border: "0.5px solid rgba(255,255,255,0.1)",
-              boxShadow: "0 20px 60px rgba(0,0,0,0.8)",
-              backdropFilter: "blur(20px)",
-            }}
-          >
-            {active && (
-              <button
-                onClick={() => { onChange(""); setOpen(false); }}
-                className="w-full text-left px-4 py-2.5 text-xs text-white/30 hover:text-white hover:bg-white/5 transition-colors border-b border-white/6 flex items-center gap-2"
-              >
-                <X className="w-3 h-3" /> Clear
-              </button>
-            )}
-            {options.map((opt) => (
-              <button
-                key={opt}
-                onClick={() => { onChange(value === opt ? "" : opt); setOpen(false); }}
-                className={`w-full text-left px-4 py-2.5 text-xs font-medium transition-colors ${
-                  value === opt
-                    ? "text-white bg-white/10"
-                    : "text-white/50 hover:text-white hover:bg-white/5"
-                }`}
-                style={{ letterSpacing: "-0.01em" }}
-              >
-                {opt}
-              </button>
-            ))}
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
-  );
-}
-
-/* ── Sort dropdown ───────────────────────────────────────────── */
-function SortDropdown({ value, onChange }) {
-  const options = ["Relevance", "Price: Low to High", "Price: High to Low", "Newest"];
-  const [open, setOpen] = useState(false);
-  const ref = useRef(null);
-
-  useEffect(() => {
-    const handler = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, []);
-
-  return (
-    <div ref={ref} className="relative">
-      <button
-        onClick={() => setOpen(!open)}
-        className="flex items-center gap-1.5 text-xs font-mono text-white/40 hover:text-white transition-colors"
-      >
-        Sort by: <span className="text-white font-semibold">{value}</span>
-        <ChevronDown className={`w-3 h-3 transition-transform ${open ? "rotate-180" : ""}`} />
-      </button>
-      <AnimatePresence>
-        {open && (
-          <motion.div
-            initial={{ opacity: 0, y: -6 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -6 }}
-            transition={{ duration: 0.15 }}
-            className="absolute top-full mt-2 right-0 z-50 rounded-2xl overflow-hidden min-w-[200px]"
-            style={{
-              background: "rgba(12,12,12,0.97)",
-              border: "0.5px solid rgba(255,255,255,0.1)",
-              boxShadow: "0 20px 60px rgba(0,0,0,0.8)",
-              backdropFilter: "blur(20px)",
-            }}
-          >
-            {options.map((opt) => (
-              <button
-                key={opt}
-                onClick={() => { onChange(opt); setOpen(false); }}
-                className={`w-full text-left px-4 py-2.5 text-xs font-medium transition-colors ${
-                  value === opt ? "text-white bg-white/10" : "text-white/50 hover:text-white hover:bg-white/5"
-                }`}
-              >
-                {opt}
-              </button>
-            ))}
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </div>
-  );
-}
 
 /* ── Search result card ──────────────────────────────────────── */
 function SearchResultCard({ item, type, index }) {

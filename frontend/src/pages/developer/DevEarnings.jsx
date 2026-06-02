@@ -1,10 +1,8 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import {
-  Wallet, DollarSign, Clock, ArrowUpRight, ArrowDownRight,
-  Shield, TrendingUp, CheckCircle, AlertCircle, Download,
-  ChevronRight, RefreshCw, ExternalLink, Receipt, CreditCard,
-  BarChart3, Filter
+  Wallet, DollarSign,
+  Shield, CheckCircle, Download, RefreshCw, Receipt
 } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 
@@ -52,7 +50,6 @@ function TxnStatusBadge({ status }) {
 export default function DevEarnings() {
   const [payoutRequested, setPayoutRequested] = useState(false);
   const [requesting, setRequesting] = useState(false);
-  const [period, setPeriod] = useState("all");
 
   const escrowBalance = TRANSACTIONS.filter(t => t.status === "ESCROW_HELD").reduce((s, t) => s + t.net, 0);
   const withdrawable  = TRANSACTIONS.filter(t => t.status === "RELEASED").reduce((s, t) => s + t.net, 0);

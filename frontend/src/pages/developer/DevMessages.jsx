@@ -1,6 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { motion, AnimatePresence } from "framer-motion";
-import { MessageSquare, Search, Send, Paperclip, Check, CheckCheck, X, Phone, Video, MoreHorizontal, Circle } from "lucide-react";
+import { MessageSquare, Search, Send, Paperclip, Check, CheckCheck, Phone, Video, MoreHorizontal } from "lucide-react";
 
 const CONVERSATIONS = [
   {

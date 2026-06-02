@@ -80,7 +80,6 @@ function DeploymentCard({ dep, idx }) {
     setTimeout(() => setRedeploying(false), 2500);
   };
 
-  const cfg = STATUS_CONFIG[dep.status] || STATUS_CONFIG.healthy;
 
   return (
     <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.1, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
