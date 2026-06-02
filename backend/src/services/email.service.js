@@ -356,111 +356,7 @@ const sendPasswordChangedEmail = async (to, name, ipAddress = 'Unknown') => {
   return sendEmail(to, subject, html);
 };
 
-// ─── 5. Security Alert (New Login / Suspicious Activity) ─────────────────────
 
-const sendSecurityAlertEmail = async (to, name, details = {}) => {
-  const firstName = name?.split(' ')[0] || name || 'there';
-  const subject = '⚠️ New login to your Deployra account';
-  const {
-    ipAddress = 'Unknown',
-    userAgent = 'Unknown browser',
-    location = 'Unknown location',
-    time = new Date().toUTCString()
-  } = details;
-
-  const content = `
-    <div style="text-align:center;margin-bottom:32px;">
-      <div style="display:inline-block;background:#f59e0b20;border:1px solid #f59e0b40;border-radius:50%;width:64px;height:64px;line-height:64px;font-size:28px;">
-        ⚠️
-      </div>
-    </div>
-
-    <h1 style="font-family:'Inter',Arial,sans-serif;font-size:26px;font-weight:700;color:#ffffff;margin:0 0 8px 0;letter-spacing:-0.5px;text-align:center;">
-      New sign-in detected
-    </h1>
-    <p style="font-family:'Inter',Arial,sans-serif;font-size:15px;color:#888888;margin:0 0 32px 0;line-height:1.6;text-align:center;">
-      Hi ${firstName}, a new sign-in to your account was detected.
-    </p>
-
-    <p style="font-family:'Inter',Arial,sans-serif;font-size:15px;color:#aaaaaa;line-height:1.7;margin:0 0 24px 0;">
-      We noticed a successful login to your Deployra account. Here are the details:
-    </p>
-
-    <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background:#1a1a1a;border:1px solid #222222;border-radius:12px;margin-bottom:24px;">
-      <tr>
-        <td style="padding:24px;">
-          <table border="0" cellpadding="0" cellspacing="0" width="100%">
-            <tr><td style="padding-bottom:14px;border-bottom:1px solid #252525;">
-              <span style="font-family:'Inter',Arial,sans-serif;font-size:11px;font-weight:600;color:#555555;text-transform:uppercase;letter-spacing:0.08em;">Time</span><br/>
-              <span style="font-family:'Inter',Arial,sans-serif;font-size:14px;color:#cccccc;margin-top:4px;display:block;">${time}</span>
-            </td></tr>
-            <tr><td style="padding:14px 0;border-bottom:1px solid #252525;">
-              <span style="font-family:'Inter',Arial,sans-serif;font-size:11px;font-weight:600;color:#555555;text-transform:uppercase;letter-spacing:0.08em;">IP Address</span><br/>
-              <span style="font-family:'Inter',Arial,sans-serif;font-size:14px;color:#cccccc;margin-top:4px;display:block;">${ipAddress}</span>
-            </td></tr>
-            <tr><td style="padding:14px 0;border-bottom:1px solid #252525;">
-              <span style="font-family:'Inter',Arial,sans-serif;font-size:11px;font-weight:600;color:#555555;text-transform:uppercase;letter-spacing:0.08em;">Location</span><br/>
-              <span style="font-family:'Inter',Arial,sans-serif;font-size:14px;color:#cccccc;margin-top:4px;display:block;">${location}</span>
-            </td></tr>
-            <tr><td style="padding-top:14px;">
-              <span style="font-family:'Inter',Arial,sans-serif;font-size:11px;font-weight:600;color:#555555;text-transform:uppercase;letter-spacing:0.08em;">Device</span><br/>
-              <span style="font-family:'Inter',Arial,sans-serif;font-size:14px;color:#cccccc;margin-top:4px;display:block;">${userAgent}</span>
-            </td></tr>
-          </table>
-        </td>
-      </tr>
-    </table>
-
-    <p style="font-family:'Inter',Arial,sans-serif;font-size:14px;color:#888888;margin:0 0 24px 0;line-height:1.6;">
-      ✅ If this was you, no action is needed. You can safely ignore this email.
-    </p>
-
-    ${alertBox('If you did NOT sign in, your password may be compromised. Change it immediately and revoke all active sessions.', 'error')}
-
-    ${primaryButton('https://deployra.vercel.app/auth?tab=forgot', 'Secure My Account Now')}
-  `;
-
-  const html = emailShell(content, 'A new sign-in was detected on your Deployra account.');
-  return sendEmail(to, subject, html);
-};
-
-// ─── 6. Purchase Confirmation ─────────────────────────────────────────────────
-
-const sendPurchaseConfirmation = async (to, name, details = {}) => {
-  const firstName = name?.split(' ')[0] || name || 'there';
-  const subject = `Order Confirmed – ${details.productTitle || 'Your Purchase'}`;
-
-  const content = `
-    <div style="text-align:center;margin-bottom:32px;">
-      <div style="display:inline-block;background:#108a0020;border:1px solid #108a0040;border-radius:50%;width:64px;height:64px;line-height:64px;font-size:28px;">
-        ✅
-      </div>
-    </div>
-
-    <h1 style="font-family:'Inter',Arial,sans-serif;font-size:26px;font-weight:700;color:#ffffff;margin:0 0 8px 0;letter-spacing:-0.5px;text-align:center;">
-      Your order is confirmed!
-    </h1>
-    <p style="font-family:'Inter',Arial,sans-serif;font-size:15px;color:#888888;margin:0 0 32px 0;line-height:1.6;text-align:center;">
-      Thanks for your purchase, ${firstName}. Here's your order summary.
-    </p>
-
-    <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background:#1a1a1a;border:1px solid #222222;border-radius:12px;margin-bottom:32px;">
-      <tr>
-        <td style="padding:24px;">
-          <p style="font-family:'Inter',Arial,sans-serif;font-size:12px;font-weight:600;color:#555555;text-transform:uppercase;letter-spacing:0.08em;margin:0 0 4px 0;">Product</p>
-          <p style="font-family:'Inter',Arial,sans-serif;font-size:18px;font-weight:700;color:#ffffff;margin:0 0 20px 0;">${details.productTitle || 'AI Solution'}</p>
-          <p style="font-family:'Inter',Arial,sans-serif;font-size:12px;font-weight:600;color:#555555;text-transform:uppercase;letter-spacing:0.08em;margin:0 0 4px 0;">Amount Paid</p>
-          <p style="font-family:'Inter',Arial,sans-serif;font-size:28px;font-weight:700;color:#108a00;margin:0;">${details.amount ? `₹${details.amount}` : 'Confirmed'}</p>
-        </td>
-      </tr>
-    </table>
-
-    ${primaryButton('https://deployra.vercel.app', 'View Your Dashboard →')}
-  `;
-
-  const html = emailShell(content, `Your Deployra order for ${details.productTitle || 'your purchase'} is confirmed.`);
-  return sendEmail(to, subject, html);
-};
 
 // ─── Exports ──────────────────────────────────────────────────────────────────
 
@@ -469,7 +365,5 @@ module.exports = {
   sendWelcomeEmail,
   sendEmailVerificationEmail,
   sendPasswordResetEmail,
-  sendPasswordChangedEmail,
-  sendSecurityAlertEmail,
-  sendPurchaseConfirmation
+  sendPasswordChangedEmail
 };
