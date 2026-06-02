@@ -68,7 +68,7 @@ function Avatar({ user, size = 'md' }) {
 }
 
 // Image Cropper Modal for Profile Menu
-function DropdownCropper({ file, onCropComplete, onClose, isDark }) {
+function DropdownCropper({ file, onCropComplete, onClose }) {
   const [zoom, setZoom] = useState(1);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
@@ -186,7 +186,7 @@ function DropdownCropper({ file, onCropComplete, onClose, isDark }) {
   );
 }
 
-function AvatarUploadOverlay({ user, onUpload, onRemove, isUploading, isDark, onSelectFile }) {
+function AvatarUploadOverlay({ user, isUploading, isDark, onSelectFile }) {
   const fileRef = useRef(null);
 
   return (
@@ -287,7 +287,7 @@ export default function ProfileMenu() {
   const ref = useRef(null);
   const { user, logout } = useAuth();
   const { isDark } = useTheme();
-  const { uploadAvatar, removeAvatar, isUploading } = useProfile();
+  const { uploadAvatar, isUploading } = useProfile();
   useNotifications(); // keep polling alive for bell badge
 
   const plan = PLAN_CONFIG[user?.role] || PLAN_CONFIG.CLIENT;
@@ -331,7 +331,7 @@ export default function ProfileMenu() {
     setCropFile(null);
     try {
       await uploadAvatar(croppedFile);
-    } catch (_) {}
+    } catch {}
   };
 
   const toggleAccordion = (name) => {
@@ -395,7 +395,6 @@ export default function ProfileMenu() {
                 file={cropFile}
                 onCropComplete={handleCropComplete}
                 onClose={() => setCropFile(null)}
-                isDark={isDark}
               />
             )}
 
@@ -404,8 +403,6 @@ export default function ProfileMenu() {
               <div className="flex items-center gap-3">
                 <AvatarUploadOverlay
                   user={user}
-                  onUpload={uploadAvatar}
-                  onRemove={removeAvatar}
                   isUploading={isUploading}
                   isDark={isDark}
                   onSelectFile={handleSelectFile}

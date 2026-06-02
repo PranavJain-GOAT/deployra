@@ -137,7 +137,6 @@ export default function AiSandbox() {
   const [thinking,    setThinking]      = useState(false);
   const [versions,    setVersions]      = useState(SAVED_VERSIONS);
   const [showHistory, setShowHistory]   = useState(false);
-  const [savedLabel,  setSavedLabel]    = useState("");
   const chatRef = useRef(null);
 
   useEffect(() => {

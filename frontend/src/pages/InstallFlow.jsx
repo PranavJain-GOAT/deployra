@@ -26,7 +26,7 @@ export default function InstallFlow() {
   const [step, setStep] = useState(1);
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [payMethod, setPayMethod] = useState("card");
+
   
   // Delivery State Tracking
   // 0: Payment Completed, 1: Setup in Progress, 2: Delivered
@@ -617,48 +617,4 @@ function StatusItem({ active, label, time, icon: Icon, isLast, loading }) {
     </div>
   );
 }
-
-function InputField({ label, value, onChange, type = "text", placeholder: _placeholder, shake = false }) {
-  const hasValue = value && value.length > 0;
-  return (
-    <div className="relative pt-5">
-      <input
-        type={type}
-        value={value || ""}
-        onChange={onChange ? (e) => onChange(e.target.value) : undefined}
-        placeholder=" "
-        className={`peer w-full px-4 py-3 bg-black/40 border border-white/10 rounded-xl text-sm font-medium focus:outline-none transition-all
-          ${shake ? 'animate-shake' : ''}
-        `}
-        style={{
-          color: 'white',
-          boxShadow: 'none',
-        }}
-        onFocus={e => {
-          e.target.style.borderColor = '#4D9FFF';
-          e.target.style.boxShadow = '0 0 0 1px #4D9FFF';
-        }}
-        onBlur={e => {
-          e.target.style.borderColor = 'rgba(255,255,255,0.1)';
-          e.target.style.boxShadow = 'none';
-        }}
-      />
-      <label
-        className="absolute left-4 text-white/40 pointer-events-none font-medium transition-all duration-200"
-        style={{
-          top: hasValue ? '-2px' : '30px',
-          fontSize: hasValue ? '0.7rem' : '0.875rem',
-          color: hasValue ? '#4D9FFF' : 'rgba(255,255,255,0.35)',
-          letterSpacing: hasValue ? '0.05em' : '0',
-          textTransform: hasValue ? 'uppercase' : 'none',
-          fontWeight: hasValue ? 700 : 400,
-          background: hasValue ? 'rgba(0,0,0,0.8)' : 'transparent',
-          padding: hasValue ? '0 4px' : '0',
-          borderRadius: '4px'
-        }}
-      >
-        {label}
-      </label>
-    </div>
-  );
-}
+

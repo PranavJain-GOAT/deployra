@@ -1,8 +1,7 @@
 import { motion, AnimatePresence } from "framer-motion";
 import { Copy, Check } from "lucide-react";
-import { useRef, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import confetti from "canvas-confetti";
-import { useTheme } from "@/lib/ThemeContext";
 
 function LiveTerminalPreview() {
   const [lines, setLines] = useState([]);
@@ -102,59 +101,11 @@ function RotatingPersona() {
   );
 }
 
-function StatCounter({ stat, divider }) {
-  const [count, setCount] = useState(0);
-  const [started, setStarted] = useState(false);
-  const ref = useRef(null);
-  const numMatch = stat.value.match(/[\d.]+/);
-  const target = numMatch ? parseFloat(numMatch[0]) : 0;
-  const prefix = stat.value.split(/[\d.]+/)[0] || '';
-  const suffix = stat.value.replace(/^[^0-9]*[\d.]+/, '') || '';
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(([entry]) => {
-      if (entry.isIntersecting && !started) setStarted(true);
-    }, { threshold: 0.5 });
-    if (ref.current) observer.observe(ref.current);
-    return () => observer.disconnect();
-  }, [started]);
-
-  useEffect(() => {
-    if (!started || target === 0) return;
-    let startTime = null;
-    const duration = 1600;
-    const step = (timestamp) => {
-      if (!startTime) startTime = timestamp;
-      const progress = Math.min((timestamp - startTime) / duration, 1);
-      setCount(Math.floor(progress * target));
-      if (progress < 1) requestAnimationFrame(step);
-    };
-    requestAnimationFrame(step);
-  }, [started, target]);
-
-  return (
-    <div ref={ref} className={`${divider ? 'pl-4 border-l border-white/10' : ''} pr-4`}>
-      <div className="font-heading text-xl sm:text-2xl font-bold text-white" style={{ letterSpacing: '-0.04em' }}>
-        {prefix}{target > 0 ? count : stat.value}{suffix}
-      </div>
-      <div className="text-[11px] text-white/50 mt-0.5 font-mono tracking-wide">{stat.label}</div>
-    </div>
-  );
-}
-
-const STATS = [
-  { value: "500+", label: "Businesses" },
-  { value: "< 5 min", label: "Avg Setup" },
-  { value: "99.9%", label: "Uptime" },
-  { value: "4.9★", label: "Rating" },
-];
 
 
 
 export default function HeroSection() {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
-
-  const { isDark } = useTheme();
 
   const handleMouseMove = (e) => {
     const { clientX, clientY } = e;

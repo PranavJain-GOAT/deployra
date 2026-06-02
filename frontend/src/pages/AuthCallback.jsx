@@ -8,7 +8,7 @@ import { API_URL } from "@/lib/config";
 export default function AuthCallback() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  const { login, checkAuth } = useAuth();
+  const { login } = useAuth();
   const hasRun = useRef(false); // prevent double-execution in React StrictMode
 
   useEffect(() => {
@@ -60,7 +60,7 @@ export default function AuthCallback() {
               navigate('/', { replace: true });
               return;
             }
-          } catch (_) {}
+          } catch {}
           if (i < 4) await new Promise(r => setTimeout(r, 600 * (i + 1)));
         }
         // Couldn't verify, but Google said success — still navigate home
@@ -102,7 +102,7 @@ export default function AuthCallback() {
             navigate('/', { replace: true });
             return;
           }
-        } catch (_) {}
+        } catch {}
       }
 
       // ── 5. Cookies already set (user navigated to this page directly) ────────
@@ -113,7 +113,7 @@ export default function AuthCallback() {
           navigate('/', { replace: true });
           return;
         }
-      } catch (_) {}
+      } catch {}
 
       // ── Nothing worked ────────────────────────────────────────────────────────
       navigate('/auth', { replace: true });

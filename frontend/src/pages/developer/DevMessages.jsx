@@ -32,7 +32,7 @@ const CONVERSATIONS = [
   },
 ];
 
-function MessageBubble({ msg, isLast }) {
+function MessageBubble({ msg }) {
   const isDev = msg.from === "dev";
   return (
     <div className={`flex ${isDev ? "justify-end" : "justify-start"} mb-2`}>
@@ -164,8 +164,8 @@ export default function DevMessages() {
 
           {/* Messages */}
           <div className="flex-1 overflow-y-auto p-5 premium-scroll">
-            {active.messages.map((m, i) => (
-              <MessageBubble key={m.id} msg={m} isLast={i === active.messages.length - 1} />
+            {active.messages.map((m) => (
+              <MessageBubble key={m.id} msg={m} />
             ))}
             <div ref={bottomRef} />
           </div>

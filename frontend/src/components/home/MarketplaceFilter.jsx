@@ -21,7 +21,7 @@ const CATEGORIES = [
 ];
 
 /* ── shared dropdown shell ──────────────────────────────────── */
-function DropPanel({ label, active, children, onClear, onApply }) {
+function DropPanel({ label, active, children, onClear }) {
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
 

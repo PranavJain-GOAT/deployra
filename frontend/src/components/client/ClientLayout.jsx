@@ -44,7 +44,7 @@ function playClickSound() {
     gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.08);
     osc.start(ctx.currentTime);
     osc.stop(ctx.currentTime + 0.08);
-  } catch (_) {}
+  } catch {}
 }
 
 export default function ClientLayout() {
@@ -53,7 +53,6 @@ export default function ClientLayout() {
   const [cmdkQuery,  setCmdkQuery]    = useState("");
   const [cmdkIdx,    setCmdkIdx]      = useState(0);
   const [vipMode,    setVipMode]      = useState(false);
-  const [refillAnim, setRefillAnim]   = useState(false); // exposed via context if needed
   const location  = useLocation();
   const navigate  = useNavigate();
   const inputRef  = useRef(null);

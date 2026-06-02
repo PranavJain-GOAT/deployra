@@ -49,7 +49,7 @@ function playUnlockSound() {
       osc.start(ctx.currentTime + i * 0.07);
       osc.stop(ctx.currentTime + i * 0.07 + 0.15);
     });
-  } catch (_) {}
+  } catch {}
 }
 
 /* ─────────────────────────────────────────────

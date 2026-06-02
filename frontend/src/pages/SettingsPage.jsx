@@ -26,9 +26,7 @@ const LANGUAGES = [
   { code: 'ja', label: 'Japanese', native: '日本語' }
 ];
 
-const MOCK_I18N = {
-  en: { title: 'Settings', welcome: 'Manage your profile, security preferences, and subscription.', profile: 'Profile & Account', security: 'Security Dashboard', password: 'Change Password', sessions: 'Sessions & Devices', '2fa': 'Two-Factor Auth', 'api-keys': 'API Keys Vault', privacy: 'Privacy & GDPR', billing: 'Billing & Wallet', teams: 'Team Workspace', preferences: 'System Preferences', support: 'Help & Feedback', notifications: 'Notifications Hub', save: 'Save Changes', saved: 'Settings saved!' }
-};
+
 
 // ─── Simple Interactive JSON Tree Viewer for GDPR Export ────────────────────
 function JsonNodeViewer({ data, name = "root", isDark }) {
@@ -199,13 +197,13 @@ export default function SettingsPage() {
   const navigate = useNavigate();
   const { user, login } = useAuth();
   const { isDark, theme, toggleTheme } = useTheme();
-  const { uploadAvatar, removeAvatar, isUploading, isRemoving } = useProfile();
+  const { uploadAvatar, removeAvatar } = useProfile();
   const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications();
 
   const activeTab = searchParams.get('tab') || 'profile';
 
   // State Management
-  const [activeLang, setActiveLang] = useState('en');
+
   const [firstName, setFirstName] = useState(user?.firstName || '');
   const [lastName, setLastName] = useState(user?.lastName || '');
   const [country, setCountry] = useState(user?.country || 'United States');
@@ -273,7 +271,7 @@ export default function SettingsPage() {
   const [recoveryCodes, setRecoveryCodes] = useState([]);
   const [disableTotpCode, setDisableTotpCode] = useState('');
   const [disableError, setDisableError] = useState('');
-  const [ackRecoveryCodes, setAckRecoveryCodes] = useState(false);
+
 
   // Biometric Passkeys (FIDO2/WebAuthn mock)
   const [passkeys, setPasskeys] = useState([
@@ -362,11 +360,11 @@ export default function SettingsPage() {
       if (res.data.success && res.data.data) {
         const p = res.data.data;
         if (p.theme) setPrefTheme(p.theme);
-        if (p.lang) { setPrefLang(p.lang); setActiveLang(p.lang); }
+        if (p.lang) { setPrefLang(p.lang); }
         if (p.accessibility) setAccessibility(p.accessibility);
         if (p.notifications) setNotifPreferences(p.notifications);
       }
-    } catch (_) {}
+    } catch {}
   };
 
   const savePreferences = async (updatedPrefs) => {
@@ -384,7 +382,7 @@ export default function SettingsPage() {
       if (res.data.success) {
         setSessions(res.data.data);
       }
-    } catch (_) {}
+    } catch {}
     setSessionsLoading(false);
   };
 
@@ -395,7 +393,7 @@ export default function SettingsPage() {
       if (res.data.success) {
         setAuditLogs(res.data.data);
       }
-    } catch (_) {}
+    } catch {}
     setLogsLoading(false);
   };
 
@@ -405,7 +403,7 @@ export default function SettingsPage() {
       if (res.data.success) {
         setSessions(prev => prev.filter(s => s.id !== id));
       }
-    } catch (_) {}
+    } catch {}
   };
 
   const revokeAllOtherSessions = async () => {
@@ -417,7 +415,7 @@ export default function SettingsPage() {
         await axios.delete(`${API_URL}/users/sessions/${s.id}`);
       }
       await fetchSessions();
-    } catch (_) {}
+    } catch {}
     setSessionsLoading(false);
   };
 
@@ -507,7 +505,7 @@ export default function SettingsPage() {
         setEmailModalStep(2);
         setEmailLoading(false);
       }, 1200);
-    } catch (err) {
+    } catch {
       setEmailError('Authentication challenge failed. Please check password.');
       setEmailLoading(false);
     }
@@ -578,7 +576,7 @@ export default function SettingsPage() {
         setIs2faSetup(true);
         setTotpError('');
       }
-    } catch (_) {}
+    } catch {}
     setTotpLoading(false);
   };
 
@@ -653,7 +651,7 @@ export default function SettingsPage() {
         // Run in try-catch so it won't crash if browser restricts domain / origin in dev env
         try {
           await navigator.credentials.create(options);
-        } catch (_) {
+        } catch {
           // Fallback to simulated registration
         }
       }
@@ -668,7 +666,7 @@ export default function SettingsPage() {
         setPasskeyLoading(false);
         setShowPasskeyModal(false);
       }, 1000);
-    } catch (err) {
+    } catch {
       setPasskeyLoading(false);
       setShowPasskeyModal(false);
     }
@@ -715,7 +713,7 @@ export default function SettingsPage() {
       if (res.data.success) {
         setExportData(res.data.data);
       }
-    } catch (_) {}
+    } catch {}
     setExportLoading(false);
   };
 
@@ -735,7 +733,7 @@ export default function SettingsPage() {
       await axios.delete(`${API_URL}/users/me`);
       localStorage.clear();
       window.location.href = '/auth';
-    } catch (_) {
+    } catch {
       alert('Failed to delete account. Please verify password is correct.');
       setDeleteLoading(false);
     }

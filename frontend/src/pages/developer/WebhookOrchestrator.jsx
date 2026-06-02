@@ -83,7 +83,7 @@ function HeartbeatLine({ spiking, color = "hsl(var(--foreground))" }) {
 /* ─────────────────────────────────────────────
    WEBHOOK CARD
 ───────────────────────────────────────────── */
-function WebhookCard({ hook, onDelete, onTest }) {
+function WebhookCard({ hook, onDelete }) {
   const [spiking,  setSpiking]  = useState(false);
   const [testing,  setTesting]  = useState(false);
   const [testLog,  setTestLog]  = useState(null);
@@ -269,7 +269,7 @@ export default function WebhookOrchestrator() {
       <div className="space-y-4">
         {hooks.map((h, i) => (
           <motion.div key={h.id} initial={{ opacity:0, y:14 }} animate={{ opacity:1, y:0 }} transition={{ delay: i * 0.07 }}>
-            <WebhookCard hook={h} onDelete={deleteHook} onTest={() => {}} />
+            <WebhookCard hook={h} onDelete={deleteHook} />
           </motion.div>
         ))}
       </div>
