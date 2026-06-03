@@ -104,7 +104,7 @@ export function useProfile() {
     setError(null);
     try {
       await axios.post(`${API}/auth/logout-all`);
-    } catch (_) {
+    } catch {
       // Soft fail — we still redirect even if the API call fails
     } finally {
       localStorage.clear();

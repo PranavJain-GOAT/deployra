@@ -19,7 +19,7 @@ export function ThemeProvider({ children }) {
     try {
       const saved = localStorage.getItem('theme');
       if (saved === 'dark' || saved === 'light') return saved;
-    } catch (_) {}
+    } catch {}
     // Fallback to system preference
     if (typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: light)').matches) {
       return 'light';
@@ -39,7 +39,7 @@ export function ThemeProvider({ children }) {
     }
     try {
       localStorage.setItem('theme', theme);
-    } catch (_) {}
+    } catch {}
   }, [theme]);
 
   // Listen to system preference changes (only if no saved preference)

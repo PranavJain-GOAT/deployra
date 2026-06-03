@@ -78,7 +78,7 @@ export const AuthProvider = ({ children }) => {
               }
             }
           }
-        } catch (refreshErr) {
+        } catch {
           console.warn("Silent token refresh failed or no valid session exists.");
         }
 
