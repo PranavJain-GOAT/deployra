@@ -20,10 +20,7 @@ export function ThemeProvider({ children }) {
       const saved = localStorage.getItem('theme');
       if (saved === 'dark' || saved === 'light') return saved;
     } catch {}
-    // Fallback to system preference
-    if (typeof window !== 'undefined' && window.matchMedia('(prefers-color-scheme: light)').matches) {
-      return 'light';
-    }
+    // Default to dark — Deployra is a dark-first platform
     return 'dark';
   });
 
