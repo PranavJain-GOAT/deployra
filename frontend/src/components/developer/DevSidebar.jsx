@@ -1,7 +1,7 @@
 import { Link, useLocation } from "react-router-dom";
 import {
   LayoutDashboard, Package, Plus, ArrowLeft, MessageSquare, User,
-  BarChart3, Zap, Terminal, Shield, DollarSign, Star, Users, GitBranch, CheckSquare, Wallet,
+  BarChart3, Shield, DollarSign, Star, Users, CheckSquare, Wallet,
   Trophy, ShoppingBag, Settings
 } from "lucide-react";
 import { useRef } from "react";
@@ -35,15 +35,6 @@ const NAV_GROUPS = [
     label: "Communication",
     items: [
       { path: "/developer/messages", label: "Inbox", icon: MessageSquare },
-    ],
-  },
-  {
-    label: "Developer Tools",
-    items: [
-      { path: "/developer/api-vault",  label: "API Vault",   icon: Shield   },
-      { path: "/developer/webhooks",   label: "Webhooks",    icon: Zap      },
-      { path: "/developer/logs",       label: "Logs",        icon: Terminal },
-      { path: "/developer/sandbox",    label: "AI Sandbox",  icon: GitBranch},
     ],
   },
   {
