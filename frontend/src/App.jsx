@@ -31,6 +31,7 @@ import Features from './pages/Features';
 import DevDashboard from './pages/developer/Dashboard';
 import DevListings from './pages/developer/Listings';
 import AddProduct from './pages/developer/AddProduct';
+import PublishProduct from './pages/developer/PublishProduct';
 import DevAnalytics from './pages/developer/Analytics';
 import ApiVault from './pages/developer/ApiVault';
 import WebhookOrchestrator from './pages/developer/WebhookOrchestrator';
@@ -51,12 +52,13 @@ import ClientDeployments from './pages/client/ClientDeployments';
 import ClientEscrow from './pages/client/ClientEscrow';
 import ClientMarketplace from './pages/client/ClientMarketplace';
 import ClientSupport from './pages/client/ClientSupport';
+import ClientOrders from './pages/client/ClientOrders';
+import ProductPurchasePage from './pages/client/ProductPurchasePage';
 
 import ClientMessages from './pages/client/ClientMessages';
 
 // ─── Placeholder components (Phase 3 — next batch) ───────────────────────────
 const DevProfile = () => <div className="p-8 text-white text-sm opacity-50">Developer Profile — Coming soon</div>;
-const ClientOrders = () => <div className="p-8 text-white text-sm opacity-50">Order Lifecycle — Coming soon</div>;
 const ClientSaved = () => <div className="p-8 text-white text-sm opacity-50">Saved & Watchlists — Coming soon</div>;
 const ClientInvoices = () => <div className="p-8 text-white text-sm opacity-50">Invoice Center — Coming soon</div>;
 const ClientTeam = () => <div className="p-8 text-white text-sm opacity-50">Team Management — Coming soon</div>;
@@ -101,7 +103,8 @@ const AuthenticatedApp = () => {
           <Route path="/developer"                element={<DevDashboard />} />
           <Route path="/developer/listings"       element={<DevListings />} />
           <Route path="/developer/add"            element={<AddProduct />} />
-          <Route path="/developer/edit/:id"       element={<AddProduct />} />
+          <Route path="/developer/publish"        element={<PublishProduct />} />
+          <Route path="/developer/edit/:id"       element={<PublishProduct />} />
           {/* Revenue */}
           <Route path="/developer/orders"         element={<DevOrders />} />
           <Route path="/developer/earnings"       element={<DevEarnings />} />
@@ -130,6 +133,7 @@ const AuthenticatedApp = () => {
           {/* Operations */}
           <Route path="/client"                   element={<ClientDashboard />} />
           <Route path="/client/orders"            element={<ClientOrders />} />
+          <Route path="/client/product/:id"       element={<ProductPurchasePage />} />
           <Route path="/client/deployments"       element={<ClientDeployments />} />
           <Route path="/client/escrow"            element={<ClientEscrow />} />
           {/* Marketplace */}

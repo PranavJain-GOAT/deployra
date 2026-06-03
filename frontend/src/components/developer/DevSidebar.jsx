@@ -19,7 +19,7 @@ const NAV_GROUPS = [
     label: "Products",
     items: [
       { path: "/developer/listings",      label: "My Listings",     icon: Package     },
-      { path: "/developer/add",           label: "Publish Product", icon: Plus        },
+      { path: "/developer/publish",       label: "Publish Product", icon: Plus,  badge: "NEW" },
       { path: "/developer/verification",  label: "Verification",    icon: CheckSquare },
     ],
   },
