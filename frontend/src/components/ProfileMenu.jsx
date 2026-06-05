@@ -15,6 +15,9 @@ import { useAuth } from '@/lib/AuthContext';
 import { useTheme } from '@/lib/ThemeContext';
 import { useProfile } from '@/hooks/useProfile';
 import { useNotifications } from '@/hooks/useNotifications';
+import axios from 'axios';
+import { API_URL } from '@/lib/config';
+import { toast } from 'react-hot-toast';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 const PLAN_CONFIG = {
@@ -283,12 +286,39 @@ export default function ProfileMenu() {
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [activeAccordion, setActiveAccordion] = useState(null);
   const [cropFile, setCropFile] = useState(null);
+  const [switching, setSwitching] = useState(false);
 
   const ref = useRef(null);
-  const { user, logout } = useAuth();
+  const { user, login, logout } = useAuth();
   const { isDark } = useTheme();
   const { uploadAvatar, isUploading } = useProfile();
+  const navigate = useNavigate();
   useNotifications(); // keep polling alive for bell badge
+
+  const handleSwitchRole = async () => {
+    setSwitching(true);
+    try {
+      const newRole = user.role === 'DEVELOPER' ? 'CLIENT' : 'DEVELOPER';
+      const token = localStorage.getItem('auth_token');
+      const config = {
+        headers: token ? { Authorization: `Bearer ${token}` } : {}
+      };
+      
+      const response = await axios.patch(`${API_URL}/users/me`, { role: newRole }, config);
+      if (response.data.success) {
+        const updatedUser = response.data.data;
+        login(updatedUser, token);
+        toast.success(`Switched to ${updatedUser.role === 'DEVELOPER' ? 'Freelancer' : 'Client'} mode!`);
+        navigate(updatedUser.role === 'DEVELOPER' ? '/developer' : '/client');
+        setOpen(false);
+      }
+    } catch (err) {
+      console.error('Error switching role:', err);
+      toast.error('Failed to switch role. Please try again.');
+    } finally {
+      setSwitching(false);
+    }
+  };
 
   const plan = PLAN_CONFIG[user?.role] || PLAN_CONFIG.CLIENT;
   const PlanIcon = plan.icon;
@@ -427,7 +457,25 @@ export default function ProfileMenu() {
               </div>
             </div>
 
-
+            {user.role !== 'ADMIN' && (
+              <div className={`p-3 mx-4 mt-3 rounded-xl border flex items-center justify-between gap-2 ${
+                isDark ? 'bg-white/5 border-white/10' : 'bg-slate-50 border-black/5'
+              }`}>
+                <div className="flex flex-col">
+                  <span className={`text-[10px] font-semibold ${isDark ? 'text-white/40' : 'text-neutral-400'}`}>Current Mode</span>
+                  <span className={`text-xs font-bold ${isDark ? 'text-white' : 'text-neutral-900'}`}>
+                    {user.role === 'DEVELOPER' ? 'Freelancer' : 'Client'}
+                  </span>
+                </div>
+                <button
+                  onClick={handleSwitchRole}
+                  disabled={switching}
+                  className="px-3 py-1.5 bg-[#108a00] hover:bg-[#0c6b00] disabled:bg-gray-400 text-white text-[10px] font-bold rounded-lg transition-all shadow-sm"
+                >
+                  {switching ? 'Switching...' : `Switch to ${user.role === 'DEVELOPER' ? 'Client' : 'Freelancer'}`}
+                </button>
+              </div>
+            )}
 
             {/* ═══ SECTION 3 — Accordion Groups ═══ */}
             <div className="flex flex-col">
