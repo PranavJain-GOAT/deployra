@@ -1,114 +1,446 @@
-import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
+import { useState, useEffect, useCallback } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
-  LineChart, Line, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-} from "recharts";
-import {
-  Activity, Cpu, RefreshCw, TrendingUp, MessageSquare, Zap, Settings, Eye, Users, Clock, ArrowLeft,
-  CheckCircle, AlertTriangle, XCircle, ArrowUpRight, Shield
+  Shield, RefreshCw, ArrowLeft, CheckCircle, XCircle, Clock,
+  Package, Users, TrendingUp, Eye, ExternalLink, AlertTriangle,
+  ChevronRight, X, FileText, Globe, DollarSign, Zap, AlertCircle,
+  BarChart2, Settings, Tag, Layers,
 } from "lucide-react";
 import { Link } from "react-router-dom";
+import axios from "axios";
+import { API_URL } from "@/lib/config";
 
-const UPTIME_DATA = [
-  { time: "00:00", uptime: 100 }, { time: "04:00", uptime: 99.8 }, { time: "08:00", uptime: 100 },
-  { time: "12:00", uptime: 100 }, { time: "16:00", uptime: 99.5 }, { time: "20:00", uptime: 100 }, { time: "Now", uptime: 100 },
-];
-const USAGE_DATA = [
-  { day: "Mon", conversations: 142, automations: 38 },
-  { day: "Tue", conversations: 189, automations: 52 },
-  { day: "Wed", conversations: 234, automations: 61 },
-  { day: "Thu", conversations: 198, automations: 44 },
-  { day: "Fri", conversations: 312, automations: 87 },
-  { day: "Sat", conversations: 267, automations: 71 },
-  { day: "Sun", conversations: 178, automations: 39 },
-];
-const SYSTEMS = [
-  { name: "WhatsApp Order Bot",   type: "Chatbot",    status: "online",  uptime: "99.9%", conversations: 1842, lastActive: "2 min ago", health: 98 },
-  { name: "Customer Support AI",  type: "Chatbot",    status: "online",  uptime: "99.7%", conversations: 3241, lastActive: "Just now",  health: 95 },
-  { name: "Appointment Booking",  type: "Automation", status: "online",  uptime: "100%",  conversations: 892,  lastActive: "5 min ago", health: 100 },
-  { name: "Lead Capture Flow",    type: "Automation", status: "warning", uptime: "97.2%", conversations: 412,  lastActive: "18 min ago",health: 72 },
-  { name: "Social Media Poster",  type: "Automation", status: "offline", uptime: "91.0%", conversations: 0,    lastActive: "2h ago",    health: 0 },
-];
-
-const CustomTooltip = ({ active, payload, label }) => {
-  if (!active || !payload?.length) return null;
+// ─── Status Badge ─────────────────────────────────────────────────────────────
+function StatusBadge({ status }) {
+  const cfg = {
+    PENDING_REVIEW: { label: "Pending Review", color: "text-amber-400",  bg: "bg-amber-400/10",  border: "border-amber-400/25",  icon: Clock },
+    APPROVED:       { label: "Approved",        color: "text-emerald-400",bg: "bg-emerald-400/10",border: "border-emerald-400/25", icon: CheckCircle },
+    REJECTED:       { label: "Rejected",        color: "text-red-400",    bg: "bg-red-400/10",    border: "border-red-400/25",    icon: XCircle },
+    DRAFT:          { label: "Draft",           color: "text-foreground/40",bg:"bg-foreground/5",  border: "border-foreground/10", icon: FileText },
+    SUSPENDED:      { label: "Suspended",       color: "text-red-500",    bg: "bg-red-500/10",    border: "border-red-500/25",    icon: AlertTriangle },
+  }[status] || { label: status, color: "text-foreground/50", bg: "bg-foreground/5", border: "border-foreground/10", icon: Clock };
+  const Icon = cfg.icon;
   return (
-    <div className="frosted-panel px-4 py-3 text-xs" style={{ borderRadius: "12px", minWidth: 120 }}>
-      <p className="stat-label-caps mb-2">{label}</p>
-      {payload.map((p, i) => (
-        <div key={i} className="flex items-center gap-2 mt-1">
-          <span className="w-2 h-2 rounded-full block" style={{ background: p.color }} />
-          <span style={{ color: "hsl(var(--foreground) / 0.6)", fontFamily: "'Inter', sans-serif" }}>{p.name}:</span>
-          <span style={{ color: p.color, fontFamily: "'JetBrains Mono', monospace", fontWeight: 700 }}>{p.value}</span>
-        </div>
-      ))}
-    </div>
+    <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold border ${cfg.color} ${cfg.bg} ${cfg.border}`}>
+      <Icon className="w-3 h-3" /> {cfg.label}
+    </span>
   );
-};
-
-function StatusIcon({ status }) {
-  if (status === "online")  return <CheckCircle className="w-3.5 h-3.5" style={{ color: "hsl(var(--foreground))" }} />;
-  if (status === "warning") return <AlertTriangle className="w-3.5 h-3.5" style={{ color: "hsl(var(--foreground))" }} />;
-  return <XCircle className="w-3.5 h-3.5" style={{ color: "hsl(var(--foreground))" }} />;
 }
 
-export default function AdminDashboard() {
-  const [orders, setOrders] = useState([]);
-  const [refreshing, setRefreshing] = useState(false);
+// ─── Rejection Modal ──────────────────────────────────────────────────────────
+function RejectModal({ product, onConfirm, onCancel, loading }) {
+  const [reason, setReason] = useState("");
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.85)", backdropFilter: "blur(8px)" }}>
+      <motion.div initial={{ opacity: 0, scale: 0.94 }} animate={{ opacity: 1, scale: 1 }}
+        className="w-full max-w-lg rounded-2xl p-6"
+        style={{ background: "rgba(10,10,10,0.98)", border: "0.5px solid rgba(239,68,68,0.3)", boxShadow: "0 40px 120px rgba(0,0,0,0.8)" }}>
+        <div className="flex items-center justify-between mb-5">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ background: "rgba(239,68,68,0.1)", border: "0.5px solid rgba(239,68,68,0.25)" }}>
+              <XCircle className="w-4 h-4 text-red-400" />
+            </div>
+            <div>
+              <h3 className="font-bold text-sm text-foreground" style={{ fontFamily: "Georgia, serif" }}>Reject Submission</h3>
+              <p className="text-[10px] text-foreground/35 mt-0.5 font-mono truncate max-w-xs">{product?.title}</p>
+            </div>
+          </div>
+          <button onClick={onCancel} className="p-1.5 rounded-lg text-foreground/30 hover:text-foreground hover:bg-foreground/5 transition-all">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+        <div className="mb-4">
+          <label className="text-[10px] font-bold uppercase tracking-widest text-foreground/50 font-mono mb-2 block">
+            Rejection Reason <span className="text-red-400">*</span>
+          </label>
+          <textarea
+            value={reason}
+            onChange={e => setReason(e.target.value)}
+            placeholder="Explain what needs to be fixed before this product can be approved. Be specific and constructive — the developer will receive this as an email..."
+            rows={5}
+            className="w-full px-4 py-3 rounded-xl text-sm font-medium outline-none transition-all resize-none bg-muted border border-border text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-red-500/20 focus:border-red-500/40"
+          />
+          <p className="text-[10px] text-foreground/30 mt-1.5 font-mono">{reason.length} characters — minimum 20 recommended</p>
+        </div>
+        <div className="flex gap-3">
+          <button onClick={onCancel} disabled={loading}
+            className="flex-1 py-3 rounded-xl text-sm font-semibold border border-border text-foreground/50 hover:text-foreground hover:bg-foreground/5 transition-all disabled:opacity-50">
+            Cancel
+          </button>
+          <button onClick={() => onConfirm(reason)} disabled={loading || reason.trim().length < 10}
+            className="flex-1 py-3 rounded-xl text-sm font-bold bg-red-500 text-white hover:bg-red-600 transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+            {loading ? <RefreshCw className="w-4 h-4 animate-spin" /> : <XCircle className="w-4 h-4" />}
+            {loading ? "Rejecting..." : "Reject & Notify Developer"}
+          </button>
+        </div>
+      </motion.div>
+    </div>
+  );
+}
 
-  // Admin dashboard uses static demonstration data
-  useEffect(() => { setOrders([]); }, []);
+// ─── Product Review Card ──────────────────────────────────────────────────────
+function ProductReviewCard({ product, onApprove, onReject, approving, rejecting }) {
+  const [expanded, setExpanded] = useState(false);
+  const configFields = product.configFields || [];
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="frosted-panel overflow-hidden"
+    >
+      {/* Main row */}
+      <div className="p-5">
+        <div className="flex items-start gap-4">
+          {/* Icon */}
+          <div className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 text-lg font-bold"
+            style={{ background: "rgba(255,255,255,0.04)", border: "0.5px solid rgba(255,255,255,0.1)", fontFamily: "Georgia, serif", color: "hsl(var(--foreground) / 0.6)" }}>
+            {product.title?.[0] || "?"}
+          </div>
+
+          <div className="flex-1 min-w-0">
+            <div className="flex items-start justify-between gap-3 flex-wrap">
+              <div className="min-w-0">
+                <div className="flex items-center gap-2 mb-0.5 flex-wrap">
+                  <h3 className="font-bold text-sm text-foreground" style={{ fontFamily: "'Inter', sans-serif" }}>{product.title}</h3>
+                  <StatusBadge status={product.status} />
+                </div>
+                <p className="text-xs text-foreground/40 mb-2 leading-relaxed" style={{ fontFamily: "'Inter', sans-serif" }}>
+                  {product.shortDesc || product.description?.slice(0, 120) + "..."}
+                </p>
+                <div className="flex items-center flex-wrap gap-3">
+                  <span className="text-[10px] font-mono text-foreground/25">{product.category || "No category"}</span>
+                  <span className="text-[10px] font-mono text-foreground/25">₹{Number(product.price || 0).toLocaleString()}</span>
+                  <span className="text-[10px] font-mono text-foreground/25">{product.deliveryDays || 7}d delivery</span>
+                  <span className="text-[10px] font-mono text-foreground/25">by {product.developer?.name || "Unknown"}</span>
+                  <span className="text-[10px] font-mono text-foreground/25">{new Date(product.createdAt).toLocaleDateString()}</span>
+                </div>
+              </div>
+
+              {/* Action Buttons (only for PENDING_REVIEW) */}
+              {product.status === "PENDING_REVIEW" && (
+                <div className="flex items-center gap-2 shrink-0">
+                  <motion.button
+                    whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
+                    onClick={() => onApprove(product)}
+                    disabled={approving === product.id || rejecting === product.id}
+                    className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all disabled:opacity-50"
+                    style={{ background: "rgba(16,138,0,0.12)", border: "0.5px solid rgba(16,138,0,0.4)", color: "#22c55e" }}
+                  >
+                    {approving === product.id ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <CheckCircle className="w-3.5 h-3.5" />}
+                    {approving === product.id ? "Approving..." : "Approve"}
+                  </motion.button>
+                  <motion.button
+                    whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
+                    onClick={() => onReject(product)}
+                    disabled={approving === product.id || rejecting === product.id}
+                    className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all disabled:opacity-50"
+                    style={{ background: "rgba(239,68,68,0.1)", border: "0.5px solid rgba(239,68,68,0.3)", color: "#f87171" }}
+                  >
+                    {rejecting === product.id ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <XCircle className="w-3.5 h-3.5" />}
+                    Reject
+                  </motion.button>
+                </div>
+              )}
+            </div>
+
+            {/* Links */}
+            <div className="flex items-center gap-3 mt-3 flex-wrap">
+              {product.demoUrl && (
+                <a href={product.demoUrl} target="_blank" rel="noopener noreferrer"
+                  className="flex items-center gap-1 text-[10px] font-semibold text-foreground/40 hover:text-foreground transition-colors">
+                  <Globe className="w-3 h-3" /> Demo
+                </a>
+              )}
+              {product.docsUrl && (
+                <a href={product.docsUrl} target="_blank" rel="noopener noreferrer"
+                  className="flex items-center gap-1 text-[10px] font-semibold text-foreground/40 hover:text-foreground transition-colors">
+                  <FileText className="w-3 h-3" /> Docs
+                </a>
+              )}
+              {product.walkthroughUrl && (
+                <a href={product.walkthroughUrl} target="_blank" rel="noopener noreferrer"
+                  className="flex items-center gap-1 text-[10px] font-semibold text-foreground/40 hover:text-foreground transition-colors">
+                  <ExternalLink className="w-3 h-3" /> Walkthrough
+                </a>
+              )}
+              <button onClick={() => setExpanded(p => !p)}
+                className="flex items-center gap-1 text-[10px] font-semibold text-foreground/30 hover:text-foreground transition-colors">
+                <ChevronRight className={`w-3 h-3 transition-transform ${expanded ? "rotate-90" : ""}`} />
+                {expanded ? "Hide Details" : "Full Details"}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Expanded Details */}
+      <AnimatePresence>
+        {expanded && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            style={{ overflow: "hidden", borderTop: "0.5px solid hsl(var(--foreground) / 0.05)" }}
+          >
+            <div className="p-5 space-y-5">
+              {/* Description */}
+              <div>
+                <div className="text-[10px] font-bold uppercase tracking-widest text-foreground/30 font-mono mb-2">Full Description</div>
+                <p className="text-xs text-foreground/50 leading-relaxed" style={{ fontFamily: "'Inter', sans-serif" }}>{product.description}</p>
+              </div>
+
+              {/* Product Details Grid */}
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                {[
+                  { label: "Category", value: product.category || "—", icon: Tag },
+                  { label: "Price", value: `₹${Number(product.price || 0).toLocaleString()}`, icon: DollarSign },
+                  { label: "Delivery", value: `${product.deliveryDays || 7} days`, icon: Clock },
+                  { label: "Support", value: product.support || "—", icon: Settings },
+                  { label: "Deployment", value: product.deploymentMethod || "—", icon: Zap },
+                  { label: "Revisions", value: product.revisions || "—", icon: RefreshCw },
+                ].map(({ label, value, icon: Icon }) => (
+                  <div key={label} className="p-3 rounded-xl" style={{ background: "rgba(150,150,150,0.04)", border: "0.5px solid rgba(150,150,150,0.08)" }}>
+                    <div className="flex items-center gap-1.5 mb-1">
+                      <Icon className="w-3 h-3 text-foreground/20" />
+                      <span className="text-[9px] font-bold uppercase tracking-widest text-foreground/25 font-mono">{label}</span>
+                    </div>
+                    <p className="text-xs font-semibold text-foreground/70" style={{ fontFamily: "'Inter', sans-serif" }}>{value}</p>
+                  </div>
+                ))}
+              </div>
+
+              {/* Tags & Features */}
+              {(product.tags?.length > 0 || product.features?.length > 0) && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {product.tags?.length > 0 && (
+                    <div>
+                      <div className="text-[10px] font-bold uppercase tracking-widest text-foreground/30 font-mono mb-2">Tags</div>
+                      <div className="flex flex-wrap gap-1.5">
+                        {product.tags.map(t => (
+                          <span key={t} className="text-[9px] font-mono px-2 py-0.5 rounded-md bg-foreground/5 text-foreground/40 border border-foreground/8">{t}</span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {product.features?.length > 0 && (
+                    <div>
+                      <div className="text-[10px] font-bold uppercase tracking-widest text-foreground/30 font-mono mb-2">Features</div>
+                      <ul className="space-y-1">
+                        {product.features.slice(0, 6).map((f, i) => (
+                          <li key={i} className="flex items-center gap-1.5 text-[11px] text-foreground/50" style={{ fontFamily: "'Inter', sans-serif" }}>
+                            <CheckCircle className="w-2.5 h-2.5 text-emerald-400 shrink-0" /> {f}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Developer Info */}
+              <div className="p-4 rounded-xl" style={{ background: "rgba(150,150,150,0.03)", border: "0.5px solid rgba(150,150,150,0.08)" }}>
+                <div className="text-[10px] font-bold uppercase tracking-widest text-foreground/30 font-mono mb-3">Developer</div>
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-foreground/8 border border-foreground/10 text-sm font-bold text-foreground/60" style={{ fontFamily: "Georgia, serif" }}>
+                    {product.developer?.name?.[0] || "?"}
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold text-foreground" style={{ fontFamily: "'Inter', sans-serif" }}>{product.developer?.name || "Unknown"}</p>
+                    <p className="text-[10px] text-foreground/40 font-mono">{product.developer?.email || "—"}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Config Schema */}
+              {configFields.length > 0 && (
+                <div>
+                  <div className="text-[10px] font-bold uppercase tracking-widest text-foreground/30 font-mono mb-2">
+                    Config Builder Schema ({configFields.length} fields)
+                  </div>
+                  <div className="overflow-x-auto rounded-xl" style={{ border: "0.5px solid rgba(150,150,150,0.1)" }}>
+                    <table className="w-full text-left">
+                      <thead>
+                        <tr style={{ background: "rgba(150,150,150,0.05)", borderBottom: "0.5px solid rgba(150,150,150,0.08)" }}>
+                          {["Field Label", "Type", "Required", "Placeholder"].map(h => (
+                            <th key={h} className="px-3 py-2 text-[9px] font-bold uppercase tracking-widest text-foreground/25 font-mono">{h}</th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {configFields.map((f, i) => (
+                          <tr key={i} style={{ borderBottom: "0.5px solid rgba(150,150,150,0.05)" }}>
+                            <td className="px-3 py-2 text-xs font-medium text-foreground/70">{f.label || "—"}</td>
+                            <td className="px-3 py-2"><span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-foreground/5 text-foreground/40 border border-foreground/8">{f.type}</span></td>
+                            <td className="px-3 py-2 text-[10px] font-mono">{f.required ? <span className="text-emerald-400">Required</span> : <span className="text-foreground/25">Optional</span>}</td>
+                            <td className="px-3 py-2 text-[10px] text-foreground/30">{f.placeholder || "—"}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
+              {/* Screenshots */}
+              {product.screenshots?.length > 0 && (
+                <div>
+                  <div className="text-[10px] font-bold uppercase tracking-widest text-foreground/30 font-mono mb-2">Screenshots</div>
+                  <div className="flex gap-2 flex-wrap">
+                    {product.screenshots.map((src, i) => (
+                      <a key={i} href={src} target="_blank" rel="noopener noreferrer">
+                        <img src={src} alt={`Screenshot ${i + 1}`} className="w-28 h-20 object-cover rounded-lg border border-border hover:opacity-80 transition-opacity" />
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Rejection Reason (if already rejected) */}
+              {product.status === "REJECTED" && product.rejectionReason && (
+                <div className="p-3 rounded-xl" style={{ background: "rgba(239,68,68,0.05)", border: "0.5px solid rgba(239,68,68,0.2)" }}>
+                  <div className="flex items-start gap-2">
+                    <AlertCircle className="w-3.5 h-3.5 text-red-400 shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-[10px] font-bold text-red-400 mb-0.5 font-mono uppercase tracking-wider">Rejection Reason</p>
+                      <p className="text-xs text-red-400/70" style={{ fontFamily: "'Inter', sans-serif" }}>{product.rejectionReason}</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.div>
+  );
+}
+
+// ─── Main Component ───────────────────────────────────────────────────────────
+export default function AdminDashboard() {
+  const [products, setProducts] = useState([]);
+  const [stats, setStats] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [tab, setTab] = useState("PENDING_REVIEW");
+  const [approving, setApproving] = useState(null);
+  const [rejecting, setRejecting] = useState(null);
+  const [rejectTarget, setRejectTarget] = useState(null);
+  const [toast, setToast] = useState(null);
+
+  const showToast = (msg, type = "success") => {
+    setToast({ msg, type });
+    setTimeout(() => setToast(null), 4000);
+  };
+
+  const loadAll = useCallback(async () => {
+    try {
+      const [productsRes, statsRes] = await Promise.all([
+        axios.get(`${API_URL}/admin/products`),
+        axios.get(`${API_URL}/admin/stats`),
+      ]);
+      setProducts(productsRes.data?.data || []);
+      setStats(statsRes.data?.data || null);
+    } catch (err) {
+      console.error("Admin load failed:", err);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  }, []);
+
+  useEffect(() => { loadAll(); }, [loadAll]);
 
   const refresh = async () => {
     setRefreshing(true);
-    await new Promise((r) => setTimeout(r, 1200));
-    setRefreshing(false);
+    await loadAll();
   };
 
-  const totalRevenue = orders.reduce((s, o) => s + (o.amount || 0), 0);
-  const onlineCount  = SYSTEMS.filter((s) => s.status === "online").length;
+  const handleApprove = async (product) => {
+    setApproving(product.id);
+    try {
+      await axios.patch(`${API_URL}/admin/products/${product.id}/approve`);
+      setProducts(p => p.map(x => x.id === product.id ? { ...x, status: "APPROVED" } : x));
+      setStats(s => s ? { ...s, pendingCount: s.pendingCount - 1, approvedCount: s.approvedCount + 1 } : s);
+      showToast(`✅ "${product.title}" is now LIVE on the marketplace!`);
+    } catch (err) {
+      showToast(err.response?.data?.message || "Approval failed", "error");
+    } finally {
+      setApproving(null);
+    }
+  };
 
-  const [displayRevenue, setDisplayRevenue] = useState(0);
-  useEffect(() => {
-    let start = 0;
-    const end = totalRevenue;
-    if (end === 0) return;
-    const duration = 1400;
-    const step = 16;
-    const increment = end / (duration / step);
-    const timer = setInterval(() => {
-      start += increment;
-      if (start >= end) { setDisplayRevenue(end); clearInterval(timer); }
-      else setDisplayRevenue(Math.floor(start));
-    }, step);
-    return () => clearInterval(timer);
-  }, [totalRevenue]);
+  const handleRejectConfirm = async (reason) => {
+    if (!rejectTarget) return;
+    setRejecting(rejectTarget.id);
+    try {
+      await axios.patch(`${API_URL}/admin/products/${rejectTarget.id}/reject`, { reason });
+      setProducts(p => p.map(x => x.id === rejectTarget.id ? { ...x, status: "REJECTED", rejectionReason: reason } : x));
+      setStats(s => s ? { ...s, pendingCount: s.pendingCount - 1, rejectedCount: s.rejectedCount + 1 } : s);
+      showToast(`📋 "${rejectTarget.title}" rejected. Developer notified.`, "warn");
+    } catch (err) {
+      showToast(err.response?.data?.message || "Rejection failed", "error");
+    } finally {
+      setRejecting(null);
+      setRejectTarget(null);
+    }
+  };
 
-  const kpiCards = [
-    {
-      label: "Total Revenue", value: `$${displayRevenue.toLocaleString()}`,
-      icon: TrendingUp, color: "hsl(var(--foreground))",
-      sub: "+12% this week", wide: true,
-    },
-    {
-      label: "Conversations", value: "6,381",
-      icon: MessageSquare, color: "hsl(var(--foreground))",
-      sub: "All bots · Active",
-    },
-    {
-      label: "Automations Run", value: "392",
-      icon: Zap, color: "hsl(var(--foreground))",
-      sub: "This week",
-    },
-    {
-      label: "Active Users", value: "1,240",
-      icon: Users, color: "hsl(var(--foreground))",
-      sub: "Last 30 days", wide: true,
-    },
+  const TABS = [
+    { key: "PENDING_REVIEW", label: "Pending Review", count: stats?.pendingCount ?? 0,  color: "text-amber-400" },
+    { key: "APPROVED",       label: "Approved",       count: stats?.approvedCount ?? 0, color: "text-emerald-400" },
+    { key: "REJECTED",       label: "Rejected",       count: stats?.rejectedCount ?? 0, color: "text-red-400" },
+    { key: "ALL",            label: "All Products",   count: stats?.totalProducts ?? 0, color: "text-foreground/50" },
   ];
+
+  const visibleProducts = tab === "ALL" ? products : products.filter(p => p.status === tab);
+
+  const kpiCards = stats ? [
+    { label: "Pending Review",    value: stats.pendingCount,    icon: Clock,       color: "#f59e0b", sub: "Awaiting your decision" },
+    { label: "Live Products",     value: stats.approvedCount,   icon: CheckCircle, color: "#22c55e", sub: "On marketplace" },
+    { label: "Rejected",          value: stats.rejectedCount,   icon: XCircle,     color: "#f87171", sub: "Needs developer changes" },
+    { label: "Total Developers",  value: stats.totalDevelopers, icon: Users,       color: "#a78bfa", sub: "Registered on platform", wide: true },
+    { label: "Platform Revenue",  value: `$${Number(stats.totalRevenue || 0).toLocaleString()}`, icon: TrendingUp, color: "#60a5fa", sub: "All-time completed orders", wide: true },
+  ] : [];
+
+  if (loading) return (
+    <div className="min-h-screen page-fade-in">
+      <div className="max-w-7xl mx-auto px-6 py-16 space-y-4">
+        {[1,2,3,4].map(i => <div key={i} className="skeleton-beam rounded-2xl" style={{ height: 80 }} />)}
+      </div>
+    </div>
+  );
 
   return (
     <div className="min-h-screen page-fade-in" style={{ background: "transparent" }}>
+
+      {/* Toast */}
+      <AnimatePresence>
+        {toast && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}
+            className="fixed top-6 right-6 z-50 px-5 py-3 rounded-xl text-sm font-semibold shadow-2xl"
+            style={{
+              background: toast.type === "error" ? "rgba(239,68,68,0.95)" : toast.type === "warn" ? "rgba(234,179,8,0.95)" : "rgba(22,163,74,0.95)",
+              color: "#fff", fontFamily: "'Inter', sans-serif", maxWidth: 360,
+            }}
+          >
+            {toast.msg}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Reject Modal */}
+      <AnimatePresence>
+        {rejectTarget && (
+          <RejectModal
+            product={rejectTarget}
+            onConfirm={handleRejectConfirm}
+            onCancel={() => setRejectTarget(null)}
+            loading={rejecting === rejectTarget?.id}
+          />
+        )}
+      </AnimatePresence>
 
       {/* ── Header ── */}
       <div className="premium-header-bar aurora-header" style={{ borderBottom: "0.5px solid hsl(var(--foreground) / 0.06)" }}>
@@ -118,39 +450,30 @@ export default function AdminDashboard() {
               <ArrowLeft className="w-3 h-3 group-hover:-translate-x-0.5 transition-transform" />
               <span className="text-xs" style={{ fontFamily: "'Inter', sans-serif", letterSpacing: "0.04em" }}>Back to Marketplace</span>
             </Link>
-            <div className="stat-label-caps mb-1.5">Admin · System Dashboard</div>
+            <div className="stat-label-caps mb-1.5">Admin · Review Center</div>
             <h1 className="text-white font-bold text-3xl section-title-gradient" style={{ fontFamily: "Georgia, serif", letterSpacing: "-0.04em", lineHeight: 1.1 }}>
-              Control Center
+              Product Review Center
             </h1>
           </div>
 
           <div className="flex items-center gap-3">
-            {/* System Status Pill */}
-            <div className="flex items-center gap-2 px-4 py-2 rounded-full" style={{ background: "rgba(150,150,150,0.06)", border: "0.5px solid rgba(150,150,150,0.2)" }}>
-              <span className="w-2 h-2 rounded-full pulse-aura" style={{ background: "hsl(var(--card))" }} />
-              <span className="text-xs font-semibold" style={{ color: "rgba(150,150,150,0.8)", fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.06em" }}>
-                {onlineCount}/{SYSTEMS.length} ONLINE
-              </span>
-            </div>
-
-            {/* Shield badge */}
+            {/* Pending alert pill */}
+            {(stats?.pendingCount || 0) > 0 && (
+              <div className="flex items-center gap-2 px-4 py-2 rounded-full" style={{ background: "rgba(245,158,11,0.1)", border: "0.5px solid rgba(245,158,11,0.3)" }}>
+                <span className="w-2 h-2 rounded-full pulse-aura" style={{ background: "#f59e0b" }} />
+                <span className="text-xs font-bold" style={{ color: "#f59e0b", fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.06em" }}>
+                  {stats.pendingCount} PENDING
+                </span>
+              </div>
+            )}
             <div className="flex items-center gap-2 px-3 py-2 rounded-full" style={{ background: "rgba(150,150,150,0.06)", border: "0.5px solid rgba(150,150,150,0.15)" }}>
               <Shield className="w-3.5 h-3.5" style={{ color: "hsl(var(--foreground))" }} />
-              <span className="text-xs font-semibold" style={{ color: "rgba(150,150,150,0.7)", fontFamily: "'Inter', sans-serif" }}>Secured</span>
+              <span className="text-xs font-semibold" style={{ color: "rgba(150,150,150,0.7)", fontFamily: "'Inter', sans-serif" }}>Admin Only</span>
             </div>
-
-            <motion.button
-              whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
+            <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
               onClick={refresh}
               className="flex items-center gap-2 text-xs font-semibold px-4 py-2 rounded-xl transition-all"
-              style={{
-                background: "hsl(var(--foreground) / 0.04)",
-                color: "hsl(var(--foreground) / 0.5)",
-                border: "0.5px solid hsl(var(--foreground) / 0.08)",
-                fontFamily: "'Inter', sans-serif",
-                letterSpacing: "0.04em",
-              }}
-            >
+              style={{ background: "hsl(var(--foreground) / 0.04)", color: "hsl(var(--foreground) / 0.5)", border: "0.5px solid hsl(var(--foreground) / 0.08)", fontFamily: "'Inter', sans-serif" }}>
               <RefreshCw className={`w-3.5 h-3.5 ${refreshing ? "animate-spin" : ""}`} />
               Refresh
             </motion.button>
@@ -158,269 +481,79 @@ export default function AdminDashboard() {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-6 py-8 space-y-5">
+      <div className="max-w-7xl mx-auto px-6 py-8 space-y-6">
 
         {/* ── KPI Cards ── */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          {kpiCards.map((kpi, i) => (
-            <motion.div
-              key={kpi.label}
-              initial={{ opacity: 0, y: 20, scale: 0.96 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              transition={{ delay: i * 0.07, type: "spring", stiffness: 260, damping: 24 }}
-              className={`admin-kpi-card p-6 relative overflow-hidden group ${kpi.wide ? "md:col-span-2" : ""}`}
-              style={{
-                background: `linear-gradient(135deg, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.7) 100%)`,
-                border: `0.5px solid hsl(var(--foreground) / 0.2)`,
-                backdropFilter: "blur(20px)",
-                WebkitBackdropFilter: "blur(20px)",
-                boxShadow: `0 4px 32px rgba(0,0,0,0.4), 0 0 0 0.5px hsl(var(--foreground) / 0.08) inset`,
-              }}
-            >
-              {/* Glow stamp */}
-              <div
-                className="absolute pointer-events-none"
-                style={{ top: -40, right: -40, width: 180, height: 180, borderRadius: "50%", background: kpi.color, opacity: 0.08, filter: "blur(50px)", transition: "opacity 0.4s" }}
-              />
-              {/* Top line accent */}
-              <div className="absolute top-0 left-0 right-0 h-px" style={{ background: `linear-gradient(90deg, transparent, hsl(var(--foreground) / 0.3), transparent)` }} />
-
-              <div className="relative z-10">
-                <div className="flex items-center justify-between mb-6">
-                  <div
-                    className="w-9 h-9 rounded-xl flex items-center justify-center"
-                    style={{ background: `hsl(var(--foreground) / 0.12)`, border: `0.5px solid hsl(var(--foreground) / 0.25)` }}
-                  >
-                    <kpi.icon className="w-4 h-4" style={{ color: kpi.color }} />
+        {stats && (
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+            {kpiCards.map((kpi, i) => (
+              <motion.div key={kpi.label}
+                initial={{ opacity: 0, y: 20, scale: 0.96 }} animate={{ opacity: 1, y: 0, scale: 1 }}
+                transition={{ delay: i * 0.07, type: "spring", stiffness: 260, damping: 24 }}
+                className={`frosted-panel p-5 relative overflow-hidden ${kpi.wide ? "md:col-span-2" : ""}`}
+              >
+                <div className="absolute pointer-events-none" style={{ top: -40, right: -40, width: 140, height: 140, borderRadius: "50%", background: kpi.color, opacity: 0.07, filter: "blur(40px)" }} />
+                <div className="relative z-10">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ background: `${kpi.color}18`, border: `0.5px solid ${kpi.color}40` }}>
+                      <kpi.icon className="w-4 h-4" style={{ color: kpi.color }} />
+                    </div>
                   </div>
-                  <div
-                    className="flex items-center gap-1 text-[10px] font-bold px-2.5 py-1 rounded-full"
-                    style={{ background: `hsl(var(--foreground) / 0.12)`, color: kpi.color, fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.04em", border: `0.5px solid hsl(var(--foreground) / 0.25)` }}
-                  >
-                    <ArrowUpRight className="w-3 h-3" />
-                    {kpi.sub}
+                  <div className="stat-label-caps mb-1.5">{kpi.label}</div>
+                  <div className="font-bold text-white" style={{ fontFamily: "Georgia, serif", fontSize: "1.8rem", letterSpacing: "-0.04em", lineHeight: 1 }}>
+                    {kpi.value}
                   </div>
+                  <p className="text-[10px] text-foreground/30 mt-1.5 font-mono">{kpi.sub}</p>
                 </div>
+              </motion.div>
+            ))}
+          </div>
+        )}
 
-                <div className="stat-label-caps mb-2">{kpi.label}</div>
-                <div
-                  className="font-bold section-title-gradient"
-                  style={{
-                    fontFamily: "Georgia, serif",
-                    fontSize: kpi.wide ? "clamp(2.2rem,4vw,3.5rem)" : "2rem",
-                    letterSpacing: "-0.04em",
-                    lineHeight: 1,
-                    background: `linear-gradient(135deg, hsl(var(--foreground)) 0%, hsl(var(--foreground) / 0.8) 100%)`,
-                    WebkitBackgroundClip: "text",
-                    WebkitTextFillColor: "transparent",
-                    backgroundClip: "text",
-                  }}
-                >
-                  {kpi.value}
-                </div>
-              </div>
-            </motion.div>
+        {/* ── Tabs ── */}
+        <div className="flex items-center gap-1 p-1 rounded-xl w-fit" style={{ background: "rgba(150,150,150,0.05)", border: "0.5px solid rgba(150,150,150,0.1)" }}>
+          {TABS.map(t => (
+            <button key={t.key} onClick={() => setTab(t.key)}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all ${tab === t.key ? "bg-foreground text-background" : "text-foreground/40 hover:text-foreground/70"}`}
+              style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+              {t.label}
+              <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-mono ${tab === t.key ? "bg-background/20 text-background/70" : `${t.color} bg-foreground/5`}`}>
+                {t.count}
+              </span>
+            </button>
           ))}
         </div>
 
-        {/* ── Charts ── */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}
-            className="frosted-panel p-6"
-          >
-            <div className="flex items-center justify-between mb-6">
-              <div>
-                <h2 className="text-white font-bold text-sm" style={{ fontFamily: "Georgia, serif", letterSpacing: "-0.02em" }}>Conversations / Week</h2>
-                <p className="stat-label-caps mt-0.5">Blue · Conversations</p>
-              </div>
-              <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ background: "rgba(150,150,150,0.1)", border: "0.5px solid rgba(150,150,150,0.2)" }}>
-                <Activity className="w-4 h-4" style={{ color: "hsl(var(--foreground))" }} />
-              </div>
-            </div>
-            <div className="chart-container h-52">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={USAGE_DATA}>
-                  <defs>
-                    <linearGradient id="convGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="hsl(var(--foreground))" stopOpacity={0.2} />
-                      <stop offset="95%" stopColor="hsl(var(--foreground))" stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid stroke="hsl(var(--foreground) / 0.03)" strokeDasharray="4 4" />
-                  <XAxis dataKey="day" tick={{ fontSize: 10, fill: "hsl(var(--foreground) / 0.25)", fontFamily: "monospace" }} axisLine={false} tickLine={false} />
-                  <YAxis tick={{ fontSize: 10, fill: "hsl(var(--foreground) / 0.25)", fontFamily: "monospace" }} axisLine={false} tickLine={false} />
-                  <Tooltip content={<CustomTooltip />} cursor={{ stroke: "rgba(150,150,150,0.15)", strokeWidth: 1 }} />
-                  <Area
-                    type="monotone" dataKey="conversations" stroke="hsl(var(--foreground))" strokeWidth={2}
-                    fill="url(#convGrad)" dot={false}
-                    style={{ filter: "drop-shadow(0 0 8px rgba(150,150,150,0.7))" }}
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}
-            className="frosted-panel p-6"
-          >
-            <div className="flex items-center justify-between mb-6">
-              <div>
-                <h2 className="text-white font-bold text-sm" style={{ fontFamily: "Georgia, serif", letterSpacing: "-0.02em" }}>System Uptime — 24H</h2>
-                <p className="stat-label-caps mt-0.5">Green · Uptime %</p>
-              </div>
-              <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ background: "rgba(150,150,150,0.08)", border: "0.5px solid rgba(150,150,150,0.2)" }}>
-                <Cpu className="w-4 h-4" style={{ color: "hsl(var(--foreground))" }} />
-              </div>
-            </div>
-            <div className="chart-container h-52">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={UPTIME_DATA}>
-                  <CartesianGrid stroke="hsl(var(--foreground) / 0.03)" strokeDasharray="4 4" />
-                  <XAxis dataKey="time" tick={{ fontSize: 10, fill: "hsl(var(--foreground) / 0.25)", fontFamily: "monospace" }} axisLine={false} tickLine={false} />
-                  <YAxis domain={[98.5, 100.5]} tick={{ fontSize: 10, fill: "hsl(var(--foreground) / 0.25)", fontFamily: "monospace" }} axisLine={false} tickLine={false} />
-                  <Tooltip content={<CustomTooltip />} cursor={{ stroke: "rgba(150,150,150,0.15)", strokeWidth: 1 }} />
-                  <Line
-                    type="monotone" dataKey="uptime" stroke="hsl(var(--foreground))" strokeWidth={2}
-                    dot={{ fill: "hsl(var(--foreground))", r: 4, strokeWidth: 0 }}
-                    style={{ filter: "drop-shadow(0 0 8px rgba(150,150,150,0.9)) drop-shadow(0 0 20px rgba(150,150,150,0.4))" }}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
-          </motion.div>
+        {/* ── Product List ── */}
+        <div className="space-y-3">
+          {visibleProducts.length === 0 ? (
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+              className="frosted-panel p-16 text-center">
+              <Package className="w-10 h-10 mx-auto mb-3 text-foreground/15" />
+              <p className="text-sm font-semibold text-foreground/40" style={{ fontFamily: "'Inter', sans-serif" }}>
+                {tab === "PENDING_REVIEW" ? "No products pending review." : `No ${tab.toLowerCase().replace("_", " ")} products.`}
+              </p>
+              {tab === "PENDING_REVIEW" && (
+                <p className="text-xs text-foreground/25 mt-1" style={{ fontFamily: "'Inter', sans-serif" }}>
+                  When developers submit products, they'll appear here for your approval.
+                </p>
+              )}
+            </motion.div>
+          ) : (
+            <AnimatePresence>
+              {visibleProducts.map((product, i) => (
+                <ProductReviewCard
+                  key={product.id}
+                  product={product}
+                  onApprove={handleApprove}
+                  onReject={(p) => setRejectTarget(p)}
+                  approving={approving}
+                  rejecting={rejecting}
+                />
+              ))}
+            </AnimatePresence>
+          )}
         </div>
-
-        {/* ── Systems Table ── */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}
-          className="frosted-panel overflow-hidden"
-        >
-          <div className="px-6 py-5 flex items-center justify-between" style={{ borderBottom: "0.5px solid hsl(var(--foreground) / 0.05)" }}>
-            <div>
-              <h2 className="text-white font-bold" style={{ fontFamily: "Georgia, serif", letterSpacing: "-0.02em" }}>Installed AI Systems</h2>
-              <p className="stat-label-caps mt-0.5">Live system health monitor</p>
-            </div>
-            <span className="premium-badge premium-badge-blue">{SYSTEMS.length} systems</span>
-          </div>
-
-          <div className="divide-y" style={{ borderColor: "hsl(var(--foreground) / 0.04)" }}>
-            {SYSTEMS.map((sys, i) => {
-              const isOnline  = sys.status === "online";
-              const isWarning = sys.status === "warning";
-              const statusColor = isOnline ? "hsl(var(--foreground))" : isWarning ? "hsl(var(--foreground))" : "hsl(var(--foreground))";
-              const statusBg    = isOnline ? "rgba(150,150,150,0.06)" : isWarning ? "rgba(150,150,150,0.06)" : "rgba(150,150,150,0.06)";
-              const dotClass    = isOnline ? "pulse-aura" : isWarning ? "pulse-aura-amber" : "pulse-aura-red";
-              const dotBg       = isOnline ? "hsl(var(--foreground))" : isWarning ? "hsl(var(--foreground))" : "hsl(var(--foreground))";
-
-              return (
-                <motion.div
-                  key={sys.name}
-                  initial={{ opacity: 0, x: -16 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.5 + i * 0.07 }}
-                  className="admin-table-row px-6 py-4 flex items-center gap-4 flex-wrap"
-                >
-                  {/* System Identity */}
-                  <div className="flex items-center gap-3 flex-1 min-w-[180px]">
-                    <div className="relative flex-shrink-0">
-                      <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: statusBg, border: `0.5px solid hsl(var(--foreground) / 0.2)` }}>
-                        {sys.type === "Chatbot"
-                          ? <MessageSquare className="w-4 h-4" style={{ color: statusColor }} />
-                          : <Zap className="w-4 h-4" style={{ color: statusColor }} />
-                        }
-                      </div>
-                      <div
-                        className={`absolute -top-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 ${dotClass}`}
-                        style={{ background: dotBg, borderColor: "transparent" }}
-                      />
-                    </div>
-                    <div>
-                      <div className="text-white text-sm font-semibold" style={{ fontFamily: "'Inter', sans-serif", letterSpacing: "-0.01em" }}>{sys.name}</div>
-                      <div className="stat-label-caps">{sys.type}</div>
-                    </div>
-                  </div>
-
-                  {/* Metrics */}
-                  <div className="flex items-center gap-6 flex-wrap">
-
-                    {/* Status */}
-                    <div className="min-w-[70px]">
-                      <div className="stat-label-caps mb-1">Status</div>
-                      <div className="flex items-center gap-1.5">
-                        <StatusIcon status={sys.status} />
-                        <span className="text-xs font-bold" style={{ color: statusColor, fontFamily: "'JetBrains Mono', monospace" }}>
-                          {sys.status.toUpperCase()}
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Uptime */}
-                    <div className="min-w-[60px]">
-                      <div className="stat-label-caps mb-1">Uptime</div>
-                      <div className="text-white text-xs font-bold metric-num">{sys.uptime}</div>
-                    </div>
-
-                    {/* Conversations */}
-                    <div className="min-w-[70px]">
-                      <div className="stat-label-caps mb-1">Convs</div>
-                      <div className="text-white text-xs font-bold metric-num">{sys.conversations.toLocaleString()}</div>
-                    </div>
-
-                    {/* Health bar */}
-                    <div className="min-w-[110px]">
-                      <div className="flex items-center justify-between mb-1.5">
-                        <div className="stat-label-caps">Health</div>
-                        <span className="text-[10px] font-bold" style={{ color: statusColor, fontFamily: "'JetBrains Mono', monospace" }}>{sys.health}%</span>
-                      </div>
-                      <div className="health-bar-track" style={{ width: 90 }}>
-                        <div
-                          className="health-bar-fill"
-                          style={{
-                            width: `${sys.health}%`,
-                            background: sys.health > 90
-                              ? "linear-gradient(90deg, hsl(var(--foreground)), hsl(var(--foreground)))"
-                              : sys.health > 60
-                                ? "linear-gradient(90deg, hsl(var(--foreground)), hsl(var(--foreground)))"
-                                : "linear-gradient(90deg, hsl(var(--foreground)), hsl(var(--foreground)))",
-                            boxShadow: `0 0 8px hsl(var(--foreground) / 0.6)`,
-                          }}
-                        />
-                      </div>
-                    </div>
-
-                    {/* Last Active */}
-                    <div className="flex items-center gap-1.5 min-w-[90px]">
-                      <Clock className="w-3 h-3 flex-shrink-0" style={{ color: "hsl(var(--foreground) / 0.2)" }} />
-                      <span className="text-[11px]" style={{ color: "hsl(var(--foreground) / 0.3)", fontFamily: "'Inter', sans-serif" }}>{sys.lastActive}</span>
-                    </div>
-
-                    {/* Actions */}
-                    <div className="flex gap-1.5">
-                      <button
-                        className="w-8 h-8 rounded-xl flex items-center justify-center transition-all"
-                        style={{ background: "hsl(var(--foreground) / 0.04)", border: "0.5px solid hsl(var(--foreground) / 0.07)", color: "hsl(var(--foreground) / 0.3)" }}
-                        onMouseEnter={e => e.currentTarget.style.color = "#fff"}
-                        onMouseLeave={e => e.currentTarget.style.color = "hsl(var(--foreground) / 0.3)"}
-                      >
-                        <Eye className="w-3.5 h-3.5" />
-                      </button>
-                      <button
-                        className="w-8 h-8 rounded-xl flex items-center justify-center transition-all"
-                        style={{ background: "hsl(var(--foreground) / 0.04)", border: "0.5px solid hsl(var(--foreground) / 0.07)", color: "hsl(var(--foreground) / 0.3)" }}
-                        onMouseEnter={e => e.currentTarget.style.color = "#fff"}
-                        onMouseLeave={e => e.currentTarget.style.color = "hsl(var(--foreground) / 0.3)"}
-                      >
-                        <Settings className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                  </div>
-                </motion.div>
-              );
-            })}
-          </div>
-        </motion.div>
       </div>
     </div>
   );

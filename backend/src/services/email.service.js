@@ -358,6 +358,209 @@ const sendPasswordChangedEmail = async (to, name, ipAddress = 'Unknown') => {
 
 
 
+// ─── 5. Product Submission — Admin Notification ───────────────────────────────
+
+const sendProductSubmissionNotification = async (adminEmail, product, developer) => {
+  const subject = `[Deployra] New Product Submission Requires Review`;
+  const submittedAt = new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', dateStyle: 'full', timeStyle: 'short' });
+
+  const configFields = (() => {
+    try { return product.configSchema ? JSON.parse(product.configSchema) : []; } catch { return []; }
+  })();
+
+  const configRows = configFields.length > 0
+    ? configFields.map(f => `
+        <tr>
+          <td style="padding:6px 12px;font-family:'Inter',Arial,sans-serif;font-size:12px;color:#aaaaaa;border-bottom:1px solid #1e1e1e;">${f.label || 'Untitled'}</td>
+          <td style="padding:6px 12px;font-family:'Inter',Arial,sans-serif;font-size:12px;color:#888888;border-bottom:1px solid #1e1e1e;">${f.type}</td>
+          <td style="padding:6px 12px;font-family:'Inter',Arial,sans-serif;font-size:12px;color:#888888;border-bottom:1px solid #1e1e1e;">${f.required ? 'Required' : 'Optional'}</td>
+        </tr>`).join('')
+    : `<tr><td colspan="3" style="padding:10px 12px;font-family:'Inter',Arial,sans-serif;font-size:12px;color:#555555;text-align:center;">No config fields defined</td></tr>`;
+
+  const screenshotPreviews = (product.screenshots || []).slice(0, 3).map(url =>
+    `<a href="${url}" style="display:inline-block;margin:4px;"><img src="${url}" width="120" height="80" style="object-fit:cover;border-radius:6px;border:1px solid #2a2a2a;" /></a>`
+  ).join('');
+
+  const content = `
+    <div style="display:inline-flex;align-items:center;gap:10px;background:#f59e0b18;border:1px solid #f59e0b40;border-radius:12px;padding:12px 20px;margin-bottom:24px;">
+      <span style="font-size:22px;">🔔</span>
+      <div>
+        <p style="font-family:'Inter',Arial,sans-serif;font-size:15px;font-weight:700;color:#f59e0b;margin:0;">New Product Requires Your Review</p>
+        <p style="font-family:'Inter',Arial,sans-serif;font-size:12px;color:#f59e0b99;margin:2px 0 0;">Submitted on ${submittedAt}</p>
+      </div>
+    </div>
+
+    <h1 style="font-family:'Inter',Arial,sans-serif;font-size:24px;font-weight:700;color:#ffffff;margin:0 0 4px;letter-spacing:-0.5px;">${product.title}</h1>
+    <p style="font-family:'Inter',Arial,sans-serif;font-size:14px;color:#888888;margin:0 0 28px;">${product.shortDesc || product.description?.slice(0, 120) + '...'}</p>
+
+    <!-- Product Details Grid -->
+    <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background:#161616;border:1px solid #2a2a2a;border-radius:14px;margin-bottom:24px;overflow:hidden;">
+      <tr style="background:#1a1a1a;border-bottom:1px solid #222;">
+        <td colspan="2" style="padding:12px 20px;font-family:'Inter',Arial,sans-serif;font-size:11px;font-weight:700;color:#555555;text-transform:uppercase;letter-spacing:0.1em;">Product Details</td>
+      </tr>
+      ${[
+        ['Category', product.category || '—'],
+        ['Price', `₹${Number(product.price).toLocaleString('en-IN')}`],
+        ['Delivery Time', `${product.deliveryDays || 7} days`],
+        ['Support Duration', product.support || '—'],
+        ['Deployment Method', product.deploymentMethod || '—'],
+        ['Demo URL', product.demoUrl ? `<a href="${product.demoUrl}" style="color:#108a00;">${product.demoUrl}</a>` : '—'],
+        ['Documentation', product.docsUrl ? `<a href="${product.docsUrl}" style="color:#108a00;">${product.docsUrl}</a>` : '—'],
+        ['Tags', (product.tags || []).join(', ') || '—'],
+        ['Features', (product.features || []).slice(0, 5).join(', ') || '—'],
+      ].map(([label, value], i) => `
+        <tr style="${i % 2 === 0 ? 'background:#161616;' : 'background:#181818;'}">
+          <td style="padding:10px 20px;font-family:'Inter',Arial,sans-serif;font-size:12px;font-weight:600;color:#666666;width:180px;">${label}</td>
+          <td style="padding:10px 20px;font-family:'Inter',Arial,sans-serif;font-size:12px;color:#cccccc;">${value}</td>
+        </tr>`).join('')}
+    </table>
+
+    <!-- Developer Details -->
+    <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background:#161616;border:1px solid #2a2a2a;border-radius:14px;margin-bottom:24px;overflow:hidden;">
+      <tr style="background:#1a1a1a;border-bottom:1px solid #222;">
+        <td colspan="2" style="padding:12px 20px;font-family:'Inter',Arial,sans-serif;font-size:11px;font-weight:700;color:#555555;text-transform:uppercase;letter-spacing:0.1em;">Developer Information</td>
+      </tr>
+      ${[
+        ['Name', developer?.name || '—'],
+        ['Email', developer?.email || '—'],
+        ['Developer ID', developer?.id || '—'],
+      ].map(([label, value], i) => `
+        <tr style="${i % 2 === 0 ? 'background:#161616;' : 'background:#181818;'}">
+          <td style="padding:10px 20px;font-family:'Inter',Arial,sans-serif;font-size:12px;font-weight:600;color:#666666;width:180px;">${label}</td>
+          <td style="padding:10px 20px;font-family:'Inter',Arial,sans-serif;font-size:12px;color:#cccccc;">${value}</td>
+        </tr>`).join('')}
+    </table>
+
+    <!-- Screenshots -->
+    ${screenshotPreviews ? `
+    <p style="font-family:'Inter',Arial,sans-serif;font-size:11px;font-weight:700;color:#555555;text-transform:uppercase;letter-spacing:0.1em;margin:0 0 10px;">Screenshots</p>
+    <div style="margin-bottom:24px;">${screenshotPreviews}</div>` : ''}
+
+    <!-- Config Schema -->
+    <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background:#161616;border:1px solid #2a2a2a;border-radius:14px;margin-bottom:28px;overflow:hidden;">
+      <tr style="background:#1a1a1a;border-bottom:1px solid #222;">
+        <td style="padding:12px 20px;font-family:'Inter',Arial,sans-serif;font-size:11px;font-weight:700;color:#555555;text-transform:uppercase;letter-spacing:0.1em;">Config Builder Schema (${configFields.length} fields)</td>
+        <td style="padding:12px 20px;font-family:'Inter',Arial,sans-serif;font-size:11px;font-weight:700;color:#555555;text-transform:uppercase;letter-spacing:0.1em;text-align:right;">TYPE</td>
+        <td style="padding:12px 20px;font-family:'Inter',Arial,sans-serif;font-size:11px;font-weight:700;color:#555555;text-transform:uppercase;letter-spacing:0.1em;text-align:right;">REQUIRED</td>
+      </tr>
+      ${configRows}
+    </table>
+
+    <!-- Full Description -->
+    <p style="font-family:'Inter',Arial,sans-serif;font-size:11px;font-weight:700;color:#555555;text-transform:uppercase;letter-spacing:0.1em;margin:0 0 10px;">Full Description</p>
+    <div style="background:#161616;border:1px solid #2a2a2a;border-radius:12px;padding:16px 20px;margin-bottom:28px;">
+      <p style="font-family:'Inter',Arial,sans-serif;font-size:13px;color:#aaaaaa;margin:0;line-height:1.7;">${product.description}</p>
+    </div>
+
+    ${primaryButton('https://deployra.vercel.app/admin', '→ Open Admin Review Center')}
+
+    ${alertBox('This product is currently in PENDING_REVIEW status and is NOT visible on the marketplace. It will only go live after your approval.', 'warning')}
+  `;
+
+  const html = emailShell(content, `New product submission: "${product.title}" awaits your review.`);
+  return sendEmail(adminEmail, subject, html);
+};
+
+// ─── 6. Product Approved — Developer Notification ──────────────────────────────
+
+const sendProductApprovedEmail = async (developerEmail, developerName, productTitle) => {
+  const firstName = developerName?.split(' ')[0] || 'Developer';
+  const subject = `🎉 Your product "${productTitle}" is now LIVE on Deployra!`;
+
+  const content = `
+    <div style="text-align:center;margin-bottom:32px;">
+      <div style="display:inline-block;background:#108a0020;border:2px solid #108a0040;border-radius:50%;width:72px;height:72px;line-height:72px;font-size:32px;">🚀</div>
+    </div>
+
+    <h1 style="font-family:'Inter',Arial,sans-serif;font-size:26px;font-weight:700;color:#ffffff;margin:0 0 8px;letter-spacing:-0.5px;text-align:center;">
+      Your product is LIVE!
+    </h1>
+    <p style="font-family:'Inter',Arial,sans-serif;font-size:15px;color:#888888;margin:0 0 32px;line-height:1.6;text-align:center;">
+      Congratulations, ${firstName}! The Deployra team has reviewed and approved your submission.
+    </p>
+
+    <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background:#108a0012;border:1px solid #108a0030;border-radius:14px;margin-bottom:28px;">
+      <tr>
+        <td style="padding:20px 24px;">
+          <p style="font-family:'Inter',Arial,sans-serif;font-size:16px;font-weight:700;color:#ffffff;margin:0 0 4px;">${productTitle}</p>
+          <p style="font-family:'Inter',Arial,sans-serif;font-size:13px;color:#108a00;margin:0;">✓ APPROVED · Now discoverable by all marketplace visitors</p>
+        </td>
+      </tr>
+    </table>
+
+    <p style="font-family:'Inter',Arial,sans-serif;font-size:15px;color:#aaaaaa;line-height:1.7;margin:0 0 8px;">
+      Your product is now:
+    </p>
+    <ul style="font-family:'Inter',Arial,sans-serif;font-size:14px;color:#888888;line-height:2;padding-left:20px;margin:0 0 28px;">
+      <li>Visible on the Deployra marketplace</li>
+      <li>Discoverable through search and category pages</li>
+      <li>Listed on your developer profile</li>
+      <li>Purchasable by businesses worldwide</li>
+    </ul>
+
+    ${primaryButton('https://deployra.vercel.app/developer/listings', 'View Your Listings →')}
+
+    ${divider()}
+
+    <p style="font-family:'Inter',Arial,sans-serif;font-size:13px;color:#555555;margin:0;line-height:1.6;">
+      Share your product link with potential buyers to drive your first sales!<br/>
+      For any questions, reply to this email or visit our developer hub.
+    </p>
+  `;
+
+  const html = emailShell(content, `Your product "${productTitle}" is now live on Deployra!`);
+  return sendEmail(developerEmail, subject, html);
+};
+
+// ─── 7. Product Rejected — Developer Notification ──────────────────────────────
+
+const sendProductRejectedEmail = async (developerEmail, developerName, productTitle, reason) => {
+  const firstName = developerName?.split(' ')[0] || 'Developer';
+  const subject = `Action Required: Your Deployra product submission needs changes`;
+
+  const content = `
+    <div style="text-align:center;margin-bottom:32px;">
+      <div style="display:inline-block;background:#ef444420;border:2px solid #ef444440;border-radius:50%;width:72px;height:72px;line-height:72px;font-size:32px;">📋</div>
+    </div>
+
+    <h1 style="font-family:'Inter',Arial,sans-serif;font-size:26px;font-weight:700;color:#ffffff;margin:0 0 8px;letter-spacing:-0.5px;text-align:center;">
+      Your submission needs changes
+    </h1>
+    <p style="font-family:'Inter',Arial,sans-serif;font-size:15px;color:#888888;margin:0 0 32px;line-height:1.6;text-align:center;">
+      Hi ${firstName}, our review team has reviewed your product submission and found some issues that need to be addressed before it can go live.
+    </p>
+
+    <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background:#161616;border:1px solid #2a2a2a;border-radius:14px;margin-bottom:24px;">
+      <tr>
+        <td style="padding:16px 20px;">
+          <p style="font-family:'Inter',Arial,sans-serif;font-size:14px;font-weight:700;color:#ffffff;margin:0 0 4px;">${productTitle}</p>
+          <p style="font-family:'Inter',Arial,sans-serif;font-size:12px;color:#ef4444;margin:0;">Status: Needs Changes</p>
+        </td>
+      </tr>
+    </table>
+
+    ${alertBox(`<strong style="display:block;margin-bottom:8px;font-size:13px;">Review Feedback:</strong>${reason}`, 'error')}
+
+    <p style="font-family:'Inter',Arial,sans-serif;font-size:15px;color:#aaaaaa;line-height:1.7;margin:0 0 24px;">
+      <strong style="color:#ffffff;">What to do next:</strong><br/>
+      1. Log in to your Deployra developer account<br/>
+      2. Navigate to <strong style="color:#ffffff;">My Listings</strong><br/>
+      3. Click <strong style="color:#ffffff;">Fix &amp; Resubmit</strong> on the product<br/>
+      4. Address the feedback above and resubmit for review
+    </p>
+
+    ${primaryButton('https://deployra.vercel.app/developer/listings', 'Fix & Resubmit →')}
+
+    ${divider()}
+
+    ${infoBox('Your product is NOT deleted. It remains in your listings as "Needs Changes" and you can resubmit as many times as needed. Our team will re-review it promptly.')}
+  `;
+
+  const html = emailShell(content, `Your product "${productTitle}" submission needs changes.`);
+  return sendEmail(developerEmail, subject, html);
+};
+
+
 // ─── Exports ──────────────────────────────────────────────────────────────────
 
 module.exports = {
@@ -365,5 +568,8 @@ module.exports = {
   sendWelcomeEmail,
   sendEmailVerificationEmail,
   sendPasswordResetEmail,
-  sendPasswordChangedEmail
+  sendPasswordChangedEmail,
+  sendProductSubmissionNotification,
+  sendProductApprovedEmail,
+  sendProductRejectedEmail,
 };

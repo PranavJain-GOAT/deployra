@@ -1,5 +1,7 @@
 import { useState, useCallback } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import axios from "axios";
+import { API_URL } from "@/lib/config";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowLeft, ArrowRight, Check, Plus, X, Grip, ChevronDown,
@@ -770,7 +772,7 @@ function Step4({ data, onChange }) {
 }
 
 // ─── STEP 5: Review & Submit ────────────────────────────────────────────────────
-function Step5({ allData, onSubmit, submitting }) {
+function Step5({ allData, onSubmit, submitting, submitError }) {
   const [confirmed, setConfirmed] = useState(false);
 
   const sections = [
@@ -844,6 +846,13 @@ function Step5({ allData, onSubmit, submitting }) {
         ))}
       </div>
 
+      {submitError && (
+        <div className="flex items-start gap-2.5 p-3 rounded-xl border border-red-500/30 bg-red-500/8">
+          <AlertCircle className="w-4 h-4 text-red-400 shrink-0 mt-0.5" />
+          <p className="text-xs text-red-400 font-medium">{submitError}</p>
+        </div>
+      )}
+
       <button type="button" onClick={onSubmit} disabled={!confirmed || submitting}
         className="w-full py-4 rounded-xl font-bold text-sm flex items-center justify-center gap-3 transition-all disabled:opacity-40 disabled:cursor-not-allowed bg-foreground text-background hover:bg-foreground/90">
         {submitting ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
@@ -860,6 +869,7 @@ export default function PublishProduct() {
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [errors, setErrors] = useState({});
+  const [submitError, setSubmitError] = useState("");
 
   const [form, setForm] = useState({
     title:"", shortDesc:"", description:"", category:"",
@@ -909,9 +919,21 @@ export default function PublishProduct() {
 
   const handleSubmit = async () => {
     setSubmitting(true);
-    await new Promise(r => setTimeout(r, 2000));
-    setSubmitting(false);
-    setSubmitted(true);
+    setSubmitError("");
+    try {
+      await axios.post(`${API_URL}/products`, {
+        ...form,
+        price: parseFloat(form.price) || 0,
+        deliveryDays: parseInt(form.deliveryDays, 10) || 7,
+        isDraft: false,
+      });
+      setSubmitted(true);
+    } catch (err) {
+      const msg = err.response?.data?.message || "Submission failed. Please try again.";
+      setSubmitError(msg);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const resetForm = () => {
@@ -985,7 +1007,7 @@ export default function PublishProduct() {
             {step === 2 && <Step2 data={form} onChange={update} errors={errors} />}
             {step === 3 && <Step3 data={form} onChange={update} errors={errors} />}
             {step === 4 && <Step4 data={form} onChange={update} />}
-            {step === 5 && <Step5 allData={form} onSubmit={handleSubmit} submitting={submitting} />}
+            {step === 5 && <Step5 allData={form} onSubmit={handleSubmit} submitting={submitting} submitError={submitError} />}
           </motion.div>
         </AnimatePresence>
       </div>

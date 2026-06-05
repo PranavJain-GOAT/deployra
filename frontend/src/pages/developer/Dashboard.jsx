@@ -93,14 +93,10 @@ function StatusBadge({ status }) {
   );
 }
 
-// ─── Revenue Chart ─────────────────────────────────────────────────────────────
-const MONTHLY_DATA = [
-  { month: "Dec", revenue: 4200 },
-  { month: "Jan", revenue: 5800 },
-  { month: "Feb", revenue: 4900 },
-  { month: "Mar", revenue: 7200 },
-  { month: "Apr", revenue: 6100 },
-  { month: "May", revenue: 9400 },
+// ─── Revenue Chart (built from real orders below) ─────────────────────────────
+const EMPTY_MONTHLY_DATA = [
+  { month: "Jan", revenue: 0 }, { month: "Feb", revenue: 0 }, { month: "Mar", revenue: 0 },
+  { month: "Apr", revenue: 0 }, { month: "May", revenue: 0 }, { month: "Jun", revenue: 0 },
 ];
 
 // ─── Product Performance Row ───────────────────────────────────────────────────
@@ -127,32 +123,32 @@ function ProductRow({ product, idx }) {
       </td>
       <td className="py-3 px-4 text-center">
         <span className="text-sm font-bold metric-num text-foreground/70" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-          {(Math.floor(Math.random() * 800) + 120).toLocaleString()}
+          {(product.views || 0).toLocaleString()}
         </span>
         <div className="text-[9px] text-foreground/30 font-mono">views</div>
       </td>
       <td className="py-3 px-4 text-center">
         <span className="text-sm font-bold metric-num text-emerald-400" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-          {(Math.random() * 8 + 2).toFixed(1)}%
+          {product.conversionRate ? `${product.conversionRate}%` : "—"}
         </span>
         <div className="text-[9px] text-foreground/30 font-mono">CVR</div>
       </td>
       <td className="py-3 px-4 text-center">
         <div className="flex items-center justify-center gap-0.5">
           {[1,2,3,4,5].map(i => (
-            <Star key={i} className="w-3 h-3" style={{ color: i <= 4 ? "hsl(var(--foreground))" : "rgba(150,150,150,0.2)", fill: i <= 4 ? "hsl(var(--foreground))" : "none" }} />
+            <Star key={i} className="w-3 h-3" style={{ color: i <= Math.round(product.rating || 0) ? "hsl(var(--foreground))" : "rgba(150,150,150,0.2)", fill: i <= Math.round(product.rating || 0) ? "hsl(var(--foreground))" : "none" }} />
           ))}
         </div>
-        <div className="text-[9px] text-foreground/30 font-mono mt-0.5">4.8 avg</div>
+        <div className="text-[9px] text-foreground/30 font-mono mt-0.5">{product.rating ? `${product.rating} avg` : "No reviews"}</div>
       </td>
       <td className="py-3 px-4 text-right">
         <span className="text-sm font-bold metric-num" style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-          ${(product.price * (Math.floor(Math.random() * 20) + 5)).toLocaleString()}
+          ${(product.revenue || 0).toLocaleString()}
         </span>
         <div className="text-[9px] text-foreground/30 font-mono">revenue</div>
       </td>
       <td className="py-3 px-4 text-right">
-        <StatusBadge status={product.status === "APPROVED" ? "installed" : "pending"} />
+        <StatusBadge status={product.status === "APPROVED" ? "installed" : product.status === "PENDING_REVIEW" ? "pending" : product.status?.toLowerCase() || "pending"} />
       </td>
     </motion.tr>
   );
@@ -196,7 +192,25 @@ export default function Dashboard() {
   const deploymentSuccess = orders.length ? Math.round((orders.filter(o => o.status === "COMPLETED").length / orders.length) * 100) : 97;
   const activeProducts = products.filter(p => p.status === "APPROVED").length;
 
-  const SPARK = [42, 58, 51, 78, 64, 91, 88, 102, 97, 115, 108, 127];
+  // Build monthly revenue chart from real orders (last 6 months)
+  const MONTHLY_DATA = (() => {
+    if (orders.length === 0) return EMPTY_MONTHLY_DATA;
+    const months = {};
+    const now = new Date();
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const key = d.toLocaleString("en-US", { month: "short" });
+      months[key] = 0;
+    }
+    orders.forEach(o => {
+      const d = new Date(o.createdAt || Date.now());
+      const key = d.toLocaleString("en-US", { month: "short" });
+      if (key in months) months[key] += (o.pricePaid || o.amount || 0);
+    });
+    return Object.entries(months).map(([month, revenue]) => ({ month, revenue }));
+  })();
+
+  const SPARK = orders.length > 0 ? orders.slice(-12).map(o => o.pricePaid || o.amount || 0) : [0, 0, 0, 0, 0, 0];
 
   if (loading) {
     return (

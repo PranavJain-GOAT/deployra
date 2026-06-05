@@ -1,63 +1,67 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Search, Star, Shield, Zap, TrendingUp, SlidersHorizontal, Package, Award, Heart, ShoppingCart, Check, X, RefreshCw
 } from "lucide-react";
+import axios from "axios";
+import { API_URL } from "@/lib/config";
 
-const PRODUCTS = [
+
+const MOCK_PRODUCTS = [
   {
     id: "p1", title: "DataFlow AI Pipeline", vendor: "Priya Systems", category: "Data",
     price: 499, rating: 4.9, reviews: 128, verified: true, featured: true, trending: true,
     deployTime: "< 10 min", description: "Enterprise-grade data pipeline with real-time stream processing, ML-ready transforms, and 50+ connectors. Zero-config deployment.",
-    tags: ["PostgreSQL", "Kafka", "ML", "Real-time"], installs: 312
+    tags: ["PostgreSQL", "Kafka", "ML", "Real-time"], installs: 312, isDemo: true,
   },
   {
     id: "p2", title: "AutoSupport Chatbot Pro", vendor: "BotLabs Inc.", category: "Support",
     price: 299, rating: 4.8, reviews: 94, verified: true, featured: true, trending: false,
     deployTime: "< 5 min", description: "GPT-4 powered support agent that learns your product docs. Handles 85% of tickets automatically with human handoff.",
-    tags: ["GPT-4", "Zendesk", "Slack", "API"], installs: 284
+    tags: ["GPT-4", "Zendesk", "Slack", "API"], installs: 284, isDemo: true,
   },
   {
     id: "p3", title: "DeployKit Ultra", vendor: "CloudBridge", category: "DevOps",
     price: 189, rating: 4.9, reviews: 211, verified: true, featured: false, trending: true,
     deployTime: "< 3 min", description: "One-click CI/CD for any stack. Auto-scales, zero-downtime deploys, built-in rollback. Supports AWS, GCP, Azure.",
-    tags: ["CI/CD", "Kubernetes", "AWS", "GCP"], installs: 504
+    tags: ["CI/CD", "Kubernetes", "AWS", "GCP"], installs: 504, isDemo: true,
   },
   {
     id: "p4", title: "SalesAI CRM Suite", vendor: "GrowthStack", category: "CRM",
     price: 399, rating: 4.7, reviews: 67, verified: true, featured: false, trending: false,
     deployTime: "< 15 min", description: "AI-powered CRM that predicts churn, auto-qualifies leads, and syncs with Salesforce, HubSpot, and Pipedrive.",
-    tags: ["Salesforce", "HubSpot", "AI", "Analytics"], installs: 189
+    tags: ["Salesforce", "HubSpot", "AI", "Analytics"], installs: 189, isDemo: true,
   },
   {
     id: "p5", title: "SecureVault API Gateway", vendor: "AuthGuard", category: "Security",
     price: 249, rating: 4.8, reviews: 82, verified: true, featured: false, trending: true,
     deployTime: "< 8 min", description: "Zero-trust API gateway with OAuth2, rate limiting, WAF, and full audit logging. SOC2 compliant.",
-    tags: ["OAuth2", "WAF", "SOC2", "Audit"], installs: 152
+    tags: ["OAuth2", "WAF", "SOC2", "Audit"], installs: 152, isDemo: true,
   },
   {
     id: "p6", title: "Analytics Core", vendor: "MetricFlow", category: "Analytics",
     price: 149, rating: 4.6, reviews: 143, verified: false, featured: false, trending: false,
     deployTime: "< 7 min", description: "Full-stack analytics platform with real-time dashboards, funnel analysis, A/B testing, and data export.",
-    tags: ["Dashboards", "A/B Testing", "SQL", "BigQuery"], installs: 398
+    tags: ["Dashboards", "A/B Testing", "SQL", "BigQuery"], installs: 398, isDemo: true,
   },
   {
     id: "p7", title: "FormFlow Builder", vendor: "NoCode Labs", category: "Forms",
     price: 79, rating: 4.4, reviews: 256, verified: true, featured: false, trending: false,
     deployTime: "< 2 min", description: "Drag-and-drop form builder with conditional logic, webhooks, payment collection, and 100+ integrations.",
-    tags: ["No-code", "Webhooks", "Stripe", "Zapier"], installs: 712
+    tags: ["No-code", "Webhooks", "Stripe", "Zapier"], installs: 712, isDemo: true,
   },
   {
     id: "p8", title: "LogStream Monitor", vendor: "ObserveHQ", category: "Monitoring",
     price: 99, rating: 4.6, reviews: 108, verified: true, featured: false, trending: false,
     deployTime: "< 5 min", description: "Centralized log management with real-time alerting, anomaly detection, and Slack/PagerDuty integration.",
-    tags: ["Logs", "Alerts", "PagerDuty", "Grafana"], installs: 267
+    tags: ["Logs", "Alerts", "PagerDuty", "Grafana"], installs: 267, isDemo: true,
   },
 ];
 
-const CATEGORIES = ["All", "Data", "Support", "DevOps", "CRM", "Security", "Analytics", "Forms", "Monitoring"];
+const CATEGORIES = ["All", "Data", "Support", "DevOps", "CRM", "Security", "Analytics", "Forms", "Monitoring", "AI Agent", "Automation", "Chatbot", "Dashboard"];
 const PRICE_RANGES = ["Any price", "Under $100", "$100–$300", "$300–$600", "Over $600"];
 const SORT_OPTIONS = ["Trending", "Highest Rated", "Most Popular", "Price: Low to High", "Price: High to Low", "Newest"];
+
 
 function StarRow({ rating, size = "w-3.5 h-3.5" }) {
   return (
@@ -95,10 +99,11 @@ function ProductCard({ p, inCompare, onCompare, onSave, isSaved }) {
         <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-3" style={{ background: "rgba(150,150,150,0.08)", border: "0.5px solid rgba(150,150,150,0.12)" }}>
           <Package className="w-5 h-5 text-foreground/50" />
         </div>
-        <div className="flex items-center gap-2 mb-1">
+        <div className="flex items-center gap-2 mb-1 flex-wrap">
           <h3 className="font-bold text-sm text-foreground leading-tight">{p.title}</h3>
           {p.verified && <Shield className="w-3.5 h-3.5 text-emerald-400 shrink-0" title="Deployra Verified" />}
           {p.trending && <TrendingUp className="w-3.5 h-3.5 text-amber-400 shrink-0" title="Trending" />}
+          {!p.isDemo && <span className="text-[8px] font-black px-1.5 py-0.5 rounded-full bg-emerald-400/10 text-emerald-400 border border-emerald-400/20 uppercase tracking-wider">LIVE</span>}
         </div>
         <p className="text-[10px] font-mono text-foreground/30 mb-2">{p.vendor} · {p.category}</p>
         <p className="text-xs text-foreground/50 leading-relaxed mb-3" style={{ fontFamily: "'Inter', sans-serif" }}>{p.description}</p>
@@ -161,6 +166,38 @@ export default function ClientMarketplace() {
   const [savedList, setSavedList] = useState([]);
   const [verifiedOnly, setVerifiedOnly] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
+  const [realProducts, setRealProducts] = useState([]);
+
+  // Fetch real approved products from DB and merge with mock demos
+  useEffect(() => {
+    axios.get(`${API_URL}/products/public`)
+      .then(res => {
+        const data = res.data?.data || [];
+        // Map real DB products to marketplace card shape
+        const mapped = data.map(p => ({
+          id: `real_${p.id}`,
+          title: p.title,
+          vendor: p.vendor || p.developer?.name || 'Independent',
+          category: p.category || 'Other',
+          price: p.price,
+          rating: p.rating || 0,
+          reviews: p.reviewCount || p.reviews || 0,
+          verified: true,
+          featured: false,
+          trending: false,
+          deployTime: p.deliveryDays ? `${p.deliveryDays} days` : '—',
+          description: p.shortDesc || p.description?.slice(0, 140) || '',
+          tags: p.tags || [],
+          installs: p.installs || 0,
+          isDemo: false,
+        }));
+        setRealProducts(mapped);
+      })
+      .catch(() => {});
+  }, []);
+
+  // All products = real from DB + mock demos (real first)
+  const PRODUCTS = [...realProducts, ...MOCK_PRODUCTS];
 
   const toggleCompare = (id) => {
     setCompareList(p => p.includes(id) ? p.filter(i => i !== id) : p.length < 3 ? [...p, id] : p);
@@ -201,7 +238,9 @@ export default function ClientMarketplace() {
           Discover Products
         </h1>
         <p className="text-sm mt-1.5" style={{ color: "hsl(var(--foreground) / 0.35)", fontFamily: "'Inter', sans-serif" }}>
-          {PRODUCTS.length} verified deployable systems. Purchase, deploy, and run in minutes.
+          {realProducts.length > 0 && <span className="text-emerald-400 font-semibold">{realProducts.length} live products</span>}
+          {realProducts.length > 0 && " + "}
+          {MOCK_PRODUCTS.length} demo listings. Purchase, deploy, and run in minutes.
         </p>
       </div>
 

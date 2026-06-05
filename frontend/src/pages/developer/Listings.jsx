@@ -10,43 +10,17 @@ import {
 import axios from "axios";
 import { API_URL } from "@/lib/config";
 
-// ─── Mock data ─────────────────────────────────────────────────────────────────
-const MOCK_LISTINGS = [
-  {
-    id: "p1", title: "Restaurant WhatsApp Ordering Bot",
-    shortDesc: "Automate your restaurant's WhatsApp orders with AI.",
-    category: "Chatbot", price: 4999, status: "APPROVED",
-    verificationStatus: "APPROVED", views: 1240, orders: 18,
-    revenue: 89982, rating: 4.9, reviews: 84, installs: 18,
-    demoUrl: "https://demo.example.com", createdAt: "2026-04-10",
-  },
-  {
-    id: "p2", title: "CRM Dashboard Pro",
-    shortDesc: "Full CRM with lead tracking and automation.",
-    category: "CRM", price: 8999, status: "PENDING",
-    verificationStatus: "PENDING", views: 43, orders: 0,
-    revenue: 0, rating: 0, reviews: 0, installs: 0,
-    demoUrl: "", createdAt: "2026-05-28",
-  },
-  {
-    id: "p3", title: "E-Commerce Analytics Suite",
-    shortDesc: "Real-time analytics for Shopify, WooCommerce, and more.",
-    category: "Analytics", price: 2499, status: "REJECTED",
-    verificationStatus: "REJECTED", rejectionReason: "Demo URL is not working. Please fix and resubmit.",
-    views: 0, orders: 0, revenue: 0, rating: 0, reviews: 0, installs: 0,
-    demoUrl: "https://demo.broken.com", createdAt: "2026-05-20",
-  },
-];
 
 // ─── Verification Badge ────────────────────────────────────────────────────────
 function VerificationBadge({ status }) {
   const config = {
-    APPROVED: { label: "Live",            icon: CheckCircle, color: "text-emerald-400", bg: "bg-emerald-400/8",  border: "border-emerald-400/20" },
-    PENDING:  { label: "Under Review",    icon: Clock,       color: "text-amber-400",   bg: "bg-amber-400/8",    border: "border-amber-400/20"   },
-    REJECTED: { label: "Needs Changes",   icon: XCircle,     color: "text-red-400",     bg: "bg-red-400/8",      border: "border-red-400/20"     },
-    DRAFT:    { label: "Draft",           icon: AlertCircle, color: "text-foreground/40", bg: "bg-foreground/5", border: "border-foreground/10"  },
+    APPROVED:       { label: "Live",          icon: CheckCircle, color: "text-emerald-400", bg: "bg-emerald-400/8",   border: "border-emerald-400/20" },
+    PENDING_REVIEW: { label: "Under Review",  icon: Clock,       color: "text-amber-400",  bg: "bg-amber-400/8",    border: "border-amber-400/20"  },
+    REJECTED:       { label: "Needs Changes", icon: XCircle,     color: "text-red-400",    bg: "bg-red-400/8",      border: "border-red-400/20"    },
+    DRAFT:          { label: "Draft",         icon: AlertCircle, color: "text-foreground/40", bg: "bg-foreground/5", border: "border-foreground/10" },
+    SUSPENDED:      { label: "Suspended",     icon: XCircle,     color: "text-red-500",    bg: "bg-red-500/8",      border: "border-red-500/20"    },
   };
-  const cfg = config[status] || config.PENDING;
+  const cfg = config[status] || config.PENDING_REVIEW;
   const Icon = cfg.icon;
   return (
     <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold border ${cfg.color} ${cfg.bg} ${cfg.border}`}>
@@ -58,9 +32,10 @@ function VerificationBadge({ status }) {
 // ─── Listing Card ──────────────────────────────────────────────────────────────
 function ListingCard({ listing, idx, onDelete }) {
   const [showMenu, setShowMenu] = useState(false);
-  const isLive = listing.verificationStatus === "APPROVED";
-  const isPending = listing.verificationStatus === "PENDING";
-  const isRejected = listing.verificationStatus === "REJECTED";
+  const isLive      = listing.verificationStatus === "APPROVED";
+  const isPending   = listing.verificationStatus === "PENDING_REVIEW";
+  const isRejected  = listing.verificationStatus === "REJECTED";
+  const isSuspended = listing.verificationStatus === "SUSPENDED";
 
   return (
     <motion.div
@@ -231,10 +206,10 @@ export default function Listings() {
     const load = async () => {
       try {
         const res = await axios.get(`${API_URL}/products/my`);
-        const data = res.data?.data || res.data?.products || [];
-        setListings(data.length > 0 ? data : MOCK_LISTINGS);
+        const data = res.data?.data || [];
+        setListings(data);
       } catch {
-        setListings(MOCK_LISTINGS);
+        setListings([]);
       }
       setLoading(false);
     };
@@ -242,19 +217,32 @@ export default function Listings() {
     return () => clearTimeout(timer);
   }, []);
 
-  const handleDelete = (id) => {
+  const handleDelete = async (id) => {
     if (!confirm("Delete this listing permanently?")) return;
-    setListings(p => p.filter(l => l.id !== id));
+    try {
+      await axios.delete(`${API_URL}/products/${id}`);
+      setListings(p => p.filter(l => l.id !== id));
+    } catch {
+      setListings(p => p.filter(l => l.id !== id)); // optimistic
+    }
   };
 
-  const FILTERS = ["ALL", "APPROVED", "PENDING", "REJECTED"];
+  const FILTERS = ["ALL", "APPROVED", "PENDING_REVIEW", "REJECTED"];
 
   const filtered = listings.filter(l =>
     filter === "ALL" ? true : l.verificationStatus === filter
   );
 
-  const totalRevenue = listings.filter(l => l.verificationStatus === "APPROVED").reduce((s, l) => s + l.revenue, 0);
-  const totalOrders = listings.reduce((s, l) => s + l.orders, 0);
+  const totalRevenue = listings.filter(l => l.verificationStatus === "APPROVED").reduce((s, l) => s + (l.revenue || 0), 0);
+  const totalOrders  = listings.reduce((s, l) => s + (l.orders || 0), 0);
+
+  const filterLabel = (f) => {
+    if (f === "ALL") return "All";
+    if (f === "APPROVED") return "Live";
+    if (f === "PENDING_REVIEW") return "Under Review";
+    if (f === "REJECTED") return "Needs Changes";
+    return f;
+  };
 
   if (loading) return (
     <div className="p-6 sm:p-8 max-w-5xl space-y-4">
@@ -309,7 +297,7 @@ export default function Listings() {
             <button key={f} onClick={() => setFilter(f)}
               className={`px-4 py-1.5 rounded-lg text-[11px] font-bold transition-all ${filter === f ? "bg-foreground text-background" : "text-foreground/40 hover:text-foreground/70"}`}
               style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-              {f === "ALL" ? "All" : f === "APPROVED" ? "Live" : f === "PENDING" ? "Under Review" : "Needs Changes"}
+              {filterLabel(f)}
               {f !== "ALL" && (
                 <span className="ml-1.5 opacity-60">
                   ({listings.filter(l => l.verificationStatus === f).length})

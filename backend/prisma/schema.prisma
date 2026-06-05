@@ -17,9 +17,11 @@ enum Role {
 }
 
 enum ProductStatus {
-  PENDING
+  DRAFT
+  PENDING_REVIEW
   APPROVED
   REJECTED
+  SUSPENDED
 }
 
 enum PurchaseStatus {
@@ -116,23 +118,44 @@ model LoginHistory {
 
 // ─── Product ──────────────────────────────────────────────────────────────────
 model Product {
-  id          String        @id @default(uuid())
-  title       String
-  description String
-  price       Float
-  developerId String
-  features    String[]
-  images      String[]
-  status      ProductStatus @default(PENDING)
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
+  id                  String        @id @default(uuid())
+  title               String
+  shortDesc           String        @default("")
+  description         String
+  category            String        @default("")
+  tags                String[]
+  features            String[]
+  industries          String[]
+  requirements        String[]
+  price               Float
+  deliveryDays        Int           @default(7)
+  revisions           String        @default("2")
+  support             String        @default("30 Days")
+  deploymentMethod    String        @default("Developer Hosted")
+  hostingRequirements String        @default("")
+  coverImage          String        @default("")
+  screenshots         String[]
+  videoUrl            String        @default("")
+  demoUrl             String        @default("")
+  docsUrl             String        @default("")
+  walkthroughUrl      String        @default("")
+  configSchema        String?       // JSON string of config fields
+  status              ProductStatus @default(PENDING_REVIEW)
+  rejectionReason     String?
+  reviewedAt          DateTime?
+  reviewedBy          String?       // Admin user ID
+  developerId         String
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
 
   developer User       @relation(fields: [developerId], references: [id], onDelete: Cascade)
   purchases Purchase[]
   reviews   Review[]
   wishlists Wishlist[]
   orders    Order[]
+  views     ProductView[]
 }
+
 
 // ─── Purchase ─────────────────────────────────────────────────────────────────
 model Purchase {
@@ -214,4 +237,29 @@ model Notification {
   createdAt DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// ─── Product View ─────────────────────────────────────────────────────────────
+// Tracks per-product views for analytics
+model ProductView {
+  id          String   @id @default(uuid())
+  productId   String
+  visitorId   String   @default("")  // anonymous or user id
+  createdAt   DateTime @default(now())
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([productId])
+}
+
+// ─── Audit Log ────────────────────────────────────────────────────────────────
+// Immutable log of admin actions (approve/reject/suspend)
+model AuditLog {
+  id         String   @id @default(uuid())
+  action     String   // e.g. "PRODUCT_APPROVED", "PRODUCT_REJECTED"
+  actorId    String   // admin user id
+  targetId   String   // product id or user id
+  targetType String   // "PRODUCT" | "USER"
+  metadata   String?  // JSON string — reason, extra info
+  createdAt  DateTime @default(now())
 }

@@ -7,6 +7,9 @@ const userRoutes = require('./user.routes');
 const notificationRoutes = require('./notification.routes');
 const orderRoutes = require('./order.routes');
 const paymentRoutes = require('./payment.routes');
+const productRoutes = require('./product.routes');
+const adminRoutes = require('./admin.routes');
+
 const router = express.Router();
 
 router.use('/auth', authRoutes);
@@ -16,5 +19,7 @@ router.use('/users', userRoutes);
 router.use('/notifications', notificationRoutes);
 router.use('/orders', orderRoutes);
 router.use('/payment', paymentRoutes);
+router.use('/products', productRoutes);
+router.use('/admin', adminRoutes);
 
 module.exports = router;
