@@ -11,10 +11,21 @@ import { useAuth } from "@/lib/AuthContext";
 import { toast } from "react-hot-toast";
 import { API_URL } from "@/lib/config";
 
+// ─── Role-based dashboard redirect helper ────────────────────────────────────
+function getRedirectPath(user) {
+  if (!user) return '/';
+  const role = (user.role || '').toUpperCase();
+  if (role === 'ADMIN')     return '/admin';
+  if (role === 'DEVELOPER') return '/developer';
+  if (role === 'CLIENT')    return '/client';
+  return '/';
+}
+
+
 export default function Auth() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { login, isAuthenticated } = useAuth();
+  const { login, isAuthenticated, user } = useAuth();
   
   // Tabs: "signup", "login", "forgot", "reset"
   const [tab, setTab] = useState("signup"); 
@@ -51,12 +62,12 @@ export default function Auth() {
     }
   }, [tabParam, tokenParam]);
 
-  // If user is already authenticated, redirect to home page
+  // If user is already authenticated, redirect to their dashboard
   useEffect(() => {
-    if (isAuthenticated) {
-      navigate('/');
+    if (isAuthenticated && user) {
+      navigate(getRedirectPath(user), { replace: true });
     }
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, user, navigate]);
 
   const passwordRequirements = [
     { label: "8+ characters", regex: /.{8,}/ },
@@ -119,7 +130,7 @@ export default function Auth() {
         toast.success(tab === "login" ? "Logged in successfully!" : "Account created successfully!");
         const { user, accessToken, refreshToken } = response.data.data;
         login(user, accessToken, refreshToken);
-        navigate('/');
+        navigate(getRedirectPath(user));
       }
     } catch (err) {
       const errorMsg = err.response?.data?.message || "Authentication failed. Please check your credentials.";

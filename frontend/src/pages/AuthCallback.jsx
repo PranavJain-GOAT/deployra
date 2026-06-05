@@ -5,6 +5,17 @@ import axios from "axios";
 import { useAuth } from "@/lib/AuthContext";
 import { API_URL } from "@/lib/config";
 
+// ─── Role-based dashboard redirect helper ────────────────────────────────────
+function getRedirectPath(user) {
+  if (!user) return '/';
+  const role = (user.role || '').toUpperCase();
+  if (role === 'ADMIN')     return '/admin';
+  if (role === 'DEVELOPER') return '/developer';
+  if (role === 'CLIENT')    return '/client';
+  return '/';
+}
+
+
 export default function AuthCallback() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -40,7 +51,7 @@ export default function AuthCallback() {
           );
           if (decoded?.id && decoded?.email) {
             login(decoded, tokenParam, rTokenParam);
-            navigate('/', { replace: true });
+            navigate(getRedirectPath(decoded), { replace: true });
             return;
           }
         } catch (decodeErr) {
@@ -57,13 +68,13 @@ export default function AuthCallback() {
             const res = await axios.get(`${API_URL}/users/me`, { withCredentials: true });
             if (res.data?.success && res.data?.data) {
               login(res.data.data, tokenParam, rTokenParam);
-              navigate('/', { replace: true });
+              navigate(getRedirectPath(res.data.data), { replace: true });
               return;
             }
           } catch {}
           if (i < 4) await new Promise(r => setTimeout(r, 600 * (i + 1)));
         }
-        // Couldn't verify, but Google said success — still navigate home
+        // Couldn't verify, but Google said success — navigate to home as fallback
         navigate('/', { replace: true });
         return;
       }
@@ -79,7 +90,7 @@ export default function AuthCallback() {
           if (response.data?.success) {
             const { user, accessToken, refreshToken } = response.data.data;
             login(user, accessToken, refreshToken);
-            navigate('/', { replace: true });
+            navigate(getRedirectPath(user), { replace: true });
           } else {
             navigate('/auth?error=google_auth_failed', { replace: true });
           }
@@ -99,7 +110,7 @@ export default function AuthCallback() {
           });
           if (res.data?.success) {
             login(res.data.data, tokenParam, rTokenParam);
-            navigate('/', { replace: true });
+            navigate(getRedirectPath(res.data.data), { replace: true });
             return;
           }
         } catch {}
@@ -110,7 +121,7 @@ export default function AuthCallback() {
         const res = await axios.get(`${API_URL}/users/me`, { withCredentials: true });
         if (res.data?.success) {
           login(res.data.data);
-          navigate('/', { replace: true });
+          navigate(getRedirectPath(res.data.data), { replace: true });
           return;
         }
       } catch {}
