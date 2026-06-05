@@ -115,7 +115,8 @@ export default function Auth() {
         payload = { 
           email: form.email, 
           password: form.password,
-          rememberMe: form.rememberMe
+          rememberMe: form.rememberMe,
+          role: form.role
         };
       } else {
         payload = { 
@@ -335,12 +336,41 @@ export default function Auth() {
                       {tab === "forgot" && "Reset Password"}
                       {tab === "reset" && "Choose a New Password"}
                     </h1>
-                    <p className="text-sm text-gray-400 dark:text-gray-500">
-                      {tab === "login" && "Enter your credentials to access your dashboard"}
+                    <p className="text-sm text-gray-400 dark:text-gray-500 mb-6">
+                      {tab === "login" && `Enter your credentials to access your ${form.role === 'developer' ? 'Freelancer' : 'Client'} dashboard`}
                       {tab === "signup" && "Create a secure account to find work or hire developers"}
                       {tab === "forgot" && "We will email you a secure link to reset your password"}
                       {tab === "reset" && "Make sure to write a strong, high-entropy password"}
                     </p>
+
+                    {tab === "login" && (
+                      <div className="flex justify-center mt-2">
+                        <div className="inline-flex p-1 bg-slate-100 dark:bg-gray-900 rounded-full border border-slate-200 dark:border-gray-800">
+                          <button
+                            type="button"
+                            onClick={() => setForm(p => ({ ...p, role: 'client' }))}
+                            className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all ${
+                              form.role === 'client'
+                                ? 'bg-white dark:bg-gray-800 text-[#108a00] shadow-sm'
+                                : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                            }`}
+                          >
+                            Client Login
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setForm(p => ({ ...p, role: 'developer' }))}
+                            className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all ${
+                              form.role === 'developer'
+                                ? 'bg-white dark:bg-gray-800 text-[#108a00] shadow-sm'
+                                : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                            }`}
+                          >
+                            Freelancer Login
+                          </button>
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   {/* Errors / Success Alerts */}
@@ -366,7 +396,7 @@ export default function Auth() {
                           variant="outline"
                           type="button"
                           onClick={() => {
-                            window.location.href = `${API_URL}/auth/google`;
+                            window.location.href = `${API_URL}/auth/google?role=${form.role}`;
                           }}
                           className="h-12 rounded-full gap-3 border border-gray-200 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-900 bg-white dark:bg-transparent font-bold text-gray-700 dark:text-gray-300 shadow-sm transition-all"
                         >

@@ -271,24 +271,34 @@ const login = async (req, res, next) => {
     }
 
     // ── Successful Login ──
-    // Reset lockout counters on success
+    // Determine user role based on request body
+    let userRole = user.role;
+    if (req.body.role && user.role !== 'ADMIN') {
+      const requestedRole = req.body.role.toUpperCase();
+      if (requestedRole === 'DEVELOPER' || requestedRole === 'CLIENT') {
+        userRole = requestedRole;
+      }
+    }
+
+    // Reset lockout counters on success and update role if changed
     await prisma.user.update({
       where: { id: user.id },
       data: {
         lastLogin: new Date(),
         failedLoginAttempts: 0,
-        lockedUntil: null
+        lockedUntil: null,
+        role: userRole
       }
     });
 
-    const accessToken = generateAccessToken(user.id, user.role);
+    const accessToken = generateAccessToken(user.id, userRole);
     const refreshToken = generateRefreshToken(user.id);
 
     setAuthCookies(res, accessToken, refreshToken, !!rememberMe);
     await storeRefreshToken(user.id, refreshToken, req);
     await recordLoginHistory(user.id, req, true);
 
-    logger.info(`User logged in: ${user.email}`);
+    logger.info(`User logged in: ${user.email} (Role: ${userRole})`);
 
     res.status(200).json({
       success: true,
@@ -297,7 +307,7 @@ const login = async (req, res, next) => {
           id: user.id,
           email: user.email,
           name: user.name,
-          role: user.role,
+          role: userRole,
           authProvider: user.authProvider,
           profileImage: user.profileImage,
           isEmailVerified: user.isEmailVerified
@@ -514,6 +524,8 @@ const resendVerificationEmail = async (req, res, next) => {
  * Initiate Google OAuth — redirect browser to Google's consent screen.
  */
 const googleLogin = (req, res) => {
+  const role = req.query.role || 'client';
+
   const redirectUri = (process.env.GOOGLE_REDIRECT_URI || '').startsWith('https://deployra.onrender.com')
     ? process.env.GOOGLE_REDIRECT_URI
     : 'https://deployra.onrender.com/auth/google/callback';
@@ -524,7 +536,8 @@ const googleLogin = (req, res) => {
     response_type: 'code',
     scope: 'profile email',
     access_type: 'offline',
-    prompt: 'consent'
+    prompt: 'consent',
+    state: role
   });
 
   res.redirect(`https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`);
@@ -536,6 +549,7 @@ const googleLogin = (req, res) => {
  */
 const googleCallback = async (req, res, next) => {
   const code = req.query.code || req.body.code;
+  const state = req.query.state || req.body.state || 'client';
 
   if (!code) return next(new AppError('No authorization code provided', 400));
 
@@ -583,7 +597,9 @@ const googleCallback = async (req, res, next) => {
           isEmailVerified: true, // Google accounts are pre-verified
           authProvider: 'google',
           profileImage: googlePicture,
-          role: profile.email.toLowerCase() === ADMIN_EMAIL ? 'ADMIN' : 'CLIENT',
+          role: profile.email.toLowerCase() === ADMIN_EMAIL 
+            ? 'ADMIN' 
+            : (state?.toUpperCase() === 'DEVELOPER' ? 'DEVELOPER' : 'CLIENT'),
           lastLogin: new Date()
         }
       });
@@ -592,6 +608,9 @@ const googleCallback = async (req, res, next) => {
         logger.error('Welcome email failed for Google user:', err)
       );
     } else {
+      const targetRole = state?.toUpperCase() === 'DEVELOPER' ? 'DEVELOPER' : 'CLIENT';
+      const updatedRole = user.role === 'ADMIN' ? 'ADMIN' : targetRole;
+
       user = await prisma.user.update({
         where: { id: user.id },
         data: {
@@ -599,7 +618,8 @@ const googleCallback = async (req, res, next) => {
           isEmailVerified: true,
           lastLogin: new Date(),
           profileImage: user.profileImage || googlePicture,
-          authProvider: user.authProvider === 'email' ? 'email' : 'google'
+          authProvider: user.authProvider === 'email' ? 'email' : 'google',
+          role: updatedRole
         }
       });
     }
