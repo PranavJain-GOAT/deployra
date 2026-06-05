@@ -34,10 +34,6 @@ const TIMELINE_STEPS = [
   { key: "COMPLETED",          label: "Completed",        icon: CheckCircle },
 ];
 
-    }
-  },
-];
-
 // ─── Components ────────────────────────────────────────────────────────────────
 function StatusBadge({ status }) {
   const cfg = STATUS_CONFIG[status] || STATUS_CONFIG.AWAITING_PAYMENT;
