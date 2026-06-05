@@ -34,59 +34,6 @@ const TIMELINE_STEPS = [
   { key: "COMPLETED",          label: "Completed",        icon: CheckCircle },
 ];
 
-// ─── Mock Orders ───────────────────────────────────────────────────────────────
-const MOCK_ORDERS = [
-  {
-    id: "ORD-7842", productTitle: "Restaurant WhatsApp Bot", productId: "p1",
-    clientEmail: "owner@tastyeats.in", clientName: "Pradeep Sharma", amount: 4999,
-    status: "IN_PROGRESS", escrow: "FUNDED", createdAt: "2026-05-28", eta: "Jun 5, 2026",
-    deliverables: [], messages: 3,
-    configPackage: {
-      "Restaurant Name": "Tasty Eats",
-      "WhatsApp Business Number": "+91 98765 43210",
-      "Full Address": "42 MG Road, Bengaluru 560001",
-      "Business Hours": "Mon-Sun 11am-11pm",
-      "Cuisine Type": "Multi-cuisine",
-      "Accept Pre-orders?": "Yes",
-      "Delivery Radius": "8 km",
-      "Custom Requirements": "Please add OTP login for returning customers",
-      "Menu PDF": { name: "menu_v2.pdf", size: "2.4 MB", type: "pdf" },
-      "Restaurant Logo": { name: "logo_final.png", size: "450 KB", type: "image" },
-    }
-  },
-  {
-    id: "ORD-7841", productTitle: "CRM Dashboard", productId: "p2",
-    clientEmail: "cto@acme.io", clientName: "Anjali Mehta", amount: 8999,
-    status: "AWAITING_DEVELOPER", escrow: "FUNDED", createdAt: "2026-05-26", eta: "Jun 10, 2026",
-    deliverables: [], messages: 1,
-    configPackage: {
-      "Company Name": "Acme Corp",
-      "Admin Email": "admin@acme.io",
-      "Team Size": "45",
-      "Departments": "Sales, Marketing, Support",
-    }
-  },
-  {
-    id: "ORD-7836", productTitle: "E-Commerce Analytics", productId: "p3",
-    clientEmail: "analytics@shop.co", clientName: "Rohan Dev", amount: 2499,
-    status: "COMPLETED", escrow: "RELEASED", createdAt: "2026-05-10", eta: "Delivered",
-    deliverables: ["setup_guide.pdf", "admin_credentials.txt", "release_notes.md"],
-    messages: 0,
-    configPackage: {
-      "Store Name": "ShopEasy",
-      "Domain Name": "shopeasy.in",
-      "Brand Primary Color": "#FF6B35",
-    }
-  },
-  {
-    id: "ORD-7831", productTitle: "SaaS Billing System", productId: "p4",
-    clientEmail: "dev@startup.vc", clientName: "Vikram Nair", amount: 12999,
-    status: "DISPUTED", escrow: "DISPUTED", createdAt: "2026-05-05", eta: "Under Review",
-    deliverables: [], messages: 7,
-    configPackage: {
-      "Company Name": "StartupVC",
-      "Admin Email": "dev@startup.vc",
-      "Custom Requirements": "Requires Razorpay + Stripe dual integration",
     }
   },
 ];
@@ -477,11 +424,16 @@ export default function DevOrders() {
   useEffect(() => {
     const load = async () => {
       try {
-        const res = await axios.get(`${API_URL}/orders/my`);
+        const token = localStorage.getItem("accessToken");
+        const headers = token ? { Authorization: `Bearer ${token}` } : {};
+        const res = await axios.get(`${API_URL}/orders/my`, {
+          withCredentials: true,
+          headers,
+        });
         const data = res.data?.data || res.data?.orders || [];
-        setOrders(data.length > 0 ? data : MOCK_ORDERS);
+        setOrders(Array.isArray(data) ? data : []);
       } catch {
-        setOrders(MOCK_ORDERS);
+        setOrders([]);
       }
       setLoading(false);
     };

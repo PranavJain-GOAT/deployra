@@ -14,6 +14,7 @@ const logger = require('../utils/logger');
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
+const ADMIN_EMAIL = 'pranavjain792879@gmail.com';
 const MAX_FAILED_ATTEMPTS = 5;
 const LOCKOUT_DURATION_MS = 30 * 60 * 1000; // 30 minutes
 const BCRYPT_SALT_ROUNDS = 12;
@@ -136,7 +137,11 @@ const register = async (req, res, next) => {
     if (existingUser) return next(new AppError('An account with this email already exists.', 400));
 
     const hashedPassword = await bcrypt.hash(password, BCRYPT_SALT_ROUNDS);
-    const userRole = role?.toUpperCase() === 'DEVELOPER' ? 'DEVELOPER' : 'CLIENT';
+    // Owner email always gets ADMIN, otherwise use requested role
+    const normalizedEmail = email.toLowerCase();
+    const userRole = normalizedEmail === ADMIN_EMAIL
+      ? 'ADMIN'
+      : role?.toUpperCase() === 'DEVELOPER' ? 'DEVELOPER' : 'CLIENT';
 
     // Generate email verification token
     const emailVerifyToken = crypto.randomBytes(32).toString('hex');
@@ -144,7 +149,7 @@ const register = async (req, res, next) => {
 
     const user = await prisma.user.create({
       data: {
-        email: email.toLowerCase(),
+        email: normalizedEmail,
         password: hashedPassword,
         name: name || `${firstName || ''} ${lastName || ''}`.trim(),
         firstName: firstName || null,
@@ -578,7 +583,7 @@ const googleCallback = async (req, res, next) => {
           isEmailVerified: true, // Google accounts are pre-verified
           authProvider: 'google',
           profileImage: googlePicture,
-          role: 'CLIENT',
+          role: profile.email.toLowerCase() === ADMIN_EMAIL ? 'ADMIN' : 'CLIENT',
           lastLogin: new Date()
         }
       });
