@@ -112,7 +112,6 @@ function ListingCard({ listing, idx, onDelete }) {
                   </AnimatePresence>
                 </div>
               </div>
-            </div>
 
             {/* Stats Row (only for live) */}
             {isLive && (
@@ -126,7 +125,7 @@ function ListingCard({ listing, idx, onDelete }) {
                   const Icon = stat.icon;
                   return (
                     <div key={stat.label} className="flex items-center gap-1.5">
-                      <Icon className="w-3 h-3 text-foreground/25" />
+                      <Icon className="w-3.5 h-3.5 text-foreground/25" />
                       <span className="text-[10px] text-foreground/30" style={{ fontFamily: "'Inter', sans-serif" }}>{stat.label}:</span>
                       <span className="text-xs font-bold text-foreground/60" style={{ fontFamily: "'Inter', sans-serif" }}>{stat.value}</span>
                     </div>
@@ -145,8 +144,10 @@ function ListingCard({ listing, idx, onDelete }) {
                   <Link to={`/developer/edit/${listing.id}`}>
                     <button className="mt-2 flex items-center gap-1.5 text-[10px] font-bold text-red-400 hover:text-red-300 transition-colors"
                       style={{ fontFamily: "'Inter', sans-serif" }}>
-                      <span>Fix & Resubmit</span>
-                      <ChevronRight className="w-3 h-3" />
+                      <>
+                        <span>Fix & Resubmit</span>
+                        <ChevronRight className="w-3 h-3" />
+                      </>
                     </button>
                   </Link>
                 </div>
