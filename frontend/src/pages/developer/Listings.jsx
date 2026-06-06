@@ -112,6 +112,7 @@ function ListingCard({ listing, idx, onDelete }) {
                   </AnimatePresence>
                 </div>
               </div>
+            </div>
 
             {/* Stats Row (only for live) */}
             {isLive && (
@@ -163,7 +164,7 @@ function ListingCard({ listing, idx, onDelete }) {
           </div>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 }
 
@@ -254,7 +255,7 @@ export default function Listings() {
       <div className="flex items-start justify-between mb-8">
         <div>
           <div className="stat-label-caps mb-2">Developer · Marketplace</div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-foreground section-title-gradient" style={{ fontFamily: "Georgia, serif, letterSpacing: -0.04em" }}>
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground section-title-gradient" style={{ fontFamily: "Georgia, serif", letterSpacing: "-0.04em" }}>
             My Listings
           </h1>
           <p className="text-sm mt-1.5" style={{ color: "hsl(var(--foreground) / 0.35)", fontFamily: "'Inter', sans-serif" }}>
@@ -282,7 +283,7 @@ export default function Listings() {
               className="frosted-panel p-4">
               <div className={`text-2xl font-bold ${s.color}`} style={{ fontFamily: "Georgia, serif" }}>{s.value}</div>
               <div className="text-[10px] text-foreground/35 mt-0.5" style={{ fontFamily: "'Inter', sans-serif" }}>{s.label}</div>
-            </div>
+            </motion.div>
           ))}
         </div>
       )}

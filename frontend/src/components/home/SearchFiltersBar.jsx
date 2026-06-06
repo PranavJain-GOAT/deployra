@@ -98,16 +98,6 @@ function RadioRow({ label, sub, checked, onChange }) {
   );
 }
 
-const CATEGORIES = [
-    { name: "Chatbot Development", count: 59000 },
-    { name: "Automation Workflows", count: 36000 },
-    { name: "SaaS Kits", count: 28000 },
-    { name: "Analytics Dashboard", count: 120000 },
-    { name: "Voice Agents", count: 44000 },
-    { name: "API Integration", count: 25000 },
-    { name: "Marketing Bots", count: 17000 },
-];
-
 export default function SearchFiltersBar({ filters, onFiltersChange }) {
   const [tempFilters, setTempFilters] = useState(filters);
 
@@ -124,11 +114,20 @@ export default function SearchFiltersBar({ filters, onFiltersChange }) {
 
   const apply = () => onFiltersChange(tempFilters);
 
+  const CATEGORIES = [
+    { name: "Chatbot Development", count: 59000 },
+    { name: "Automation Workflows", count: 36000 },
+    { name: "SaaS Kits", count: 28000 },
+    { name: "Analytics Dashboard", count: 120000 },
+    { name: "Voice Agents", count: 44000 },
+    { name: "API Integration", count: 25000 },
+    { name: "Marketing Bots", count: 17000 },
+  ];
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <div className="flex items-center gap-2 flex-wrap">
-          
           {/* Category Dropdown */}
           <DropPanel 
             label={filters.category || "Category"} 
@@ -264,7 +263,7 @@ export default function SearchFiltersBar({ filters, onFiltersChange }) {
                     onClick={() => onFiltersChange({ ...filters, instantOnly: !filters.instantOnly })}
                 >
                     <motion.div animate={{ x: filters.instantOnly ? 16 : 0 }} className={`absolute top-1 left-1 w-3 h-3 rounded-full ${filters.instantOnly ? "bg-white" : "bg-white/40"}`} />
-                </span>
+                </div>
                 <span className="text-xs font-bold text-white/40 group-hover:text-white">Instant response</span>
             </label>
         </div>
