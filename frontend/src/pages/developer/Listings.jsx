@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { motion, AnimatePresence } from "framermotion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Plus, Edit, Trash2, Eye, Shield, Clock, CheckCircle, XCircle,
   AlertCircle, Package, BarChart2, Settings, ChevronRight,
@@ -13,7 +13,7 @@ import { API_URL } from "@/lib/config";
 // ─── Verification Badge ────────────────────────────────────────────────────────
 function VerificationBadge({ status }) {
   const config = {
-    APPROVED:       { label: "Live",          icon: CheckCircle, color: "text-emerald-400", bg: "bg-emerald-400/8",   border: "border-emanced-400/20" },
+    APPROVED:       { label: "Live",          icon: CheckCircle, color: "text-emerald-400", bg: "bg-emerald-400/8",   border: "border-emerald-400/20" },
     PENDING_REVIEW: { label: "Under Review",  icon: Clock,       color: "text-amber-400",  bg: "bg-amber-400/8",    border: "border-amber-400/20"  },
     REJECTED:       { label: "Needs Changes", icon: XCircle,     color: "text-red-400",    bg: "bg-red-400/8",      border: "border-red-400/20"    },
     DRAFT:          { label: "Draft",         icon: AlertCircle, color: "text-foreground/40", bg: "bg-foreground/5", border: "border-foreground/10" },
@@ -145,7 +145,8 @@ function ListingCard({ listing, idx, onDelete }) {
                   <Link to={`/developer/edit/${listing.id}`}>
                     <button className="mt-2 flex items-center gap-1.5 text-[10px] font-bold text-red-400 hover:text-red-300 transition-colors"
                       style={{ fontFamily: "'Inter', sans-serif" }}>
-                      Fix & Resubmit <ChevronRight className="w-3 h-3" />
+                      Fix & Resubmit
+                      <ChevronRight className="w-3 h-3" />
                     </button>
                   </Link>
                 </div>
@@ -164,7 +165,7 @@ function ListingCard({ listing, idx, onDelete }) {
           </div>
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 }
 
