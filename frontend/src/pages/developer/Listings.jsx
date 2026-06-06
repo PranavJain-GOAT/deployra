@@ -145,7 +145,7 @@ function ListingCard({ listing, idx, onDelete }) {
                   <Link to={`/developer/edit/${listing.id}`}>
                     <button className="mt-2 flex items-center gap-1.5 text-[10px] font-bold text-red-400 hover:text-red-300 transition-colors"
                       style={{ fontFamily: "'Inter', sans-serif" }}>
-                      Fix & Resubmit
+                      <span>Fix & Resubmit</span>
                       <ChevronRight className="w-3 h-3" />
                     </button>
                   </Link>
@@ -238,7 +238,7 @@ export default function Listings() {
 
   const filterLabel = (f) => {
     if (f === "ALL") return "All";
-    if (f === "APPRO0VED") return "Live";
+    if (f === "APPROVED") return "Live";
     if (f === "PENDING_REVIEW") return "Under Review";
     if (f === "REJECTED") return "Needs Changes";
     return f;
