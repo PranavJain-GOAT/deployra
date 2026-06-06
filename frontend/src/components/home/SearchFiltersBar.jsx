@@ -40,7 +40,7 @@ function DropPanel({ label, active, children, onClear, onApply, width = "w-80" }
           >
             <div className="max-h-[500px] overflow-y-auto p-5 space-y-6">{children}</div>
             <div className="flex items-center justify-between px-5 py-3 border-t border-white/8 bg-white/[0.02]">
-              <button onClick={() => { onClear(); close(); }} className="text-xs font-bold text-white/30 hover:text-white transition-colors">Clear all</button>
+              <button onClick={() => { onClear(); close(); }} className="text-xs font-bold text-white/30 hover:text-white transition-all">Clear all</button>
               <button onClick={() => { onApply(); close(); }} className="px-6 py-2 rounded-lg bg-neutral-800 text-white text-xs font-bold hover:bg-neutral-700 transition-all">Apply</button>
             </div>
           </motion.div>
@@ -68,7 +68,7 @@ function CheckRow({ label, count, checked, onChange }) {
         </span>
       </div>
       {count !== undefined && (
-        <span class="text-[11px] font-mono text-white/20">({count.toLocaleString()})</span>
+        <span className="text-[11px] font-mono text-white/20">({count.toLocaleString()})</span>
       )}
     </label>
   );
@@ -264,7 +264,7 @@ export default function SearchFiltersBar({ filters, onFiltersChange }) {
                     onClick={() => onFiltersChange({ ...filters, instantOnly: !filters.instantOnly })}
                 >
                     <motion.div animate={{ x: filters.instantOnly ? 16 : 0 }} className={`absolute top-1 left-1 w-3 h-3 rounded-full ${filters.instantOnly ? "bg-white" : "bg-white/40"}`} />
-                </div>
+                </span>
                 <span className="text-xs font-bold text-white/40 group-hover:text-white">Instant response</span>
             </label>
         </div>
