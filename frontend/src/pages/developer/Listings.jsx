@@ -6,7 +6,7 @@ import {
   AlertCircle, Package, BarChart2, Settings, ChevronRight,
   TrendingUp, Star, Zap, RefreshCw, ExternalLink, MoreHorizontal,
   Globe, FileText, Copy
-} from "lcreact";
+} from "lucide-react";
 import axios from "axios";
 import { API_URL } from "@/lib/config";
 
@@ -16,8 +16,8 @@ function VerificationBadge({ status }) {
     APPROVED:       { label: "Live",          icon: CheckCircle, color: "text-emerald-400", bg: "bg-emerald-400/8",   border: "border-emerald-400/20" },
     PENDING_REVIEW: { label: "Under Review",  icon: Clock,       color: "text-amber-400",  bg: "bg-amber-400/8",    border: "border-amber-400/20"  },
     REJECTED:       { label: "Needs Changes", icon: XCircle,     color: "text-red-400",    bg: "bg-red-400/8",      border: "border-red-400/20"    },
-    DRAFT:          { label: "Draft",         icon: AlertCircle, color: "text-foreground/40", bg: "bg-foreground/5", border: "border-foreground/10" },
-    SUSPENDED:      { label: "Suspended",     icon: XCircle,     color: "text-red-500",    bg: "bg-red-500/8",      border: "border-red-500/20"    },
+    DRAFT:         { label: "Draft",         icon: AlertCircle, color: "text-foreground/40", bg: "bg-foreground/5", border: "border-foreground/10" },
+    SUSPENDED:     { label: "Suspended",     icon: XCircle,     color: "text-red-500",    bg: "bg-red-500/8",      border: "border-red-500/20"    },
   };
   const cfg = config[status] || config.PENDING_REVIEW;
   const Icon = cfg.icon;
@@ -33,7 +33,7 @@ function ListingCard({ listing, idx, onDelete }) {
   const [showMenu, setShowMenu] = useState(false);
   const isLive      = listing.verificationStatus === "APPROVED";
   const isPending   = listing.verificationStatus === "PENDING_REVIEW";
-  const isRejected  = listing.verificationStatus === "REJECTED";
+  const isRejected  = listing.rejectionReason && listing.verificationStatus === "REJECTED";
   const isSuspended = listing.verificationStatus === "SUSPENDED";
 
   return (
@@ -102,7 +102,7 @@ function ListingCard({ listing, idx, onDelete }) {
                           <Copy className="w-3.5 h-3.5" /> Copy Link
                         </button>
                         <div className="h-px mx-3 my-1 bg-foreground/8" />
-                        <button onClick={() => onDelete(listing.id);}
+                        <button onClick={() => { setShowMenu(false); onDelete(listing.id); }}
                           className="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs text-left text-red-400 hover:bg-red-400/8 transition-all"
                           style={{ fontFamily: "'Inter', sans-serif" }}>
                           <Trash2 className="w-3.5 h-3.5" /> Delete
@@ -112,7 +112,6 @@ function ListingCard({ listing, idx, onDelete }) {
                   </AnimatePresence>
                 </div>
               </div>
-            </div>
 
             {/* Stats Row (only for live) */}
             {isLive && (
@@ -136,7 +135,7 @@ function ListingCard({ listing, idx, onDelete }) {
             )}
 
             {/* Rejection Reason */}
-            {isRejected && listing.rejectionReason && (
+            {isRejected && (
               <div className="mt-3 p-3 rounded-xl flex items-start gap-2.5" style={{ background: "rgba(239,68,68,0.05)", border: "0.5px solid rgba(239,68,68,0.2)" }}>
                 <AlertCircle className="w-3.5 h-3.5 text-red-400 shrink-0 mt-0.5" />
                 <div>
@@ -145,7 +144,7 @@ function ListingCard({ listing, idx, onDelete }) {
                   <Link to={`/developer/edit/${listing.id}`}>
                     <button className="mt-2 flex items-center gap-1.5 text-[10px] font-bold text-red-400 hover:text-red-300 transition-colors"
                       style={{ fontFamily: "'Inter', sans-serif" }}>
-                      Fix &amp; Resubmit
+                      Fix & Resubmit
                       <ChevronRight className="w-3 h-3" />
                     </button>
                   </Link>

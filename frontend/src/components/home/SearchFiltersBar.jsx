@@ -251,7 +251,6 @@ export default function SearchFiltersBar({ filters, onFiltersChange }) {
             <label className="flex items-center gap-3 cursor-pointer group">
                 <div 
                     className={`relative w-9 h-5 rounded-full transition-all ${filters.proOnly ? "bg-black" : "bg-white/10"}`}
-                    onClick={() => onFiltersChange({ ...filters, proOnly: !filters.proOnly })}
                 >
                     <motion.div animate={{ x: filters.proOnly ? 16 : 0 }} className={`absolute top-1 left-1 w-3 h-3 rounded-full ${filters.proOnly ? "bg-white" : "bg-white/40"}`} />
                 </div>
@@ -260,7 +259,6 @@ export default function SearchFiltersBar({ filters, onFiltersChange }) {
             <label className="flex items-center gap-3 cursor-pointer group">
                 <div 
                     className={`relative w-9 h-5 rounded-full transition-all ${filters.instantOnly ? "bg-black" : "bg-white/10"}`}
-                    onClick={() => onFiltersChange({ ...filters, instantOnly: !filters.instantOnly })}
                 >
                     <motion.div animate={{ x: filters.instantOnly ? 16 : 0 }} className={`absolute top-1 left-1 w-3 h-3 rounded-full ${filters.instantOnly ? "bg-white" : "bg-white/40"}`} />
                 </div>

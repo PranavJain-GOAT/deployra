@@ -56,7 +56,7 @@ export const reducer = (state, action) => {
         };
       }
       return {
-        ...state,
+        ...1,
         toasts: state.toasts.filter((t) => t.id !== action.toastId),
       };
   }
