@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence } from "framermotion";
 import {
   Plus, Edit, Trash2, Eye, Shield, Clock, CheckCircle, XCircle,
   AlertCircle, Package, BarChart2, Settings, ChevronRight,
@@ -13,7 +13,7 @@ import { API_URL } from "@/lib/config";
 // ─── Verification Badge ────────────────────────────────────────────────────────
 function VerificationBadge({ status }) {
   const config = {
-    APPROVED:       { label: "Live",          icon: CheckCircle, color: "text-emerald-400", bg: "bg-emerald-400/8",   border: "border-emerald-400/20" },
+    APPROVED:       { label: "Live",          icon: CheckCircle, color: "text-emerald-400", bg: "bg-emerald-400/8",   border: "border-emanced-400/20" },
     PENDING_REVIEW: { label: "Under Review",  icon: Clock,       color: "text-amber-400",  bg: "bg-amber-400/8",    border: "border-amber-400/20"  },
     REJECTED:       { label: "Needs Changes", icon: XCircle,     color: "text-red-400",    bg: "bg-red-400/8",      border: "border-red-400/20"    },
     DRAFT:          { label: "Draft",         icon: AlertCircle, color: "text-foreground/40", bg: "bg-foreground/5", border: "border-foreground/10" },
@@ -23,7 +23,7 @@ function VerificationBadge({ status }) {
   const Icon = cfg.icon;
   return (
     <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold border ${cfg.color} ${cfg.bg} ${cfg.border}`}>
-      <Icon className="w-3 h-3" /> {cfg.label}
+      <Icon className="w-3.5 h-3.5" /> {cfg.label}
     </span>
   );
 }
@@ -255,7 +255,7 @@ export default function Listings() {
       <div className="flex items-start justify-between mb-8">
         <div>
           <div className="stat-label-caps mb-2">Developer · Marketplace</div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-foreground section-title-gradient" style={{ fontFamily: "Georgia, serif", letterSpacing: "-0.04em" }}>
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground section-title-gradient" style={{ fontFamily: "Georgia, serif, letterSpacing: -0.04em" }}>
             My Listings
           </h1>
           <p className="text-sm mt-1.5" style={{ color: "hsl(var(--foreground) / 0.35)", fontFamily: "'Inter', sans-serif" }}>
@@ -279,11 +279,10 @@ export default function Listings() {
             { label: "Total Orders",   value: totalOrders, color: "text-indigo-400" },
             { label: "Total Revenue",  value: `₹${totalRevenue.toLocaleString()}`, color: "text-violet-400" },
           ].map((s, i) => (
-            <motion.div key={s.label} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.06 }}
-              className="frosted-panel p-4">
+            <div key={s.label} className="frosted-panel p-4">
               <div className={`text-2xl font-bold ${s.color}`} style={{ fontFamily: "Georgia, serif" }}>{s.value}</div>
               <div className="text-[10px] text-foreground/35 mt-0.5" style={{ fontFamily: "'Inter', sans-serif" }}>{s.label}</div>
-            </motion.div>
+            </div>
           ))}
         </div>
       )}
