@@ -11,7 +11,7 @@ function DropPanel({ label, active, children, onClear, onApply, width = "w-80" }
     const h = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
     document.addEventListener("mousedown", h);
     return () => document.removeEventListener("mousedown", h);
-  }, []);
+  }, [ref]);
 
   const close = () => setOpen(false);
 
@@ -54,10 +54,10 @@ function CheckRow({ label, count, checked, onChange }) {
     <label className="flex items-center justify-between gap-3 cursor-pointer group py-0.5">
       <div className="flex items-center gap-3">
         <div
-          onClick={(e) => { e.preventDefault(); onChange(); }}
           className={`w-4.5 h-4.5 rounded border transition-all flex items-center justify-center flex-shrink-0 ${
             checked ? "bg-black border-black" : "border-white/20 group-hover:border-white/40 bg-white/5"
           }`}
+          onClick={onChange}
         >
           {checked && <Check className="w-3 h-3 text-white" strokeWidth={4} />}
         </div>
@@ -77,10 +77,10 @@ function RadioRow({ label, sub, checked, onChange }) {
   return (
     <label className="flex items-center gap-3 cursor-pointer group py-1">
       <div
-        onClick={(e) => { e.preventDefault(); onChange(); }}
         className={`w-4.5 h-4.5 rounded-full border transition-all flex items-center justify-center flex-shrink-0 ${
           checked ? "border-black bg-black" : "border-white/20 group-hover:border-white/40 bg-white/5"
         }`}
+        onClick={onChange}
       >
         {checked && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
       </div>
@@ -249,8 +249,8 @@ export default function SearchFiltersBar({ filters, onFiltersChange }) {
         <div className="flex items-center gap-6">
             <label className="flex items-center gap-3 cursor-pointer group">
                 <div 
-                    onClick={() => onFiltersChange({ ...filters, proOnly: !filters.proOnly })}
                     className={`relative w-9 h-5 rounded-full transition-all ${filters.proOnly ? "bg-black" : "bg-white/10"}`}
+                    onClick={() => onFiltersChange({ ...filters, proOnly: !filters.proOnly })}
                 >
                     <motion.div animate={{ x: filters.proOnly ? 16 : 0 }} className={`absolute top-1 left-1 w-3 h-3 rounded-full ${filters.proOnly ? "bg-white" : "bg-white/40"}`} />
                 </div>
@@ -258,8 +258,8 @@ export default function SearchFiltersBar({ filters, onFiltersChange }) {
             </label>
             <label className="flex items-center gap-3 cursor-pointer group">
                 <div 
-                    onClick={() => onFiltersChange({ ...filters, instantOnly: !filters.instantOnly })}
                     className={`relative w-9 h-5 rounded-full transition-all ${filters.instantOnly ? "bg-black" : "bg-white/10"}`}
+                    onClick={() => onFiltersChange({ ...filters, instantOnly: !filters.instantOnly })}
                 >
                     <motion.div animate={{ x: filters.instantOnly ? 16 : 0 }} className={`absolute top-1 left-1 w-3 h-3 rounded-full ${filters.instantOnly ? "bg-white" : "bg-white/40"}`} />
                 </div>

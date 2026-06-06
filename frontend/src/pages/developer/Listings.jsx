@@ -173,7 +173,7 @@ function ListingCard({ listing, idx, onDelete }) {
 function EmptyState() {
   return (
     <div className="text-center py-20">
-      <div className="w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-6"
+      <div className="w-20 h-20 rounded-20 flex items-center justify-center mx-auto mb-6"
         style={{ background: "rgba(255,255,255,0.03)", border: "0.5px solid rgba(255,255,255,0.08)" }}>
         <Package className="w-10 h-10 text-foreground/15" />
       </div>
