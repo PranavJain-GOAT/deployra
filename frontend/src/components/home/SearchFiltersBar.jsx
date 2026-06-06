@@ -8,7 +8,9 @@ function DropPanel({ label, active, children, onClear, onApply, width = "w-80" }
   const ref = useRef(null);
 
   useEffect(() => {
-    const h = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
+    const h = (e) => { 
+      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
+    };
     document.addEventListener("mousedown", h);
     return () => document.removeEventListener("mousedown", h);
   }, [ref]);
@@ -66,7 +68,7 @@ function CheckRow({ label, count, checked, onChange }) {
         </span>
       </div>
       {count !== undefined && (
-        <span className="text-[11px] font-mono text-white/20">({count.toLocaleString()})</span>
+        <span class="text-[11px] font-mono text-white/20">({count.toLocaleString()})</span>
       )}
     </label>
   );
@@ -238,7 +240,7 @@ export default function SearchFiltersBar({ filters, onFiltersChange }) {
                     { id: "7d", label: "Up to 7 days" },
                     { id: "any", label: "Anytime" }
                 ].map(opt => (
-                    <RadioRow key={opt.id} label={opt.label} checked={tempFilters.deliveryTime === opt.id} onChange={() => update("deliveryTime", opt.id)} />
+                    <RadioRow key={opt.id} label={opt.label} checked={filters.deliveryTime === opt.id} onChange={() => update("deliveryTime", opt.id)} />
                 ))}
             </div>
           </DropPanel>

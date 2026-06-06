@@ -113,7 +113,6 @@ function ListingCard({ listing, idx, onDelete }) {
                   </AnimatePresence>
                 </div>
               </div>
-            </div>
 
             {/* Stats Row (only for live) */}
             {isLive && (
@@ -165,7 +164,7 @@ function ListingCard({ listing, idx, onDelete }) {
           </div>
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 }
 
