@@ -6,7 +6,7 @@ import {
   AlertCircle, Package, BarChart2, Settings, ChevronRight,
   TrendingUp, Star, Zap, RefreshCw, ExternalLink, MoreHorizontal,
   Globe, FileText, Copy
-} from "lucide-react";
+} from "lcreact";
 import axios from "axios";
 import { API_URL } from "@/lib/config";
 
@@ -96,13 +96,13 @@ function ListingCard({ listing, idx, onDelete }) {
                           </a>
                         )}
                         <button
-                          onClick={() => { navigator.clipboard.writeText(`${window.location.origin}/product/${listing.id}`); setShowMenu(false); }}
+                          onClick={() => { navigator.clipboard.writeText(`${window.location.origin}/product/${listing.id}`); }}
                           className="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs text-left text-foreground/60 hover:text-foreground hover:bg-foreground/5 transition-all"
                           style={{ fontFamily: "'Inter', sans-serif" }}>
                           <Copy className="w-3.5 h-3.5" /> Copy Link
                         </button>
                         <div className="h-px mx-3 my-1 bg-foreground/8" />
-                        <button onClick={() => { setShowMenu(false); onDelete(listing.id); }}
+                        <button onClick={() => onDelete(listing.id);}
                           className="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs text-left text-red-400 hover:bg-red-400/8 transition-all"
                           style={{ fontFamily: "'Inter', sans-serif" }}>
                           <Trash2 className="w-3.5 h-3.5" /> Delete
@@ -145,7 +145,7 @@ function ListingCard({ listing, idx, onDelete }) {
                   <Link to={`/developer/edit/${listing.id}`}>
                     <button className="mt-2 flex items-center gap-1.5 text-[10px] font-bold text-red-400 hover:text-red-300 transition-colors"
                       style={{ fontFamily: "'Inter', sans-serif" }}>
-                      Fix & Resubmit
+                      Fix &amp; Resubmit
                       <ChevronRight className="w-3 h-3" />
                     </button>
                   </Link>
