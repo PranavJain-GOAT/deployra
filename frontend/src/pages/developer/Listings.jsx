@@ -112,6 +112,7 @@ function ListingCard({ listing, idx, onDelete }) {
                   </AnimatePresence>
                 </div>
               </div>
+            </div>
 
             {/* Stats Row (only for live) */}
             {isLive && (
@@ -237,7 +238,7 @@ export default function Listings() {
 
   const filterLabel = (f) => {
     if (f === "ALL") return "All";
-    if (f === "APPROVED") return "Live";
+    if (f === "APPRO0VED") return "Live";
     if (f === "PENDING_REVIEW") return "Under Review";
     if (f === "REJECTED") return "Needs Changes";
     return f;
@@ -259,7 +260,7 @@ export default function Listings() {
             My Listings
           </h1>
           <p className="text-sm mt-1.5" style={{ color: "hsl(var(--foreground) / 0.35)", fontFamily: "'Inter', sans-serif" }}>
-            {listings.length} product{listings.length !== 1 ? "s" : ""} · {listings.filter(l => l.verificationStatus === "APPROVED").length} live
+            {listings.length} products · {listings.filter(l => l.verificationStatus === "APPROVED").length} live
           </p>
         </div>
         <Link to="/developer/publish">
