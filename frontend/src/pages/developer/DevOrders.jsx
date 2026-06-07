@@ -129,7 +129,7 @@ function ConfigPackagePanel({ config }) {
 }
 
 // ─── Delivery Panel ────────────────────────────────────────────────────────────
-function DeliveryPanel({ order, onDeliverySubmit }) {
+function DeliveryPanel({ onDeliverySubmit }) {
   const [form, setForm] = useState({ liveUrl: "", adminUrl: "", adminUser: "", adminPass: "", docsUrl: "", releaseNotes: "", setupGuide: "" });
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -357,7 +357,7 @@ function OrderCard({ order, idx }) {
 
               <div className="px-5 py-5 rounded-b-2xl" style={{ background: "rgba(255,255,255,0.02)", margin: "0 16px 16px", borderRadius: 16, border: "0.5px solid rgba(255,255,255,0.06)" }}>
                 {activePanel === "config" && <ConfigPackagePanel config={order.configPackage} />}
-                {activePanel === "delivery" && <DeliveryPanel order={order} />}
+                {activePanel === "delivery" && <DeliveryPanel />}
                 {activePanel === "escrow" && (
                   <div className="space-y-4">
                     <div className="text-[10px] font-bold uppercase tracking-widest text-foreground/30 mb-3" style={{ fontFamily: "'JetBrains Mono', monospace" }}>Escrow Status</div>

@@ -35,7 +35,6 @@ function ListingCard({ listing, idx, onDelete }) {
   const isLive      = listing.verificationStatus === "APPROVED";
   const isPending   = listing.verificationStatus === "PENDING_REVIEW";
   const isRejected  = listing.verificationStatus === "REJECTED";
-  const isSuspended = listing.verificationStatus === "SUSPENDED";
 
   return (
     <motion.div

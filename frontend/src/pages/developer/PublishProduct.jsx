@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { Link } from "react-router-dom";
 import axios from "axios";
 import { API_URL } from "@/lib/config";
 import { motion, AnimatePresence } from "framer-motion";
@@ -864,7 +864,6 @@ function Step5({ allData, onSubmit, submitting, submitError }) {
 
 // ─── Main Component ─────────────────────────────────────────────────────────────
 export default function PublishProduct() {
-  const navigate = useNavigate();
   const [step, setStep] = useState(1);
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);

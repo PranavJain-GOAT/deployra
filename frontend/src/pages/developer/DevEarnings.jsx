@@ -17,12 +17,6 @@ const TXN_STATUS = {
   PENDING:     { label: "Pending",      color: "text-amber-400",   bg: "bg-amber-400/8",   border: "border-amber-400/20"  },
 };
 
-const TXN_TYPE = {
-  SALE:   { label: "Sale",   color: "text-emerald-400" },
-  PAYOUT: { label: "Payout", color: "text-sky-400"     },
-  REFUND: { label: "Refund", color: "text-red-400"     },
-};
-
 function TxnStatusBadge({ status }) {
   const cfg = TXN_STATUS[status] || { label: status, color: "text-foreground/50", bg: "bg-foreground/5", border: "border-foreground/10" };
   return (

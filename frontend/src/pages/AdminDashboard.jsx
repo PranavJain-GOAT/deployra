@@ -540,7 +540,7 @@ export default function AdminDashboard() {
             </motion.div>
           ) : (
             <AnimatePresence>
-              {visibleProducts.map((product, i) => (
+              {visibleProducts.map(product => (
                 <ProductReviewCard
                   key={product.id}
                   product={product}
