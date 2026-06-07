@@ -3,11 +3,10 @@ import { useParams, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Star, Shield, Clock, RefreshCw, Check, ChevronRight, ArrowLeft,
-  Globe, FileText, Video, Play, Zap, Package, Award, TrendingUp,
-  Upload, AlertCircle, X, Info, ChevronDown, MapPin, Calendar,
+  Globe, FileText, Video, Play, Zap, Package, Award,
+  Upload, AlertCircle, ChevronDown, MapPin, Calendar,
   Phone, Mail, Type, AlignLeft, Hash, List, CheckSquare, Circle,
-  Paperclip, Image, Palette, ToggleLeft, Lock, CreditCard,
-  Download, Eye, ArrowRight
+  Paperclip, Image, Palette, ToggleLeft, Lock, CreditCard
 } from "lucide-react";
 
 // ─── Mock Product Data ──────────────────────────────────────────────────────────

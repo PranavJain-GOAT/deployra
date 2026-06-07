@@ -1,7 +1,7 @@
 import { Link, useLocation } from "react-router-dom";
 import {
   LayoutDashboard, Package, Plus, ArrowLeft, MessageSquare, User,
-  BarChart3, Shield, DollarSign, Star, Users, CheckSquare, Wallet,
+  BarChart3, DollarSign, Star, Users, CheckSquare, Wallet,
   Trophy, ShoppingBag, Settings
 } from "lucide-react";
 import { useRef } from "react";

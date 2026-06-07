@@ -1,12 +1,9 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  ShoppingBag, Clock, CheckCircle, ChevronRight, MessageSquare,
-  Upload, X, Download, Shield, Rocket, FileText, RefreshCw,
-  Search, Paperclip, Send, Settings, Package, Eye, Link2,
-  AlertTriangle, Check, MoreHorizontal, ExternalLink, Info,
-  User, Calendar, DollarSign, Layers, Globe, ChevronDown,
-  ZapOff, Zap, Lock, Star, Archive
+  ShoppingBag, CheckCircle, ChevronRight, MessageSquare, X, Download, Shield, Rocket, FileText, RefreshCw,
+  Search, Paperclip, Send, Settings, Package, Eye,
+  User, Calendar, Globe, Zap, Lock
 } from "lucide-react";
 import axios from "axios";
 import { API_URL } from "@/lib/config";

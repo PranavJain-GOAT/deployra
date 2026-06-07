@@ -62,6 +62,7 @@ export const AuthProvider = ({ children }) => {
               if (newAccessToken) {
                 localStorage.setItem('auth_token', newAccessToken);
                 axios.defaults.headers.common['Authorization'] = `Bearer ${newAccessToken}`;
+                axiosConfig.headers = { Authorization: `Bearer ${newAccessToken}` };
               }
               if (newRefreshToken) {
                 localStorage.setItem('refresh_token', newRefreshToken);

@@ -63,7 +63,7 @@ export default function VerifyEmail() {
           </Link>
         </div>
 
-        <div className="bg-white dark:bg-[#0b0f19] rounded-32 p-10 border border-gray-100 dark:border-gray-800 shadow-2xl text-center">
+        <div className="bg-white dark:bg-[#0b0f19] rounded-3xl p-10 border border-gray-100 dark:border-gray-800 shadow-2xl text-center">
           {/* Loading */}
           {status === "loading" && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
@@ -105,7 +105,7 @@ export default function VerifyEmail() {
               >
                 Go to Dashboard
               </Link>
-            </div>
+            </motion.div>
           )}
 
           {/* Error */}

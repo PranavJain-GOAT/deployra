@@ -8,12 +8,10 @@ function DropPanel({ label, active, children, onClear, onApply, width = "w-80" }
   const ref = useRef(null);
 
   useEffect(() => {
-    const h = (e) => { 
-      if (ref.current && !ref.current.contains(e.target)) setOpen(false);
-    };
+    const h = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
     document.addEventListener("mousedown", h);
     return () => document.removeEventListener("mousedown", h);
-  }, [ref]);
+  }, []);
 
   const close = () => setOpen(false);
 
@@ -40,7 +38,7 @@ function DropPanel({ label, active, children, onClear, onApply, width = "w-80" }
           >
             <div className="max-h-[500px] overflow-y-auto p-5 space-y-6">{children}</div>
             <div className="flex items-center justify-between px-5 py-3 border-t border-white/8 bg-white/[0.02]">
-              <button onClick={() => { onClear(); close(); }} className="text-xs font-bold text-white/30 hover:text-white transition-all">Clear all</button>
+              <button onClick={() => { onClear(); close(); }} className="text-xs font-bold text-white/30 hover:text-white transition-colors">Clear all</button>
               <button onClick={() => { onApply(); close(); }} className="px-6 py-2 rounded-lg bg-neutral-800 text-white text-xs font-bold hover:bg-neutral-700 transition-all">Apply</button>
             </div>
           </motion.div>
@@ -56,10 +54,10 @@ function CheckRow({ label, count, checked, onChange }) {
     <label className="flex items-center justify-between gap-3 cursor-pointer group py-0.5">
       <div className="flex items-center gap-3">
         <div
+          onClick={(e) => { e.preventDefault(); onChange(); }}
           className={`w-4.5 h-4.5 rounded border transition-all flex items-center justify-center flex-shrink-0 ${
             checked ? "bg-black border-black" : "border-white/20 group-hover:border-white/40 bg-white/5"
           }`}
-          onClick={onChange}
         >
           {checked && <Check className="w-3 h-3 text-white" strokeWidth={4} />}
         </div>
@@ -79,10 +77,10 @@ function RadioRow({ label, sub, checked, onChange }) {
   return (
     <label className="flex items-center gap-3 cursor-pointer group py-1">
       <div
+        onClick={(e) => { e.preventDefault(); onChange(); }}
         className={`w-4.5 h-4.5 rounded-full border transition-all flex items-center justify-center flex-shrink-0 ${
           checked ? "border-black bg-black" : "border-white/20 group-hover:border-white/40 bg-white/5"
         }`}
-        onClick={onChange}
       >
         {checked && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
       </div>
@@ -97,6 +95,16 @@ function RadioRow({ label, sub, checked, onChange }) {
     </label>
   );
 }
+
+const CATEGORIES = [
+    { name: "Chatbot Development", count: 59000 },
+    { name: "Automation Workflows", count: 36000 },
+    { name: "SaaS Kits", count: 28000 },
+    { name: "Analytics Dashboard", count: 120000 },
+    { name: "Voice Agents", count: 44000 },
+    { name: "API Integration", count: 25000 },
+    { name: "Marketing Bots", count: 17000 },
+];
 
 export default function SearchFiltersBar({ filters, onFiltersChange }) {
   const [tempFilters, setTempFilters] = useState(filters);
@@ -114,20 +122,11 @@ export default function SearchFiltersBar({ filters, onFiltersChange }) {
 
   const apply = () => onFiltersChange(tempFilters);
 
-  const CATEGORIES = [
-    { name: "Chatbot Development", count: 59000 },
-    { name: "Automation Workflows", count: 36000 },
-    { name: "SaaS Kits", count: 28000 },
-    { name: "Analytics Dashboard", count: 120000 },
-    { name: "Voice Agents", count: 44000 },
-    { name: "API Integration", count: 25000 },
-    { name: "Marketing Bots", count: 17000 },
-  ];
-
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <div className="flex items-center gap-2 flex-wrap">
+          
           {/* Category Dropdown */}
           <DropPanel 
             label={filters.category || "Category"} 
@@ -239,7 +238,7 @@ export default function SearchFiltersBar({ filters, onFiltersChange }) {
                     { id: "7d", label: "Up to 7 days" },
                     { id: "any", label: "Anytime" }
                 ].map(opt => (
-                    <RadioRow key={opt.id} label={opt.label} checked={filters.deliveryTime === opt.id} onChange={() => update("deliveryTime", opt.id)} />
+                    <RadioRow key={opt.id} label={opt.label} checked={tempFilters.deliveryTime === opt.id} onChange={() => update("deliveryTime", opt.id)} />
                 ))}
             </div>
           </DropPanel>
@@ -250,6 +249,7 @@ export default function SearchFiltersBar({ filters, onFiltersChange }) {
         <div className="flex items-center gap-6">
             <label className="flex items-center gap-3 cursor-pointer group">
                 <div 
+                    onClick={() => onFiltersChange({ ...filters, proOnly: !filters.proOnly })}
                     className={`relative w-9 h-5 rounded-full transition-all ${filters.proOnly ? "bg-black" : "bg-white/10"}`}
                 >
                     <motion.div animate={{ x: filters.proOnly ? 16 : 0 }} className={`absolute top-1 left-1 w-3 h-3 rounded-full ${filters.proOnly ? "bg-white" : "bg-white/40"}`} />
@@ -258,6 +258,7 @@ export default function SearchFiltersBar({ filters, onFiltersChange }) {
             </label>
             <label className="flex items-center gap-3 cursor-pointer group">
                 <div 
+                    onClick={() => onFiltersChange({ ...filters, instantOnly: !filters.instantOnly })}
                     className={`relative w-9 h-5 rounded-full transition-all ${filters.instantOnly ? "bg-black" : "bg-white/10"}`}
                 >
                     <motion.div animate={{ x: filters.instantOnly ? 16 : 0 }} className={`absolute top-1 left-1 w-3 h-3 rounded-full ${filters.instantOnly ? "bg-white" : "bg-white/40"}`} />

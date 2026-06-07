@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowLeft, ArrowRight, Check, Plus, X, Grip, ChevronDown,
   Eye, Upload, FileText, DollarSign, Settings, Send,
-  Image, Video, Globe, Clock, RefreshCw, Shield, AlertCircle,
+  Image, Video, Globe, RefreshCw, Shield, AlertCircle,
   Info, Layers, Zap, Package, Type, AlignLeft, Hash, Mail,
   Phone, Calendar, List, CheckSquare, Circle, MapPin, Paperclip,
   ChevronRight, ToggleLeft, Palette, LayoutGrid

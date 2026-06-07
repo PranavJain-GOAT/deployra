@@ -2,9 +2,8 @@ import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Shield, RefreshCw, ArrowLeft, CheckCircle, XCircle, Clock,
-  Package, Users, TrendingUp, Eye, ExternalLink, AlertTriangle,
-  ChevronRight, X, FileText, Globe, DollarSign, Zap, AlertCircle,
-  BarChart2, Settings, Tag, Layers,
+  Package, Users, TrendingUp, ExternalLink, AlertTriangle,
+  ChevronRight, X, FileText, Globe, DollarSign, Zap, AlertCircle, Settings, Tag,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import axios from "axios";

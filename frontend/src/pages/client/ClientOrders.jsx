@@ -1,10 +1,8 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  Package, Clock, CheckCircle, Shield, Rocket, Eye, RefreshCw,
-  Star, X, ChevronRight, Download, AlertTriangle, MessageSquare,
-  Paperclip, Send, Globe, FileText, Lock, Check, ExternalLink,
-  ThumbsUp, RotateCcw, AlertCircle, ShoppingBag, Calendar
+import { Clock, CheckCircle, Shield, Rocket, Eye, RefreshCw,
+  Star, X, ChevronRight, AlertTriangle, Globe, FileText, Lock, Check, ExternalLink,
+  ThumbsUp, RotateCcw, ShoppingBag, Calendar
 } from "lucide-react";
 
 // ─── Status Config ──────────────────────────────────────────────────────────────

@@ -3,12 +3,13 @@ import { Link } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Plus, Edit, Trash2, Eye, Shield, Clock, CheckCircle, XCircle,
-  AlertCircle, Package, BarChart2, Settings, ChevronRight,
-  TrendingUp, Star, Zap, RefreshCw, ExternalLink, MoreHorizontal,
-  Globe, FileText, Copy
+  AlertCircle, Package, ChevronRight,
+  TrendingUp, Star, RefreshCw, MoreHorizontal,
+  Globe, Copy
 } from "lucide-react";
 import axios from "axios";
 import { API_URL } from "@/lib/config";
+
 
 // ─── Verification Badge ────────────────────────────────────────────────────────
 function VerificationBadge({ status }) {
@@ -16,14 +17,14 @@ function VerificationBadge({ status }) {
     APPROVED:       { label: "Live",          icon: CheckCircle, color: "text-emerald-400", bg: "bg-emerald-400/8",   border: "border-emerald-400/20" },
     PENDING_REVIEW: { label: "Under Review",  icon: Clock,       color: "text-amber-400",  bg: "bg-amber-400/8",    border: "border-amber-400/20"  },
     REJECTED:       { label: "Needs Changes", icon: XCircle,     color: "text-red-400",    bg: "bg-red-400/8",      border: "border-red-400/20"    },
-    DRAFT:         { label: "Draft",         icon: AlertCircle, color: "text-foreground/40", bg: "bg-foreground/5", border: "border-foreground/10" },
-    SUSPENDED:     { label: "Suspended",     icon: XCircle,     color: "text-red-500",    bg: "bg-red-500/8",      border: "border-red-500/20"    },
+    DRAFT:          { label: "Draft",         icon: AlertCircle, color: "text-foreground/40", bg: "bg-foreground/5", border: "border-foreground/10" },
+    SUSPENDED:      { label: "Suspended",     icon: XCircle,     color: "text-red-500",    bg: "bg-red-500/8",      border: "border-red-500/20"    },
   };
   const cfg = config[status] || config.PENDING_REVIEW;
   const Icon = cfg.icon;
   return (
     <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold border ${cfg.color} ${cfg.bg} ${cfg.border}`}>
-      <Icon className="w-3.5 h-3.5" /> {cfg.label}
+      <Icon className="w-3 h-3" /> {cfg.label}
     </span>
   );
 }
@@ -33,7 +34,7 @@ function ListingCard({ listing, idx, onDelete }) {
   const [showMenu, setShowMenu] = useState(false);
   const isLive      = listing.verificationStatus === "APPROVED";
   const isPending   = listing.verificationStatus === "PENDING_REVIEW";
-  const isRejected  = listing.rejectionReason && listing.verificationStatus === "REJECTED";
+  const isRejected  = listing.verificationStatus === "REJECTED";
   const isSuspended = listing.verificationStatus === "SUSPENDED";
 
   return (
@@ -96,7 +97,7 @@ function ListingCard({ listing, idx, onDelete }) {
                           </a>
                         )}
                         <button
-                          onClick={() => { navigator.clipboard.writeText(`${window.location.origin}/product/${listing.id}`); }}
+                          onClick={() => { navigator.clipboard.writeText(`${window.location.origin}/product/${listing.id}`); setShowMenu(false); }}
                           className="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs text-left text-foreground/60 hover:text-foreground hover:bg-foreground/5 transition-all"
                           style={{ fontFamily: "'Inter', sans-serif" }}>
                           <Copy className="w-3.5 h-3.5" /> Copy Link
@@ -112,6 +113,7 @@ function ListingCard({ listing, idx, onDelete }) {
                   </AnimatePresence>
                 </div>
               </div>
+            </div>
 
             {/* Stats Row (only for live) */}
             {isLive && (
@@ -125,7 +127,7 @@ function ListingCard({ listing, idx, onDelete }) {
                   const Icon = stat.icon;
                   return (
                     <div key={stat.label} className="flex items-center gap-1.5">
-                      <Icon className="w-3.5 h-3.5 text-foreground/25" />
+                      <Icon className="w-3 h-3 text-foreground/25" />
                       <span className="text-[10px] text-foreground/30" style={{ fontFamily: "'Inter', sans-serif" }}>{stat.label}:</span>
                       <span className="text-xs font-bold text-foreground/60" style={{ fontFamily: "'Inter', sans-serif" }}>{stat.value}</span>
                     </div>
@@ -135,7 +137,7 @@ function ListingCard({ listing, idx, onDelete }) {
             )}
 
             {/* Rejection Reason */}
-            {isRejected && (
+            {isRejected && listing.rejectionReason && (
               <div className="mt-3 p-3 rounded-xl flex items-start gap-2.5" style={{ background: "rgba(239,68,68,0.05)", border: "0.5px solid rgba(239,68,68,0.2)" }}>
                 <AlertCircle className="w-3.5 h-3.5 text-red-400 shrink-0 mt-0.5" />
                 <div>
@@ -144,10 +146,7 @@ function ListingCard({ listing, idx, onDelete }) {
                   <Link to={`/developer/edit/${listing.id}`}>
                     <button className="mt-2 flex items-center gap-1.5 text-[10px] font-bold text-red-400 hover:text-red-300 transition-colors"
                       style={{ fontFamily: "'Inter', sans-serif" }}>
-                      <>
-                        <span>Fix & Resubmit</span>
-                        <ChevronRight className="w-3 h-3" />
-                      </>
+                      Fix & Resubmit <ChevronRight className="w-3 h-3" />
                     </button>
                   </Link>
                 </div>
@@ -166,7 +165,7 @@ function ListingCard({ listing, idx, onDelete }) {
           </div>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 }
 
@@ -174,7 +173,7 @@ function ListingCard({ listing, idx, onDelete }) {
 function EmptyState() {
   return (
     <div className="text-center py-20">
-      <div className="w-20 h-20 rounded-20 flex items-center justify-center mx-auto mb-6"
+      <div className="w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-6"
         style={{ background: "rgba(255,255,255,0.03)", border: "0.5px solid rgba(255,255,255,0.08)" }}>
         <Package className="w-10 h-10 text-foreground/15" />
       </div>
@@ -257,11 +256,11 @@ export default function Listings() {
       <div className="flex items-start justify-between mb-8">
         <div>
           <div className="stat-label-caps mb-2">Developer · Marketplace</div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-foreground section-title-gradient" style={{ fontFamily: "Georgia, serif, letterSpacing: -0.04em" }}>
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground section-title-gradient" style={{ fontFamily: "Georgia, serif", letterSpacing: "-0.04em" }}>
             My Listings
           </h1>
           <p className="text-sm mt-1.5" style={{ color: "hsl(var(--foreground) / 0.35)", fontFamily: "'Inter', sans-serif" }}>
-            {listings.length} products · {listings.filter(l => l.verificationStatus === "APPROVED").length} live
+            {listings.length} product{listings.length !== 1 ? "s" : ""} · {listings.filter(l => l.verificationStatus === "APPROVED").length} live
           </p>
         </div>
         <Link to="/developer/publish">
@@ -281,10 +280,11 @@ export default function Listings() {
             { label: "Total Orders",   value: totalOrders, color: "text-indigo-400" },
             { label: "Total Revenue",  value: `₹${totalRevenue.toLocaleString()}`, color: "text-violet-400" },
           ].map((s, i) => (
-            <div key={s.label} className="frosted-panel p-4">
+            <motion.div key={s.label} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.06 }}
+              className="frosted-panel p-4">
               <div className={`text-2xl font-bold ${s.color}`} style={{ fontFamily: "Georgia, serif" }}>{s.value}</div>
               <div className="text-[10px] text-foreground/35 mt-0.5" style={{ fontFamily: "'Inter', sans-serif" }}>{s.label}</div>
-            </div>
+            </motion.div>
           ))}
         </div>
       )}
