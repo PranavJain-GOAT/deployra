@@ -211,13 +211,10 @@ export default function Auth() {
     }
   };
 
-  const RoleCard = ({ id, icon: Icon, title, desc, destination }) => (
+  const RoleCard = ({ id, icon: Icon, title, desc }) => (
     <button
       type="button"
-      onClick={() => {
-        setForm(p => ({ ...p, role: id }));
-        navigate(destination);
-      }}
+      onClick={() => setForm(p => ({ ...p, role: id }))}
       className={`relative flex flex-col items-center justify-center p-8 rounded-2xl border-2 transition-all duration-300 group hover:scale-[1.02] ${
         form.role === id 
           ? "border-[#108a00] bg-[#f4fbf4] dark:bg-[#071607] ring-1 ring-[#108a00]" 
@@ -270,24 +267,29 @@ export default function Auth() {
                   Choose your account type to continue
                 </p>
 
-                <div className="flex flex-col md:flex-row items-center justify-center gap-8 mb-16">
+                <div className="flex flex-col md:flex-row items-center justify-center gap-8 mb-12">
                   <RoleCard 
                     id="client" 
                     icon={Briefcase} 
                     title="Client" 
                     desc="Post projects and hire world-class AI developers"
-                    destination="/client"
                   />
                   <RoleCard 
                     id="developer" 
                     icon={Code2} 
                     title="Freelancer" 
                     desc="Work and get paid for your AI expertise"
-                    destination="/developer"
                   />
                 </div>
 
-                <div className="space-y-6">                  
+                <div className="space-y-5">
+                  <Button
+                    onClick={() => setStep(2)}
+                    className="h-13 px-14 rounded-full bg-gray-950 text-white font-bold text-base hover:bg-gray-800 transition-all dark:bg-white dark:text-gray-950 dark:hover:bg-gray-100 shadow-xl min-w-[260px]"
+                  >
+                    {form.role === 'client' ? 'Continue as Client' : 'Continue as Freelancer'}
+                  </Button>
+
                   <p className="text-gray-500 dark:text-gray-400 font-medium">
                     Already have an account?{" "}
                     <button 
@@ -335,40 +337,11 @@ export default function Auth() {
                       {tab === "reset" && "Choose a New Password"}
                     </h1>
                     <p className="text-sm text-gray-400 dark:text-gray-500 mb-6">
-                      {tab === "login" && `Enter your credentials to access your ${form.role === 'developer' ? 'Freelancer' : 'Client'} dashboard`}
+                      {tab === "login" && "Enter your credentials to access your dashboard"}
                       {tab === "signup" && "Create a secure account to find work or hire developers"}
                       {tab === "forgot" && "We will email you a secure link to reset your password"}
                       {tab === "reset" && "Make sure to write a strong, high-entropy password"}
                     </p>
-
-                    {tab === "login" && (
-                      <div className="flex justify-center mt-2">
-                        <div className="inline-flex p-1 bg-slate-100 dark:bg-gray-900 rounded-full border border-slate-200 dark:border-gray-800">
-                          <button
-                            type="button"
-                            onClick={() => setForm(p => ({ ...p, role: 'client' }))}
-                            className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all ${
-                              form.role === 'client'
-                                ? 'bg-white dark:bg-gray-800 text-[#108a00] shadow-sm'
-                                : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
-                            }`}
-                          >
-                            Client Login
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setForm(p => ({ ...p, role: 'developer' }))}
-                            className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all ${
-                              form.role === 'developer'
-                                ? 'bg-white dark:bg-gray-800 text-[#108a00] shadow-sm'
-                                : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
-                            }`}
-                          >
-                            Freelancer Login
-                          </button>
-                        </div>
-                      </div>
-                    )}
                   </div>
 
                   {/* Errors / Success Alerts */}
