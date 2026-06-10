@@ -920,12 +920,14 @@ export default function PublishProduct() {
     setSubmitting(true);
     setSubmitError("");
     try {
+      const token = localStorage.getItem("accessToken");
+      const headers = token ? { Authorization: `Bearer ${token}` } : {};
       await axios.post(`${API_URL}/products`, {
         ...form,
         price: parseFloat(form.price) || 0,
         deliveryDays: parseInt(form.deliveryDays, 10) || 7,
         isDraft: false,
-      });
+      }, { withCredentials: true, headers });
       setSubmitted(true);
     } catch (err) {
       const msg = err.response?.data?.message || "Submission failed. Please try again.";
