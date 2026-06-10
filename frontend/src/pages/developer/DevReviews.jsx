@@ -139,7 +139,10 @@ export default function DevReviews() {
     const headers = token ? { Authorization: `Bearer ${token}` } : {};
     axios.get(`${API_URL}/reviews/my`, { withCredentials: true, headers })
       .then(res => setReviews(Array.isArray(res.data?.data) ? res.data.data : []))
-      .catch(() => setError("Could not load reviews. Please refresh."))
+      .catch(() => {
+        // Reviews endpoint may not be live yet — show empty state, not error
+        setReviews([]);
+      })
       .finally(() => setLoading(false));
   }, []);
 

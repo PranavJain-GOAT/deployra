@@ -1,36 +1,19 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Users, Plus, X, Shield, Crown, BarChart3, Code2, Mail, Check, RefreshCw, Trash2, Clock } from "lucide-react";
+import { Users, Plus, X, Shield, Crown, BarChart3, Code2, Mail, Check, RefreshCw, Loader2 } from "lucide-react";
+import axios from "axios";
+import { API_URL } from "@/lib/config";
+import { useAuth } from "@/lib/AuthContext";
 
 const ROLES = [
-  { value: "owner",     label: "Owner",     desc: "Full access. Can delete org.",          color: "text-amber-400",  icon: Crown    },
-  { value: "admin",     label: "Admin",     desc: "Manage members, billing, products.",     color: "text-violet-400", icon: Shield   },
-  { value: "developer", label: "Developer", desc: "Publish and manage products.",           color: "text-blue-400",   icon: Code2    },
-  { value: "analyst",   label: "Analyst",   desc: "View analytics and reports only.",       color: "text-emerald-400",icon: BarChart3},
-];
-
-const INITIAL_MEMBERS = [
-  { id: "m1", name: "You (Owner)",      email: "you@company.io",     role: "owner",     joined: "Jan 2025",   lastActive: "Now",        avatar: "Y", isYou: true  },
-  { id: "m2", name: "Anjali Sharma",    email: "anjali@company.io",  role: "developer", joined: "Mar 2025",   lastActive: "2h ago",     avatar: "A" },
-  { id: "m3", name: "Marcus Chen",      email: "marcus@company.io",  role: "analyst",   joined: "Apr 2025",   lastActive: "Yesterday",  avatar: "M" },
-  { id: "m4", name: "Sarah Williams",   email: "sarah@company.io",   role: "admin",     joined: "Feb 2025",   lastActive: "1h ago",     avatar: "S" },
-];
-
-const PENDING_INVITES = [
-  { id: "inv-1", email: "dev@newstartup.io", role: "developer", sentAt: "May 27, 2025" },
-  { id: "inv-2", email: "cto@enterprise.co", role: "admin",     sentAt: "May 26, 2025" },
-];
-
-const ACTIVITY_LOG = [
-  { actor: "Sarah Williams", action: "Approved product review",     time: "1h ago",       type: "product" },
-  { actor: "You",            action: "Invited dev@newstartup.io",   time: "2h ago",       type: "invite"  },
-  { actor: "Anjali Sharma",  action: "Published Data Pipeline Pro", time: "Yesterday",    type: "product" },
-  { actor: "Marcus Chen",    action: "Exported analytics report",   time: "May 26",       type: "analytics"},
-  { actor: "You",            action: "Updated billing method",      time: "May 25",       type: "billing" },
+  { value: "owner",     label: "Owner",     desc: "Full access. Can delete org.",        color: "text-amber-400",  icon: Crown    },
+  { value: "admin",     label: "Admin",     desc: "Manage members, billing, products.",   color: "text-violet-400", icon: Shield   },
+  { value: "developer", label: "Developer", desc: "Publish and manage products.",         color: "text-blue-400",   icon: Code2    },
+  { value: "analyst",   label: "Analyst",   desc: "View analytics and reports only.",     color: "text-emerald-400",icon: BarChart3},
 ];
 
 function RoleBadge({ role }) {
-  const cfg = ROLES.find(r => r.value === role);
+  const cfg = ROLES.find(r => r.value === role?.toLowerCase()) || ROLES.find(r => r.value === "developer");
   return cfg ? (
     <span className={`inline-flex items-center gap-1 text-[10px] font-bold ${cfg.color}`}>
       <cfg.icon className="w-3 h-3" />
@@ -40,32 +23,41 @@ function RoleBadge({ role }) {
 }
 
 export default function DevTeam() {
-  const [members, setMembers] = useState(INITIAL_MEMBERS);
-  const [invites, setInvites] = useState(PENDING_INVITES);
+  const { user } = useAuth();
   const [showInvite, setShowInvite] = useState(false);
   const [inviteEmail, setInviteEmail] = useState("");
   const [inviteRole, setInviteRole] = useState("developer");
   const [inviting, setInviting] = useState(false);
   const [invited, setInvited] = useState(false);
 
+  // The team section is an upcoming feature.
+  // For now we show only the real logged-in user as the sole member.
+  const currentMember = user ? [{
+    id: user.id,
+    name: user.name || user.firstName ? `${user.firstName || ""} ${user.lastName || ""}`.trim() : user.email?.split("@")[0],
+    email: user.email,
+    role: "owner",
+    joined: user.createdAt ? new Date(user.createdAt).toLocaleDateString("en-US", { month: "short", year: "numeric" }) : "—",
+    lastActive: "Now",
+    isYou: true,
+  }] : [];
+
   const handleInvite = () => {
     if (!inviteEmail.trim()) return;
     setInviting(true);
+    // Team invites will hit the backend once the team route is live
     setTimeout(() => {
-      setInvites(p => [...p, { id: `inv-${Date.now()}`, email: inviteEmail.trim(), role: inviteRole, sentAt: "Just now" }]);
       setInviting(false);
       setInvited(true);
       setInviteEmail("");
       setTimeout(() => { setInvited(false); setShowInvite(false); }, 2000);
-    }, 1500);
+    }, 1200);
   };
 
-  const handleRemoveMember = (id) => {
-    setMembers(p => p.filter(m => m.id !== id));
-  };
-
-  const handleCancelInvite = (id) => {
-    setInvites(p => p.filter(i => i.id !== id));
+  const getInitials = (m) => {
+    if (!m.name) return "?";
+    const parts = m.name.split(" ");
+    return parts.length > 1 ? parts[0][0] + parts[1][0] : parts[0][0];
   };
 
   return (
@@ -92,11 +84,11 @@ export default function DevTeam() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-3 gap-3 mb-6">
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-6">
         {[
-          { label: "Team Members", value: members.length,     icon: Users  },
-          { label: "Pending Invites", value: invites.length,  icon: Mail   },
-          { label: "Plan Seats",    value: "10 / 25",         icon: Crown  },
+          { label: "Team Members",    value: currentMember.length, icon: Users },
+          { label: "Pending Invites", value: 0,                    icon: Mail  },
+          { label: "Plan Seats",      value: "1 / 1",              icon: Crown },
         ].map((s, i) => (
           <motion.div key={s.label} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.06 }}
             className="frosted-panel p-4"
@@ -113,15 +105,15 @@ export default function DevTeam() {
         className="frosted-panel overflow-hidden mb-5"
       >
         <div className="px-5 py-4" style={{ borderBottom: "0.5px solid hsl(var(--foreground) / 0.05)" }}>
-          <h2 className="text-white font-bold text-sm" style={{ fontFamily: "Georgia, serif" }}>Members ({members.length})</h2>
+          <h2 className="text-white font-bold text-sm" style={{ fontFamily: "Georgia, serif" }}>Members ({currentMember.length})</h2>
         </div>
         <div>
-          {members.map((m, i) => (
+          {currentMember.map((m, i) => (
             <motion.div key={m.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: i * 0.04 + 0.25 }}
-              className="flex items-center gap-4 px-5 py-4 border-b border-foreground/5 hover:bg-foreground/[0.02] transition-colors"
+              className="flex items-center gap-4 px-5 py-4 border-b border-foreground/5"
             >
               <div className="w-9 h-9 rounded-xl flex items-center justify-center font-bold text-sm text-background bg-foreground shrink-0">
-                {m.avatar}
+                {getInitials(m)}
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
@@ -130,83 +122,43 @@ export default function DevTeam() {
                 </div>
                 <span className="text-[10px] font-mono text-foreground/30">{m.email}</span>
               </div>
-              <div className="text-center">
-                <RoleBadge role={m.role} />
-              </div>
+              <RoleBadge role={m.role} />
               <div className="text-right shrink-0">
                 <div className="text-[10px] font-mono text-foreground/30">Joined {m.joined}</div>
                 <div className="text-[10px] font-mono text-foreground/20 mt-0.5">{m.lastActive}</div>
               </div>
-              {!m.isYou && (
-                <button onClick={() => handleRemoveMember(m.id)}
-                  className="p-2 rounded-lg text-foreground/20 hover:text-red-400 hover:bg-red-400/5 transition-all"
-                >
-                  <Trash2 className="w-3.5 h-3.5" />
-                </button>
-              )}
             </motion.div>
           ))}
         </div>
       </motion.div>
 
-      {/* Pending Invites */}
-      {invites.length > 0 && (
-        <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }}
-          className="frosted-panel overflow-hidden mb-5"
-        >
-          <div className="px-5 py-4" style={{ borderBottom: "0.5px solid hsl(var(--foreground) / 0.05)" }}>
-            <h2 className="text-white font-bold text-sm" style={{ fontFamily: "Georgia, serif" }}>Pending Invitations</h2>
-          </div>
-          {invites.map(inv => (
-            <div key={inv.id} className="flex items-center gap-4 px-5 py-3.5 border-b border-foreground/5">
-              <Mail className="w-4 h-4 text-foreground/30 shrink-0" />
-              <div className="flex-1">
-                <span className="text-sm font-mono text-foreground/70">{inv.email}</span>
-                <div className="flex items-center gap-2 mt-0.5">
-                  <RoleBadge role={inv.role} />
-                  <span className="text-[10px] font-mono text-foreground/25">Sent {inv.sentAt}</span>
-                </div>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <span className="flex items-center gap-1 text-[10px] font-mono text-amber-400">
-                  <Clock className="w-3 h-3" /> Pending
-                </span>
-                <button onClick={() => handleCancelInvite(inv.id)} className="p-1.5 rounded-lg text-foreground/25 hover:text-red-400 hover:bg-red-400/5 transition-all">
-                  <X className="w-3.5 h-3.5" />
-                </button>
-              </div>
-            </div>
-          ))}
-        </motion.div>
-      )}
-
-      {/* Activity Log */}
-      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.45 }}
-        className="frosted-panel overflow-hidden"
+      {/* Coming Soon Note */}
+      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }}
+        className="frosted-panel p-5 mb-5"
+        style={{ border: "0.5px solid rgba(150,150,150,0.08)" }}
       >
-        <div className="px-5 py-4" style={{ borderBottom: "0.5px solid hsl(var(--foreground) / 0.05)" }}>
-          <h2 className="text-white font-bold text-sm" style={{ fontFamily: "Georgia, serif" }}>Team Activity</h2>
-          <p className="stat-label-caps mt-0.5">Audit log of all team actions</p>
-        </div>
-        <div className="p-4 space-y-2">
-          {ACTIVITY_LOG.map((a, i) => (
-            <div key={i} className="flex items-center gap-3 py-2">
-              <div className="w-1.5 h-1.5 rounded-full bg-foreground/20 shrink-0" />
-              <div className="flex-1">
-                <span className="text-xs font-semibold text-foreground/70">{a.actor}</span>
-                <span className="text-xs text-foreground/40 ml-1.5">{a.action}</span>
-              </div>
-              <span className="text-[10px] font-mono text-foreground/25">{a.time}</span>
-            </div>
-          ))}
+        <div className="flex items-start gap-4">
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: "rgba(150,150,150,0.06)", border: "0.5px solid rgba(150,150,150,0.1)" }}>
+            <Users className="w-5 h-5 text-foreground/30" />
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-foreground/60 mb-1">Multi-member teams coming soon</p>
+            <p className="text-xs text-foreground/35 leading-relaxed" style={{ fontFamily: "'Inter', sans-serif" }}>
+              Invite collaborators to co-manage products, orders, and analytics. Team management will be available in a future update.
+            </p>
+          </div>
         </div>
       </motion.div>
 
       {/* Invite Modal */}
       <AnimatePresence>
         {showInvite && (
-          <motion.div className="fixed inset-0 z-50 flex items-center justify-center p-4" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} style={{ background: "rgba(0,0,0,0.8)", backdropFilter: "blur(8px)" }} onClick={() => setShowInvite(false)}>
-            <motion.div className="w-full max-w-md rounded-2xl p-6" style={{ background: "rgba(0,0,0,0.97)", border: "0.5px solid rgba(150,150,150,0.2)", boxShadow: "0 40px 80px rgba(0,0,0,0.8)" }} initial={{ scale: 0.94, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.94, y: 20 }} onClick={e => e.stopPropagation()}>
+          <motion.div className="fixed inset-0 z-50 flex items-center justify-center p-4" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            style={{ background: "rgba(0,0,0,0.8)", backdropFilter: "blur(8px)" }} onClick={() => setShowInvite(false)}
+          >
+            <motion.div className="w-full max-w-md rounded-2xl p-6" style={{ background: "rgba(0,0,0,0.97)", border: "0.5px solid rgba(150,150,150,0.2)", boxShadow: "0 40px 80px rgba(0,0,0,0.8)" }}
+              initial={{ scale: 0.94, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.94, y: 20 }} onClick={e => e.stopPropagation()}
+            >
               <div className="flex items-center justify-between mb-5">
                 <h3 className="text-white font-bold" style={{ fontFamily: "Georgia, serif" }}>Invite Team Member</h3>
                 <button onClick={() => setShowInvite(false)} className="p-2 rounded-lg text-foreground/30 hover:text-foreground hover:bg-foreground/5">
@@ -216,7 +168,10 @@ export default function DevTeam() {
               <div className="space-y-4">
                 <div>
                   <label className="stat-label-caps mb-2 block">Email Address</label>
-                  <input type="email" value={inviteEmail} onChange={e => setInviteEmail(e.target.value)} placeholder="colleague@company.com" className="w-full px-4 py-3 rounded-xl border border-foreground/10 bg-transparent text-sm text-foreground placeholder-foreground/25 outline-none focus:border-foreground/25 transition-all" style={{ fontFamily: "'Inter', sans-serif" }} />
+                  <input type="email" value={inviteEmail} onChange={e => setInviteEmail(e.target.value)}
+                    placeholder="colleague@company.com"
+                    className="w-full px-4 py-3 rounded-xl border border-foreground/10 bg-transparent text-sm text-foreground placeholder-foreground/25 outline-none focus:border-foreground/25 transition-all"
+                  />
                 </div>
                 <div>
                   <label className="stat-label-caps mb-2 block">Role</label>
