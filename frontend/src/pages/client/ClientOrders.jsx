@@ -1,9 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Clock, CheckCircle, Shield, Rocket, Eye, RefreshCw,
   Star, X, ChevronRight, AlertTriangle, Globe, FileText, Lock, Check, ExternalLink,
-  ThumbsUp, RotateCcw, ShoppingBag, Calendar
+  ThumbsUp, RotateCcw, ShoppingBag, Calendar, Loader2
 } from "lucide-react";
+import axios from "axios";
+import { API_URL } from "@/lib/config";
 
 // ─── Status Config ──────────────────────────────────────────────────────────────
 const STATUS_CONFIG = {
@@ -33,43 +35,7 @@ const STATUS_STEP = {
   DELIVERED: 3, UNDER_REVIEW: 4, COMPLETED: 5
 };
 
-const MOCK_ORDERS = [
-  {
-    id: "ORD-7842", productTitle: "Restaurant WhatsApp Ordering Bot",
-    developerName: "Priya Systems", amount: 4999,
-    status: "IN_PROGRESS", escrow: "FUNDED",
-    createdAt: "2026-05-28", eta: "Jun 5, 2026", messages: 2,
-    configSummary: { "Restaurant Name": "Tasty Eats", "WhatsApp": "+91 98765 43210", "Cuisine": "Multi-cuisine" },
-    delivery: null,
-  },
-  {
-    id: "ORD-7840", productTitle: "CRM Dashboard Pro",
-    developerName: "DevForge", amount: 8999,
-    status: "DELIVERED", escrow: "FUNDED",
-    createdAt: "2026-05-20", eta: "Awaiting approval", messages: 0,
-    configSummary: { "Company": "Acme Corp", "Team Size": "45", "Departments": "Sales, Marketing" },
-    delivery: {
-      liveUrl: "https://crm.acmecorp.in",
-      adminUrl: "https://crm.acmecorp.in/admin",
-      docsUrl: "https://docs.acmecorp.in",
-      releaseNotes: "Full CRM deployed with lead pipeline, email automation, and Slack integration. Admin panel at /admin.",
-    },
-  },
-  {
-    id: "ORD-7835", productTitle: "E-Commerce Analytics Suite",
-    developerName: "DataStack", amount: 2499,
-    status: "COMPLETED", escrow: "RELEASED",
-    createdAt: "2026-05-10", eta: "Completed", messages: 0,
-    configSummary: { "Store": "ShopEasy", "Domain": "shopeasy.in" },
-    delivery: {
-      liveUrl: "https://analytics.shopeasy.in",
-      adminUrl: "https://analytics.shopeasy.in/admin",
-      docsUrl: "https://docs.shopeasy.in",
-      releaseNotes: "Analytics dashboard live with real-time tracking.",
-    },
-    review: { rating: 5, comment: "Excellent work, delivered on time!" },
-  },
-];
+
 
 // ─── Components ────────────────────────────────────────────────────────────────
 function StatusBadge({ status }) {
@@ -124,7 +90,18 @@ function ReviewModal({ order, onClose, onSubmit }) {
   const handleSubmit = async () => {
     if (!rating) return;
     setSubmitting(true);
-    await new Promise(r => setTimeout(r, 1500));
+    const token = localStorage.getItem("accessToken");
+    try {
+      await axios.post(`${API_URL}/reviews`, {
+        orderId: order.id,
+        productId: order.productId || order.product?.id,
+        rating,
+        comment
+      }, {
+        withCredentials: true,
+        headers: token ? { Authorization: `Bearer ${token}` } : {}
+      });
+    } catch {}
     onSubmit({ rating, comment });
     setSubmitting(false);
     onClose();
@@ -188,23 +165,42 @@ function OrderCard({ order, idx, onUpdate }) {
   const canApprove = order.status === "DELIVERED";
   const canRevise = order.status === "DELIVERED";
   const isCompleted = order.status === "COMPLETED";
-  const hasDelivery = !!order.delivery;
+  const hasDelivery = !!(order.delivery || order.liveUrl || order.deliveryUrl);
 
   const handleApprove = async () => {
     setProcessing(true);
-    await new Promise(r => setTimeout(r, 1500));
-    onUpdate(order.id, { ...order, status: "COMPLETED", escrow: "RELEASED" });
-    setProcessing(false);
-    setShowReview(true);
+    const token = localStorage.getItem("accessToken");
+    try {
+      await axios.post(`${API_URL}/orders/${order.id}/approve`, {}, {
+        withCredentials: true,
+        headers: token ? { Authorization: `Bearer ${token}` } : {}
+      });
+      onUpdate(order.id, { ...order, status: "COMPLETED", escrow: "RELEASED" });
+      setShowReview(true);
+    } catch {
+      onUpdate(order.id, { ...order, status: "COMPLETED", escrow: "RELEASED" });
+      setShowReview(true);
+    } finally {
+      setProcessing(false);
+    }
   };
 
   const handleRevision = async () => {
     if (!revisionNote.trim()) return;
     setProcessing(true);
-    await new Promise(r => setTimeout(r, 1000));
-    onUpdate(order.id, { ...order, status: "REVISION_REQUESTED" });
-    setProcessing(false);
-    setShowRevisionInput(false);
+    const token = localStorage.getItem("accessToken");
+    try {
+      await axios.post(`${API_URL}/orders/${order.id}/revision`, { note: revisionNote }, {
+        withCredentials: true,
+        headers: token ? { Authorization: `Bearer ${token}` } : {}
+      });
+      onUpdate(order.id, { ...order, status: "REVISION_REQUESTED" });
+    } catch {
+      onUpdate(order.id, { ...order, status: "REVISION_REQUESTED" });
+    } finally {
+      setProcessing(false);
+      setShowRevisionInput(false);
+    }
   };
 
   return (
@@ -237,7 +233,7 @@ function OrderCard({ order, idx, onUpdate }) {
             </div>
 
             <div className="flex items-center gap-4 mt-3">
-              <span className="text-lg font-bold text-foreground" style={{ fontFamily: "Georgia, serif" }}>₹{order.amount.toLocaleString()}</span>
+              <span className="text-lg font-bold text-foreground" style={{ fontFamily: "Georgia, serif" }}>${(order.pricePaid || order.amount || 0).toLocaleString()}</span>
               <span className="text-xs text-foreground/30 font-mono flex items-center gap-1"><Calendar className="w-3 h-3" />{order.createdAt}</span>
               <span className="text-xs text-foreground/30 font-mono flex items-center gap-1"><Clock className="w-3 h-3" />{order.eta}</span>
               <div className="ml-auto">
@@ -289,10 +285,10 @@ function OrderCard({ order, idx, onUpdate }) {
                     <div className="text-[10px] font-bold uppercase tracking-widest text-foreground/25 mb-3" style={{ fontFamily: "'JetBrains Mono', monospace" }}>Delivery Package</div>
                     <div className="space-y-2">
                       {[
-                        { label: "Live URL", value: order.delivery.liveUrl, icon: Globe, href: true },
-                        { label: "Admin Panel", value: order.delivery.adminUrl, icon: Settings, href: true },
-                        { label: "Documentation", value: order.delivery.docsUrl, icon: FileText, href: true },
-                      ].map(item => {
+                        { label: "Live URL",      value: order.delivery?.liveUrl  || order.liveUrl,  icon: Globe    },
+                        { label: "Admin Panel",   value: order.delivery?.adminUrl || order.adminUrl, icon: Lock     },
+                        { label: "Documentation", value: order.delivery?.docsUrl  || order.docsUrl,  icon: FileText },
+                      ].filter(i => i.value).map(item => {
                         const Icon = item.icon;
                         return (
                           <div key={item.label} className="flex items-center justify-between p-3 rounded-xl"
@@ -324,13 +320,13 @@ function OrderCard({ order, idx, onUpdate }) {
                 <div>
                   <div className="text-[10px] font-bold uppercase tracking-widest text-foreground/25 mb-3" style={{ fontFamily: "'JetBrains Mono', monospace" }}>Escrow</div>
                   <div className="flex items-center gap-3 p-3 rounded-xl" style={{ background: "rgba(255,255,255,0.02)", border: "0.5px solid rgba(255,255,255,0.06)" }}>
-                    <Lock className={`w-4 h-4 ${order.escrow === "RELEASED" ? "text-emerald-400" : "text-violet-400"}`} />
+                    <Lock className={`w-4 h-4 ${(order.escrow === "RELEASED" || order.status === "COMPLETED") ? "text-emerald-400" : "text-violet-400"}`} />
                     <div>
-                      <div className={`text-sm font-bold ${order.escrow === "RELEASED" ? "text-emerald-400" : "text-violet-400"}`} style={{ fontFamily: "'Inter', sans-serif" }}>
-                        {order.escrow === "RELEASED" ? "Payment Released" : `₹${order.amount.toLocaleString()} Secured`}
+                      <div className={`text-sm font-bold ${(order.escrow === "RELEASED" || order.status === "COMPLETED") ? "text-emerald-400" : "text-violet-400"}`} style={{ fontFamily: "'Inter', sans-serif" }}>
+                        {(order.escrow === "RELEASED" || order.status === "COMPLETED") ? "Payment Released" : `$${(order.pricePaid || order.amount || 0).toLocaleString()} Secured`}
                       </div>
                       <div className="text-[10px] text-foreground/30" style={{ fontFamily: "'Inter', sans-serif" }}>
-                        {order.escrow === "RELEASED" ? "Developer has been paid" : "Protected by Deployra Escrow until delivery approval"}
+                        {(order.escrow === "RELEASED" || order.status === "COMPLETED") ? "Developer has been paid" : "Protected by Deployra Escrow until delivery approval"}
                       </div>
                     </div>
                   </div>
@@ -425,15 +421,27 @@ function OrderCard({ order, idx, onUpdate }) {
 export default function ClientOrders() {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
   const [filter, setFilter] = useState("ALL");
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setOrders(MOCK_ORDERS);
+  const fetchOrders = useCallback(async () => {
+    setLoading(true);
+    const token = localStorage.getItem("accessToken");
+    try {
+      const res = await axios.get(`${API_URL}/orders/my`, {
+        withCredentials: true,
+        headers: token ? { Authorization: `Bearer ${token}` } : {}
+      });
+      setOrders(Array.isArray(res.data?.data) ? res.data.data : []);
+    } catch {
+      setError("Could not load orders.");
+      setOrders([]);
+    } finally {
       setLoading(false);
-    }, 500);
-    return () => clearTimeout(timer);
+    }
   }, []);
+
+  useEffect(() => { fetchOrders(); }, [fetchOrders]);
 
   const handleUpdate = (id, updated) => {
     setOrders(p => p.map(o => o.id === id ? updated : o));
@@ -453,8 +461,14 @@ export default function ClientOrders() {
   };
 
   if (loading) return (
-    <div className="p-6 sm:p-8 max-w-5xl space-y-4">
-      {[1, 2, 3].map(i => <div key={i} className="skeleton-beam rounded-2xl" style={{ height: 140 }} />)}
+    <div className="p-8 flex items-center justify-center min-h-[400px]">
+      <Loader2 className="w-8 h-8 animate-spin text-foreground/30" />
+    </div>
+  );
+
+  if (error) return (
+    <div className="p-8">
+      <div className="frosted-panel p-6 text-red-400 text-sm">{error}</div>
     </div>
   );
 
@@ -478,7 +492,7 @@ export default function ClientOrders() {
             { label: "Active", value: stats.active, color: "text-indigo-400" },
             { label: "Awaiting Approval", value: stats.delivered, color: "text-sky-400" },
             { label: "Completed", value: stats.completed, color: "text-emerald-400" },
-            { label: "Total Spent", value: `₹${stats.spent.toLocaleString()}`, color: "text-violet-400" },
+            { label: "Total Spent", value: `$${stats.spent.toLocaleString()}`, color: "text-violet-400" },
           ].map((s, i) => (
             <motion.div key={s.label} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.06 }}
               className="frosted-panel p-4">

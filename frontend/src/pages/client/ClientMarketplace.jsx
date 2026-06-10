@@ -7,56 +7,7 @@ import axios from "axios";
 import { API_URL } from "@/lib/config";
 
 
-const MOCK_PRODUCTS = [
-  {
-    id: "p1", title: "DataFlow AI Pipeline", vendor: "Priya Systems", category: "Data",
-    price: 499, rating: 4.9, reviews: 128, verified: true, featured: true, trending: true,
-    deployTime: "< 10 min", description: "Enterprise-grade data pipeline with real-time stream processing, ML-ready transforms, and 50+ connectors. Zero-config deployment.",
-    tags: ["PostgreSQL", "Kafka", "ML", "Real-time"], installs: 312, isDemo: true,
-  },
-  {
-    id: "p2", title: "AutoSupport Chatbot Pro", vendor: "BotLabs Inc.", category: "Support",
-    price: 299, rating: 4.8, reviews: 94, verified: true, featured: true, trending: false,
-    deployTime: "< 5 min", description: "GPT-4 powered support agent that learns your product docs. Handles 85% of tickets automatically with human handoff.",
-    tags: ["GPT-4", "Zendesk", "Slack", "API"], installs: 284, isDemo: true,
-  },
-  {
-    id: "p3", title: "DeployKit Ultra", vendor: "CloudBridge", category: "DevOps",
-    price: 189, rating: 4.9, reviews: 211, verified: true, featured: false, trending: true,
-    deployTime: "< 3 min", description: "One-click CI/CD for any stack. Auto-scales, zero-downtime deploys, built-in rollback. Supports AWS, GCP, Azure.",
-    tags: ["CI/CD", "Kubernetes", "AWS", "GCP"], installs: 504, isDemo: true,
-  },
-  {
-    id: "p4", title: "SalesAI CRM Suite", vendor: "GrowthStack", category: "CRM",
-    price: 399, rating: 4.7, reviews: 67, verified: true, featured: false, trending: false,
-    deployTime: "< 15 min", description: "AI-powered CRM that predicts churn, auto-qualifies leads, and syncs with Salesforce, HubSpot, and Pipedrive.",
-    tags: ["Salesforce", "HubSpot", "AI", "Analytics"], installs: 189, isDemo: true,
-  },
-  {
-    id: "p5", title: "SecureVault API Gateway", vendor: "AuthGuard", category: "Security",
-    price: 249, rating: 4.8, reviews: 82, verified: true, featured: false, trending: true,
-    deployTime: "< 8 min", description: "Zero-trust API gateway with OAuth2, rate limiting, WAF, and full audit logging. SOC2 compliant.",
-    tags: ["OAuth2", "WAF", "SOC2", "Audit"], installs: 152, isDemo: true,
-  },
-  {
-    id: "p6", title: "Analytics Core", vendor: "MetricFlow", category: "Analytics",
-    price: 149, rating: 4.6, reviews: 143, verified: false, featured: false, trending: false,
-    deployTime: "< 7 min", description: "Full-stack analytics platform with real-time dashboards, funnel analysis, A/B testing, and data export.",
-    tags: ["Dashboards", "A/B Testing", "SQL", "BigQuery"], installs: 398, isDemo: true,
-  },
-  {
-    id: "p7", title: "FormFlow Builder", vendor: "NoCode Labs", category: "Forms",
-    price: 79, rating: 4.4, reviews: 256, verified: true, featured: false, trending: false,
-    deployTime: "< 2 min", description: "Drag-and-drop form builder with conditional logic, webhooks, payment collection, and 100+ integrations.",
-    tags: ["No-code", "Webhooks", "Stripe", "Zapier"], installs: 712, isDemo: true,
-  },
-  {
-    id: "p8", title: "LogStream Monitor", vendor: "ObserveHQ", category: "Monitoring",
-    price: 99, rating: 4.6, reviews: 108, verified: true, featured: false, trending: false,
-    deployTime: "< 5 min", description: "Centralized log management with real-time alerting, anomaly detection, and Slack/PagerDuty integration.",
-    tags: ["Logs", "Alerts", "PagerDuty", "Grafana"], installs: 267, isDemo: true,
-  },
-];
+
 
 const CATEGORIES = ["All", "Data", "Support", "DevOps", "CRM", "Security", "Analytics", "Forms", "Monitoring", "AI Agent", "Automation", "Chatbot", "Dashboard"];
 const PRICE_RANGES = ["Any price", "Under $100", "$100–$300", "$300–$600", "Over $600"];
@@ -196,8 +147,8 @@ export default function ClientMarketplace() {
       .catch(() => {});
   }, []);
 
-  // All products = real from DB + mock demos (real first)
-  const PRODUCTS = [...realProducts, ...MOCK_PRODUCTS];
+  // All products = only real products from backend
+  const PRODUCTS = realProducts;
 
   const toggleCompare = (id) => {
     setCompareList(p => p.includes(id) ? p.filter(i => i !== id) : p.length < 3 ? [...p, id] : p);
@@ -238,9 +189,9 @@ export default function ClientMarketplace() {
           Discover Products
         </h1>
         <p className="text-sm mt-1.5" style={{ color: "hsl(var(--foreground) / 0.35)", fontFamily: "'Inter', sans-serif" }}>
-          {realProducts.length > 0 && <span className="text-emerald-400 font-semibold">{realProducts.length} live products</span>}
-          {realProducts.length > 0 && " + "}
-          {MOCK_PRODUCTS.length} demo listings. Purchase, deploy, and run in minutes.
+          {realProducts.length > 0
+            ? <><span className="text-emerald-400 font-semibold">{realProducts.length} products</span> available · Purchase, deploy, and run in minutes.</>
+            : "Products published by developers will appear here. Check back soon!"}
         </p>
       </div>
 
