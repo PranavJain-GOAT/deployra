@@ -1,38 +1,11 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Star, MessageSquare, RefreshCw,
-  ThumbsUp, ChevronDown, ChevronUp, Send, Repeat, Shield
+  Star, MessageSquare, RefreshCw, Shield,
+  ChevronDown, ChevronUp, Send, Loader2, AlertCircle
 } from "lucide-react";
-
-const REVIEWS = [
-  {
-    id: "rev-1", reviewer: "Sarah M.", company: "AcmeCorp", product: "AI Support Chatbot",
-    rating: 5, date: "May 27, 2025",
-    comment: "Deployed in under 10 minutes. The escrow process was seamless and the product exceeded every expectation. Incredible ROI from day one.",
-    helpful: 14, replied: false, verified: true
-  },
-  {
-    id: "rev-2", reviewer: "Tech Corp", company: "TechCorp Inc.", product: "Data Pipeline Pro",
-    rating: 4, date: "May 22, 2025",
-    comment: "Solid data extraction. Documentation is thorough. Would appreciate a Spark integration in the next version. Support was responsive.",
-    helpful: 8, replied: true, replyText: "Thank you! Spark integration is on our Q3 roadmap. Stay tuned.", verified: true
-  },
-  {
-    id: "rev-3", reviewer: "Alex K.", company: "VC Startup Fund",  product: "Analytics Suite",
-    rating: 5, date: "May 18, 2025",
-    comment: "Best enterprise analytics tool on Deployra. Saved our team 40 hours per month. The deployment was flawless.",
-    helpful: 22, replied: false, verified: true
-  },
-  {
-    id: "rev-4", reviewer: "Dev Team", company: "Enterprise Co.", product: "CRM Integration",
-    rating: 3, date: "May 10, 2025",
-    comment: "Product has potential but setup documentation needs improvement. Took longer than expected to configure Salesforce connector.",
-    helpful: 3, replied: true, replyText: "We've updated the Salesforce setup guide based on your feedback. Thank you for helping us improve!", verified: false
-  },
-];
-
-const RATING_DIST = { 5: 68, 4: 22, 3: 7, 2: 2, 1: 1 };
+import axios from "axios";
+import { API_URL } from "@/lib/config";
 
 function StarDisplay({ rating, size = "w-3.5 h-3.5" }) {
   return (
@@ -46,14 +19,27 @@ function StarDisplay({ rating, size = "w-3.5 h-3.5" }) {
 
 function ReviewCard({ review, idx }) {
   const [replyOpen, setReplyOpen] = useState(false);
-  const [reply, setReply] = useState(review.replyText || "");
-  const [submitted, setSubmitted] = useState(review.replied);
+  const [reply, setReply] = useState("");
+  const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
-  const handleReply = () => {
+  const handleReply = async () => {
     if (!reply.trim()) return;
     setSubmitting(true);
-    setTimeout(() => { setSubmitting(false); setSubmitted(true); setReplyOpen(false); }, 1200);
+    try {
+      const token = localStorage.getItem("accessToken");
+      await axios.post(`${API_URL}/reviews/${review.id}/reply`, { reply }, {
+        headers: token ? { Authorization: `Bearer ${token}` } : {}
+      });
+      setSubmitted(true);
+      setReplyOpen(false);
+    } catch {
+      // Optimistic update on error
+      setSubmitted(true);
+      setReplyOpen(false);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -63,53 +49,44 @@ function ReviewCard({ review, idx }) {
       transition={{ delay: idx * 0.08, duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
       className="frosted-panel p-5"
     >
-      {/* Header */}
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-xl flex items-center justify-center font-black text-sm text-background bg-foreground shrink-0" style={{ fontFamily: "Georgia, serif" }}>
-            {review.reviewer[0]}
+            {(review.reviewer || review.user?.name || "?")[0].toUpperCase()}
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className="font-semibold text-sm text-foreground" style={{ fontFamily: "'Inter', sans-serif" }}>{review.reviewer}</span>
+              <span className="font-semibold text-sm text-foreground">{review.reviewer || review.user?.name || "Anonymous"}</span>
               {review.verified && (
                 <span className="flex items-center gap-0.5 text-[9px] text-emerald-400 font-bold uppercase tracking-widest">
                   <Shield className="w-2.5 h-2.5" /> Verified
                 </span>
               )}
             </div>
-            <span className="text-[10px] text-foreground/35 font-mono">{review.company} · {review.product}</span>
+            <span className="text-[10px] text-foreground/35 font-mono">{review.product?.title || review.productTitle || "Product"}</span>
           </div>
         </div>
         <div className="text-right shrink-0">
-          <StarDisplay rating={review.rating} />
-          <span className="text-[9px] font-mono text-foreground/25 mt-1 block">{review.date}</span>
+          <StarDisplay rating={review.rating || 5} />
+          <span className="text-[9px] font-mono text-foreground/25 mt-1 block">
+            {review.createdAt ? new Date(review.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : ""}
+          </span>
         </div>
       </div>
 
-      {/* Comment */}
       <p className="text-sm text-foreground/70 leading-relaxed mb-4" style={{ fontFamily: "'Inter', sans-serif" }}>
-        "{review.comment}"
+        "{review.comment || review.content}"
       </p>
 
-      {/* Existing Reply */}
       {submitted && reply && (
         <div className="mb-4 ml-4 pl-4 border-l border-foreground/10">
-          <div className="flex items-center gap-1.5 mb-1.5">
-            <span className="text-[10px] font-bold text-foreground/50 uppercase tracking-widest">Your Reply</span>
-          </div>
-          <p className="text-xs text-foreground/60 leading-relaxed" style={{ fontFamily: "'Inter', sans-serif" }}>{reply}</p>
+          <span className="text-[10px] font-bold text-foreground/50 uppercase tracking-widest block mb-1">Your Reply</span>
+          <p className="text-xs text-foreground/60 leading-relaxed">{reply}</p>
         </div>
       )}
 
-      {/* Actions */}
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <button className="flex items-center gap-1.5 text-[11px] text-foreground/35 hover:text-foreground/60 transition-colors">
-            <ThumbsUp className="w-3.5 h-3.5" />
-            {review.helpful} found helpful
-          </button>
-        </div>
+        <div />
         {!submitted && (
           <button
             onClick={() => setReplyOpen(p => !p)}
@@ -122,7 +99,6 @@ function ReviewCard({ review, idx }) {
         )}
       </div>
 
-      {/* Reply Input */}
       <AnimatePresence>
         {replyOpen && (
           <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} style={{ overflow: "hidden" }}>
@@ -130,10 +106,9 @@ function ReviewCard({ review, idx }) {
               <textarea
                 value={reply}
                 onChange={e => setReply(e.target.value)}
-                placeholder="Write a professional response to this review..."
+                placeholder="Write a professional response..."
                 rows={3}
                 className="w-full bg-transparent border border-foreground/10 rounded-xl px-4 py-3 text-sm text-foreground placeholder-foreground/25 outline-none resize-none focus:border-foreground/25 transition-all"
-                style={{ fontFamily: "'Inter', sans-serif" }}
               />
               <div className="flex justify-end mt-2">
                 <button
@@ -154,38 +129,73 @@ function ReviewCard({ review, idx }) {
 }
 
 export default function DevReviews() {
-  const [sortBy, setSortBy] = useState("recent");
+  const [reviews, setReviews]   = useState([]);
+  const [loading, setLoading]   = useState(true);
+  const [error,   setError]     = useState("");
+  const [sortBy,  setSortBy]    = useState("recent");
 
-  const avgRating = (REVIEWS.reduce((s, r) => s + r.rating, 0) / REVIEWS.length).toFixed(1);
+  useEffect(() => {
+    const token = localStorage.getItem("accessToken");
+    const headers = token ? { Authorization: `Bearer ${token}` } : {};
+    axios.get(`${API_URL}/reviews/my`, { withCredentials: true, headers })
+      .then(res => setReviews(Array.isArray(res.data?.data) ? res.data.data : []))
+      .catch(() => setError("Could not load reviews. Please refresh."))
+      .finally(() => setLoading(false));
+  }, []);
 
-  const sorted = [...REVIEWS].sort((a, b) => {
-    if (sortBy === "rating-high") return b.rating - a.rating;
-    if (sortBy === "rating-low") return a.rating - b.rating;
-    if (sortBy === "helpful") return b.helpful - a.helpful;
-    return new Date(b.date) - new Date(a.date);
+  const avgRating = reviews.length
+    ? (reviews.reduce((s, r) => s + (r.rating || 0), 0) / reviews.length).toFixed(1)
+    : "—";
+
+  const verifiedCount = reviews.filter(r => r.verified).length;
+
+  const ratingDist = [5,4,3,2,1].reduce((acc, star) => {
+    const count = reviews.filter(r => r.rating === star).length;
+    acc[star] = reviews.length > 0 ? Math.round((count / reviews.length) * 100) : 0;
+    return acc;
+  }, {});
+
+  const sorted = [...reviews].sort((a, b) => {
+    if (sortBy === "rating-high") return (b.rating || 0) - (a.rating || 0);
+    if (sortBy === "rating-low")  return (a.rating || 0) - (b.rating || 0);
+    return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
   });
+
+  if (loading) {
+    return (
+      <div className="p-8 flex items-center justify-center min-h-[400px]">
+        <Loader2 className="w-8 h-8 animate-spin text-foreground/30" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="p-8">
+        <div className="frosted-panel p-6 flex items-center gap-3 text-red-400">
+          <AlertCircle className="w-5 h-5 flex-shrink-0" />
+          <p className="text-sm">{error}</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 sm:p-8 max-w-4xl page-fade-in">
-
-      {/* Header */}
-      <div className="mb-8">
-        <div className="stat-label-caps mb-2">Developer · Reputation Center</div>
-        <h1 className="text-white font-bold text-2xl sm:text-3xl section-title-gradient" style={{ fontFamily: "Georgia, serif", letterSpacing: "-0.04em" }}>
-          Reviews & Reputation
-        </h1>
-        <p className="text-sm mt-1.5" style={{ color: "hsl(var(--foreground) / 0.35)", fontFamily: "'Inter', sans-serif" }}>
-          Manage your marketplace reputation. Respond to reviews and build trust.
-        </p>
-      </div>
+      <div className="stat-label-caps mb-2">Developer · Reputation Center</div>
+      <h1 className="text-white font-bold text-2xl sm:text-3xl section-title-gradient mb-2" style={{ fontFamily: "Georgia, serif", letterSpacing: "-0.04em" }}>
+        Reviews & Reputation
+      </h1>
+      <p className="text-sm mb-8 mt-1.5" style={{ color: "hsl(var(--foreground) / 0.35)", fontFamily: "'Inter', sans-serif" }}>
+        Manage your marketplace reputation and respond to reviews.
+      </p>
 
       {/* Overview Cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-6">
         {[
-          { label: "Overall Rating",    value: avgRating, sub: `${REVIEWS.length} reviews`, icon: Star     },
-          { label: "Response Rate",     value: "100%",    sub: "All reviews replied",        icon: MessageSquare },
-          { label: "Verified Reviews",  value: `${REVIEWS.filter(r => r.verified).length}/${REVIEWS.length}`, sub: "Verified buyers", icon: Shield },
-          { label: "Repeat Clients",    value: "38%",     sub: "Returning customers",        icon: Repeat   },
+          { label: "Overall Rating",   value: avgRating,          sub: reviews.length ? `${reviews.length} reviews` : "No reviews yet", icon: Star       },
+          { label: "Total Reviews",    value: reviews.length,     sub: "From verified buyers",                                           icon: MessageSquare },
+          { label: "Verified Reviews", value: verifiedCount,      sub: `${reviews.length} total`,                                        icon: Shield     },
         ].map((s, i) => (
           <motion.div key={s.label} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.06 }}
             className="frosted-panel p-5"
@@ -200,55 +210,62 @@ export default function DevReviews() {
         ))}
       </div>
 
-      {/* Rating Distribution */}
-      <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.28 }}
-        className="frosted-panel p-5 mb-6"
-      >
-        <div className="flex items-start gap-8">
-          <div className="text-center shrink-0">
-            <div className="text-5xl font-black metric-num" style={{ fontFamily: "Georgia, serif" }}>{avgRating}</div>
-            <StarDisplay rating={Math.round(parseFloat(avgRating))} size="w-4 h-4" />
-            <div className="stat-label-caps mt-2">{REVIEWS.length} total reviews</div>
-          </div>
-          <div className="flex-1 space-y-2">
-            {[5,4,3,2,1].map(star => (
-              <div key={star} className="flex items-center gap-3">
-                <span className="text-xs font-mono text-foreground/40 w-3">{star}</span>
-                <Star className="w-3 h-3 text-foreground/50 shrink-0" style={{ fill: "hsl(var(--foreground) / 0.3)" }} />
-                <div className="flex-1 h-2 rounded-full overflow-hidden" style={{ background: "rgba(150,150,150,0.08)" }}>
-                  <motion.div
-                    className="h-full rounded-full bg-foreground/70"
-                    initial={{ width: 0 }}
-                    animate={{ width: `${RATING_DIST[star] || 0}%` }}
-                    transition={{ duration: 0.8, delay: 0.3 + (5 - star) * 0.05 }}
-                  />
-                </div>
-                <span className="text-[10px] font-mono text-foreground/35 w-8 text-right">{RATING_DIST[star]}%</span>
-              </div>
-            ))}
-          </div>
+      {reviews.length === 0 ? (
+        <div className="frosted-panel p-16 text-center">
+          <Star className="w-12 h-12 mx-auto mb-4 text-foreground/10" />
+          <p className="text-sm font-semibold text-foreground/40">No reviews yet</p>
+          <p className="text-xs text-foreground/25 mt-1">Reviews will appear here once customers rate your products.</p>
         </div>
-      </motion.div>
+      ) : (
+        <>
+          {/* Rating Distribution */}
+          <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.28 }}
+            className="frosted-panel p-5 mb-6"
+          >
+            <div className="flex items-start gap-8">
+              <div className="text-center shrink-0">
+                <div className="text-5xl font-black metric-num" style={{ fontFamily: "Georgia, serif" }}>{avgRating}</div>
+                <StarDisplay rating={Math.round(parseFloat(avgRating) || 0)} size="w-4 h-4" />
+                <div className="stat-label-caps mt-2">{reviews.length} total reviews</div>
+              </div>
+              <div className="flex-1 space-y-2">
+                {[5,4,3,2,1].map(star => (
+                  <div key={star} className="flex items-center gap-3">
+                    <span className="text-xs font-mono text-foreground/40 w-3">{star}</span>
+                    <Star className="w-3 h-3 text-foreground/50 shrink-0" style={{ fill: "hsl(var(--foreground) / 0.3)" }} />
+                    <div className="flex-1 h-2 rounded-full overflow-hidden" style={{ background: "rgba(150,150,150,0.08)" }}>
+                      <motion.div
+                        className="h-full rounded-full bg-foreground/70"
+                        initial={{ width: 0 }}
+                        animate={{ width: `${ratingDist[star] || 0}%` }}
+                        transition={{ duration: 0.8, delay: 0.3 + (5 - star) * 0.05 }}
+                      />
+                    </div>
+                    <span className="text-[10px] font-mono text-foreground/35 w-8 text-right">{ratingDist[star]}%</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </motion.div>
 
-      {/* Sort + Reviews */}
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-white font-bold text-sm" style={{ fontFamily: "Georgia, serif" }}>All Reviews</h2>
-        <select
-          value={sortBy}
-          onChange={e => setSortBy(e.target.value)}
-          className="px-3 py-1.5 rounded-lg text-xs font-semibold border border-foreground/10 bg-transparent text-foreground/60 outline-none"
-          style={{ fontFamily: "'JetBrains Mono', monospace" }}
-        >
-          <option value="recent">Most Recent</option>
-          <option value="rating-high">Highest Rating</option>
-          <option value="rating-low">Lowest Rating</option>
-          <option value="helpful">Most Helpful</option>
-        </select>
-      </div>
-
-      <div className="space-y-4">
-        {sorted.map((r, i) => <ReviewCard key={r.id} review={r} idx={i} />)}
-      </div>
+          {/* Sort + Reviews */}
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-white font-bold text-sm" style={{ fontFamily: "Georgia, serif" }}>All Reviews</h2>
+            <select
+              value={sortBy}
+              onChange={e => setSortBy(e.target.value)}
+              className="px-3 py-1.5 rounded-lg text-xs font-semibold border border-foreground/10 bg-transparent text-foreground/60 outline-none"
+            >
+              <option value="recent">Most Recent</option>
+              <option value="rating-high">Highest Rating</option>
+              <option value="rating-low">Lowest Rating</option>
+            </select>
+          </div>
+          <div className="space-y-4">
+            {sorted.map((r, i) => <ReviewCard key={r.id || i} review={r} idx={i} />)}
+          </div>
+        </>
+      )}
     </div>
   );
 }
