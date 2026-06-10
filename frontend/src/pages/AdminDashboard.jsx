@@ -189,6 +189,14 @@ function ProductReviewCard({ product, onApprove, onReject, approving, rejecting 
                 <p className="text-xs text-foreground/50 leading-relaxed" style={{ fontFamily: "'Inter', sans-serif" }}>{product.description}</p>
               </div>
 
+              {/* Hosting Requirements */}
+              {product.hostingRequirements && (
+                <div>
+                  <div className="text-[10px] font-bold uppercase tracking-widest text-foreground/30 font-mono mb-2">Hosting Requirements</div>
+                  <p className="text-xs text-foreground/50 leading-relaxed font-mono" style={{ fontFamily: "'Inter', sans-serif" }}>{product.hostingRequirements}</p>
+                </div>
+              )}
+
               {/* Product Details Grid */}
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                 {[
