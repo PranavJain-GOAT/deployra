@@ -15,6 +15,10 @@ const { productSchema, productUpdateSchema } = require('../utils/schemas');
 
 const router = express.Router();
 
+// ── Developer routes (authenticated) ─────────────────────────────────────────
+// GET own products
+router.get('/my', authenticate, authorize('DEVELOPER', 'ADMIN'), getMyProducts);
+
 // ── Public routes ─────────────────────────────────────────────────────────────
 // GET approved products for marketplace (no auth required)
 router.get('/public', getPublicProducts);
@@ -33,10 +37,6 @@ router.post('/:id/view', (req, res, next) => {
     trackView(req, res, next);
   });
 });
-
-// ── Developer routes (authenticated) ─────────────────────────────────────────
-// GET own products
-router.get('/my', authenticate, authorize('DEVELOPER', 'ADMIN'), getMyProducts);
 
 // POST create product submission
 router.post('/', authenticate, authorize('DEVELOPER', 'ADMIN'), validate(productSchema), createProduct);
