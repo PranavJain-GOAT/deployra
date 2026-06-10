@@ -2,8 +2,8 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
   DollarSign, Package, ShoppingBag, TrendingUp, Star,
-  ArrowUpRight, ArrowDownRight, ChevronRight,
-  Zap, Award, RefreshCw, Repeat, Target
+  ArrowUpRight, ArrowDownRight,
+  Zap, RefreshCw
 } from "lucide-react";
 import axios from "axios";
 import { API_URL } from "@/lib/config";
@@ -189,7 +189,9 @@ export default function Dashboard() {
     return d.toDateString() === new Date().toDateString();
   }).reduce((s, o) => s + (o.pricePaid || o.amount || 0), 0);
   const pendingOrders = orders.filter(o => ["PENDING", "CONFIG_REQUESTED"].includes(o.status));
-  const deploymentSuccess = orders.length ? Math.round((orders.filter(o => o.status === "COMPLETED").length / orders.length) * 100) : 97;
+  const deploymentSuccess = orders.length
+    ? Math.round((orders.filter(o => o.status === "COMPLETED").length / orders.length) * 100)
+    : 0;
   const activeProducts = products.filter(p => p.status === "APPROVED").length;
 
   // Build monthly revenue chart from real orders (last 6 months)
@@ -252,41 +254,36 @@ export default function Dashboard() {
 
       {/* ── Stat Cards ── */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
-        <StatCard label="Revenue Today"       value={`$${revenueToday.toLocaleString()}`}  sub="Live today"         icon={DollarSign}  trend="+18%" trendUp delay={0.00} />
-        <StatCard label="Monthly Revenue"     value={`$${totalRevenue.toLocaleString()}`}   sub="This billing cycle" icon={TrendingUp}   sparkData={SPARK} delay={0.06} />
-        <StatCard label="Active Products"     value={activeProducts || products.length}      sub={`${products.length} total listed`} icon={Package} trend="+2" trendUp delay={0.12} />
-        <StatCard label="Pending Orders"      value={pendingOrders.length}                   sub="Awaiting action"    icon={ShoppingBag} trend={pendingOrders.length > 3 ? "High" : "Low"} trendUp={false} delay={0.18} />
+        <StatCard label="Revenue Today"   value={`$${revenueToday.toLocaleString()}`}  sub="Live today"          icon={DollarSign}  sparkData={SPARK} delay={0.00} />
+        <StatCard label="Monthly Revenue"  value={`$${totalRevenue.toLocaleString()}`}   sub="This billing cycle"  icon={TrendingUp}   sparkData={SPARK} delay={0.06} />
+        <StatCard label="Active Products"  value={activeProducts || products.length}      sub={`${products.length} total listed`} icon={Package} delay={0.12} />
+        <StatCard label="Pending Orders"   value={pendingOrders.length}                   sub="Awaiting action"     icon={ShoppingBag} delay={0.18} />
       </div>
 
       {/* ── Secondary Metrics ── */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
-        <StatCard label="Deployment Success"  value={`${deploymentSuccess}%`}  sub="Success rate"      icon={Zap}    trend="+2.4%" trendUp delay={0.24} />
-        <StatCard label="Marketplace Rank"    value="#12"                        sub="Global ranking"    icon={Award}  trend="↑5"   trendUp delay={0.30} />
-        <StatCard label="Repeat Customers"    value="38%"                        sub="Retention rate"    icon={Repeat} trend="+6%"  trendUp delay={0.36} />
-        <StatCard label="Avg Review Score"    value="4.8"                        sub="From all reviews"  icon={Star}   sparkData={[4.5,4.6,4.7,4.7,4.8,4.8]} delay={0.42} />
+      <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 mb-6">
+        <StatCard
+          label="Deployment Success"
+          value={orders.length ? `${deploymentSuccess}%` : "—"}
+          sub={orders.length ? "Success rate" : "No orders yet"}
+          icon={Zap}
+          delay={0.24}
+        />
+        <StatCard
+          label="Total Orders"
+          value={orders.length}
+          sub="All time"
+          icon={ShoppingBag}
+          delay={0.30}
+        />
+        <StatCard
+          label="Avg Review Score"
+          value={products.some(p => p.rating) ? (products.reduce((s, p) => s + (p.rating || 0), 0) / products.filter(p => p.rating).length).toFixed(1) : "—"}
+          sub={products.some(p => p.rating) ? "From all reviews" : "No reviews yet"}
+          icon={Star}
+          delay={0.36}
+        />
       </div>
-
-      {/* ── Marketplace Rank Banner ── */}
-      <motion.div
-        initial={{ opacity: 0, y: 8 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.5 }}
-        className="frosted-panel p-4 mb-6 flex items-center gap-4"
-      >
-        <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: "rgba(150,150,150,0.1)", border: "0.5px solid rgba(150,150,150,0.2)" }}>
-          <Target className="w-5 h-5 text-foreground" />
-        </div>
-        <div className="flex-1">
-          <div className="flex items-center gap-2 mb-0.5">
-            <span className="text-white font-semibold text-sm">Marketplace Standing</span>
-            <span className="premium-badge premium-badge-monochrome">Top 5%</span>
-          </div>
-          <p className="text-xs" style={{ color: "hsl(var(--foreground) / 0.35)" }}>
-            Your products rank in the <strong className="text-foreground">Top 5%</strong> of all Deployra developers. Conversion rate is <strong className="text-foreground">3.2×</strong> above average.
-          </p>
-        </div>
-        <ChevronRight className="w-4 h-4 text-foreground/15 shrink-0" />
-      </motion.div>
 
       {/* ── Main Two-Column ── */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-8">
@@ -349,35 +346,10 @@ export default function Dashboard() {
             <h2 className="text-white font-bold text-sm" style={{ fontFamily: "Georgia, serif" }}>Recent Reviews</h2>
             <span className="premium-badge premium-badge-monochrome">Live</span>
           </div>
-          <div className="space-y-3">
-            {[
-              { name: "Sarah M.", product: "AI Support Agent", rating: 5, comment: "Deployed in under 10 minutes. Incredible ROI immediately.", time: "2h ago" },
-              { name: "Tech Corp", product: "Data Extractor",  rating: 4, comment: "Reliable extraction. Solid documentation.", time: "5h ago" },
-              { name: "VC Fund",   product: "Analytics Suite", rating: 5, comment: "Best enterprise tool on Deployra. Period.", time: "1d ago" },
-            ].map((r, i) => (
-              <div key={i} className="p-3 rounded-xl" style={{ background: "hsl(var(--foreground) / 0.03)", border: "0.5px solid hsl(var(--foreground) / 0.06)" }}>
-                <div className="flex items-center justify-between mb-1.5">
-                  <div className="flex items-center gap-1.5">
-                    <div className="w-6 h-6 rounded-full flex items-center justify-center text-[9px] font-black text-background bg-foreground shrink-0">
-                      {r.name[0]}
-                    </div>
-                    <span className="text-xs font-semibold text-foreground">{r.name}</span>
-                  </div>
-                  <div className="flex items-center gap-0.5">
-                    {[1,2,3,4,5].map(s => (
-                      <Star key={s} className="w-2.5 h-2.5" style={{ color: s <= r.rating ? "hsl(var(--foreground))" : "rgba(150,150,150,0.15)", fill: s <= r.rating ? "hsl(var(--foreground))" : "none" }} />
-                    ))}
-                  </div>
-                </div>
-                <p className="text-[11px] text-foreground/60 leading-relaxed mb-1" style={{ fontFamily: "'Inter', sans-serif" }}>
-                  "{r.comment}"
-                </p>
-                <div className="flex items-center justify-between">
-                  <span className="text-[9px] text-foreground/25 font-mono">{r.product}</span>
-                  <span className="text-[9px] text-foreground/25 font-mono">{r.time}</span>
-                </div>
-              </div>
-            ))}
+          <div className="text-center py-10">
+            <Star className="w-8 h-8 mx-auto mb-3 text-foreground/15" />
+            <p className="text-sm font-semibold text-foreground/40" style={{ fontFamily: "'Inter', sans-serif" }}>No reviews yet</p>
+            <p className="text-xs text-foreground/25 mt-1">Reviews will appear here once customers rate your products.</p>
           </div>
         </motion.div>
       </div>
