@@ -88,27 +88,51 @@ const getMyProducts = async (req, res, next) => {
       },
     });
 
-    // Compute real analytics per product
-    const enriched = await Promise.all(products.map(async (p) => {
-      const revenue = await prisma.purchase.aggregate({
-        where: { productId: p.id, status: 'COMPLETED' },
-        _sum: { pricePaid: true },
-      });
-      const avgRating = await prisma.review.aggregate({
-        where: { productId: p.id },
-        _avg: { rating: true },
-      });
+    if (products.length === 0) {
+      return res.status(200).json({ success: true, data: [] });
+    }
+
+    const productIds = products.map(p => p.id);
+
+    // Grouped revenue query to avoid N+1 queries
+    const revenues = await prisma.purchase.groupBy({
+      by: ['productId'],
+      where: { productId: { in: productIds }, status: 'COMPLETED' },
+      _sum: { pricePaid: true },
+    });
+
+    // Grouped ratings query to avoid N+1 queries
+    const avgRatings = await prisma.review.groupBy({
+      by: ['productId'],
+      where: { productId: { in: productIds } },
+      _avg: { rating: true },
+    });
+
+    // Create lookup maps
+    const revenueMap = {};
+    revenues.forEach(r => {
+      revenueMap[r.productId] = r._sum.pricePaid || 0;
+    });
+
+    const ratingMap = {};
+    avgRatings.forEach(r => {
+      ratingMap[r.productId] = r._avg.rating || 0;
+    });
+
+    const enriched = products.map((p) => {
+      const revenue = revenueMap[p.id] || 0;
+      const rating = ratingMap[p.id] || 0;
       return {
         ...p,
         configSchema: p.configSchema ? safeJson(p.configSchema) : null,
-        revenue: revenue._sum.pricePaid || 0,
+        revenue,
         orders: p._count.purchases,
         views: p._count.views,
         reviewCount: p._count.reviews,
-        rating: avgRating._avg.rating ? parseFloat(avgRating._avg.rating.toFixed(1)) : 0,
+        rating: rating ? parseFloat(rating.toFixed(1)) : 0,
         verificationStatus: p.status,
       };
-    }));
+    });
 
     return res.status(200).json({ success: true, data: enriched });
   } catch (error) {
@@ -145,21 +169,37 @@ const getPublicProducts = async (req, res, next) => {
       },
     });
 
-    const enriched = await Promise.all(products.map(async (p) => {
-      const avgRating = await prisma.review.aggregate({
-        where: { productId: p.id },
-        _avg: { rating: true },
-      });
+    if (products.length === 0) {
+      return res.status(200).json({ success: true, data: [] });
+    }
+
+    const productIds = products.map(p => p.id);
+
+    // Grouped ratings query to avoid N+1 queries
+    const avgRatings = await prisma.review.groupBy({
+      by: ['productId'],
+      where: { productId: { in: productIds } },
+      _avg: { rating: true },
+    });
+
+    // Create lookup map
+    const ratingMap = {};
+    avgRatings.forEach(r => {
+      ratingMap[r.productId] = r._avg.rating || 0;
+    });
+
+    const enriched = products.map((p) => {
+      const rating = ratingMap[p.id] || 0;
       return {
         ...p,
         configSchema: undefined, // don't expose config schema publicly
         installs: p._count.purchases,
         reviews: p._count.reviews,
-        rating: avgRating._avg.rating ? parseFloat(avgRating._avg.rating.toFixed(1)) : 0,
+        rating: rating ? parseFloat(rating.toFixed(1)) : 0,
         vendor: p.developer?.name || 'Unknown',
         verified: true,
       };
-    }));
+    });
 
     return res.status(200).json({ success: true, data: enriched });
   } catch (error) {

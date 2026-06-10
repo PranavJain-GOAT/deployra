@@ -9,6 +9,9 @@ const routes = require('./routes');
 
 const app = express();
 
+// Trust proxy for express-rate-limit behind Render load balancer
+app.set('trust proxy', 1);
+
 // Custom lightweight cookie parser middleware (avoids external dependency bloat)
 app.use((req, res, next) => {
   const cookieHeader = req.headers.cookie;
