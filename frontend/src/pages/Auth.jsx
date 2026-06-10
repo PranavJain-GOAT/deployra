@@ -211,11 +211,14 @@ export default function Auth() {
     }
   };
 
-  const RoleCard = ({ id, icon: Icon, title, desc }) => (
+  const RoleCard = ({ id, icon: Icon, title, desc, destination }) => (
     <button
       type="button"
-      onClick={() => setForm(p => ({ ...p, role: id }))}
-      className={`relative flex flex-col items-center justify-center p-8 rounded-2xl border-2 transition-all duration-300 group ${
+      onClick={() => {
+        setForm(p => ({ ...p, role: id }));
+        navigate(destination);
+      }}
+      className={`relative flex flex-col items-center justify-center p-8 rounded-2xl border-2 transition-all duration-300 group hover:scale-[1.02] ${
         form.role === id 
           ? "border-[#108a00] bg-[#f4fbf4] dark:bg-[#071607] ring-1 ring-[#108a00]" 
           : "border-gray-200 dark:border-gray-800 bg-white dark:bg-[#0b0f19] hover:border-gray-300 dark:hover:border-gray-700"
@@ -272,24 +275,19 @@ export default function Auth() {
                     id="client" 
                     icon={Briefcase} 
                     title="Client" 
-                    desc="Post projects and hire world-class AI developers" 
+                    desc="Post projects and hire world-class AI developers"
+                    destination="/client"
                   />
                   <RoleCard 
                     id="developer" 
                     icon={Code2} 
                     title="Freelancer" 
-                    desc="Work and get paid for your AI expertise" 
+                    desc="Work and get paid for your AI expertise"
+                    destination="/developer"
                   />
                 </div>
 
-                <div className="space-y-6">
-                  <Button
-                    onClick={() => setStep(2)}
-                    className="h-13 px-14 rounded-full bg-gray-950 text-white font-bold text-base hover:bg-gray-800 transition-all dark:bg-white dark:text-gray-950 dark:hover:bg-gray-100 shadow-xl min-w-[260px]"
-                  >
-                    {form.role === 'client' ? 'Join as a Client' : 'Apply as a Freelancer'}
-                  </Button>
-                  
+                <div className="space-y-6">                  
                   <p className="text-gray-500 dark:text-gray-400 font-medium">
                     Already have an account?{" "}
                     <button 
