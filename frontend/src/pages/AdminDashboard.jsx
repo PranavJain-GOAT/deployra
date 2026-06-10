@@ -209,33 +209,53 @@ function ProductReviewCard({ product, onApprove, onReject, approving, rejecting 
                 ))}
               </div>
 
-              {/* Tags & Features */}
-              {(product.tags?.length > 0 || product.features?.length > 0) && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {product.tags?.length > 0 && (
-                    <div>
-                      <div className="text-[10px] font-bold uppercase tracking-widest text-foreground/30 font-mono mb-2">Tags</div>
-                      <div className="flex flex-wrap gap-1.5">
-                        {product.tags.map(t => (
-                          <span key={t} className="text-[9px] font-mono px-2 py-0.5 rounded-md bg-foreground/5 text-foreground/40 border border-foreground/8">{t}</span>
-                        ))}
-                      </div>
+              {/* Tags, Features, Industries, Requirements */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {product.tags?.length > 0 && (
+                  <div>
+                    <div className="text-[10px] font-bold uppercase tracking-widest text-foreground/30 font-mono mb-2">Tags</div>
+                    <div className="flex flex-wrap gap-1.5">
+                      {product.tags.map(t => (
+                        <span key={t} className="text-[9px] font-mono px-2 py-0.5 rounded-md bg-foreground/5 text-foreground/40 border border-foreground/8">{t}</span>
+                      ))}
                     </div>
-                  )}
-                  {product.features?.length > 0 && (
-                    <div>
-                      <div className="text-[10px] font-bold uppercase tracking-widest text-foreground/30 font-mono mb-2">Features</div>
-                      <ul className="space-y-1">
-                        {product.features.slice(0, 6).map((f, i) => (
-                          <li key={i} className="flex items-center gap-1.5 text-[11px] text-foreground/50" style={{ fontFamily: "'Inter', sans-serif" }}>
-                            <CheckCircle className="w-2.5 h-2.5 text-emerald-400 shrink-0" /> {f}
-                          </li>
-                        ))}
-                      </ul>
+                  </div>
+                )}
+                {product.features?.length > 0 && (
+                  <div>
+                    <div className="text-[10px] font-bold uppercase tracking-widest text-foreground/30 font-mono mb-2">Features</div>
+                    <ul className="space-y-1">
+                      {product.features.map((f, i) => (
+                        <li key={i} className="flex items-center gap-1.5 text-[11px] text-foreground/50" style={{ fontFamily: "'Inter', sans-serif" }}>
+                          <CheckCircle className="w-2.5 h-2.5 text-emerald-400 shrink-0" /> {f}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                {product.industries?.length > 0 && (
+                  <div>
+                    <div className="text-[10px] font-bold uppercase tracking-widest text-foreground/30 font-mono mb-2">Industries</div>
+                    <div className="flex flex-wrap gap-1.5">
+                      {product.industries.map(ind => (
+                        <span key={ind} className="text-[9px] font-mono px-2 py-0.5 rounded-md bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">{ind}</span>
+                      ))}
                     </div>
-                  )}
-                </div>
-              )}
+                  </div>
+                )}
+                {product.requirements?.length > 0 && (
+                  <div>
+                    <div className="text-[10px] font-bold uppercase tracking-widest text-foreground/30 font-mono mb-2">Requirements</div>
+                    <ul className="space-y-1">
+                      {product.requirements.map((reqItem, i) => (
+                        <li key={i} className="flex items-center gap-1.5 text-[11px] text-foreground/50" style={{ fontFamily: "'Inter', sans-serif" }}>
+                          <AlertCircle className="w-2.5 h-2.5 text-indigo-400 shrink-0" /> {reqItem}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
 
               {/* Developer Info */}
               <div className="p-4 rounded-xl" style={{ background: "rgba(150,150,150,0.03)", border: "0.5px solid rgba(150,150,150,0.08)" }}>
@@ -278,6 +298,35 @@ function ProductReviewCard({ product, onApprove, onReject, approving, rejecting 
                       </tbody>
                     </table>
                   </div>
+                </div>
+              )}
+
+              {/* Cover Image & Video URL */}
+              {(product.coverImage || product.videoUrl) && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {product.coverImage && (
+                    <div>
+                      <div className="text-[10px] font-bold uppercase tracking-widest text-foreground/30 font-mono mb-2">Cover Image</div>
+                      <a href={product.coverImage} target="_blank" rel="noopener noreferrer">
+                        <img src={product.coverImage} alt="Cover" className="w-full max-w-sm h-32 object-cover rounded-xl border border-border hover:opacity-90 transition-opacity" />
+                      </a>
+                    </div>
+                  )}
+                  {product.videoUrl && (
+                    <div>
+                      <div className="text-[10px] font-bold uppercase tracking-widest text-foreground/30 font-mono mb-2">Video URL</div>
+                      <div className="p-4 rounded-xl flex items-center justify-between" style={{ background: "rgba(150,150,150,0.03)", border: "0.5px solid rgba(150,150,150,0.08)" }}>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-xs font-semibold text-foreground/70" style={{ fontFamily: "'Inter', sans-serif" }}>Video Link Available</p>
+                          <p className="text-[10px] text-foreground/40 font-mono truncate max-w-[200px]">{product.videoUrl}</p>
+                        </div>
+                        <a href={product.videoUrl} target="_blank" rel="noopener noreferrer"
+                          className="px-4 py-2 rounded-lg bg-foreground text-background text-xs font-bold hover:bg-foreground/90 transition-colors shrink-0">
+                          Watch Video
+                        </a>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
 

@@ -364,23 +364,6 @@ const sendProductSubmissionNotification = async (adminEmail, product, developer)
   const subject = `[Deployra] New Product Submission Requires Review`;
   const submittedAt = new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', dateStyle: 'full', timeStyle: 'short' });
 
-  const configFields = (() => {
-    try { return product.configSchema ? JSON.parse(product.configSchema) : []; } catch { return []; }
-  })();
-
-  const configRows = configFields.length > 0
-    ? configFields.map(f => `
-        <tr>
-          <td style="padding:6px 12px;font-family:'Inter',Arial,sans-serif;font-size:12px;color:#aaaaaa;border-bottom:1px solid #1e1e1e;">${f.label || 'Untitled'}</td>
-          <td style="padding:6px 12px;font-family:'Inter',Arial,sans-serif;font-size:12px;color:#888888;border-bottom:1px solid #1e1e1e;">${f.type}</td>
-          <td style="padding:6px 12px;font-family:'Inter',Arial,sans-serif;font-size:12px;color:#888888;border-bottom:1px solid #1e1e1e;">${f.required ? 'Required' : 'Optional'}</td>
-        </tr>`).join('')
-    : `<tr><td colspan="3" style="padding:10px 12px;font-family:'Inter',Arial,sans-serif;font-size:12px;color:#555555;text-align:center;">No config fields defined</td></tr>`;
-
-  const screenshotPreviews = (product.screenshots || []).slice(0, 3).map(url =>
-    `<a href="${url}" style="display:inline-block;margin:4px;"><img src="${url}" width="120" height="80" style="object-fit:cover;border-radius:6px;border:1px solid #2a2a2a;" /></a>`
-  ).join('');
-
   const content = `
     <div style="display:inline-flex;align-items:center;gap:10px;background:#f59e0b18;border:1px solid #f59e0b40;border-radius:12px;padding:12px 20px;margin-bottom:24px;">
       <span style="font-size:22px;">🔔</span>
@@ -391,66 +374,11 @@ const sendProductSubmissionNotification = async (adminEmail, product, developer)
     </div>
 
     <h1 style="font-family:'Inter',Arial,sans-serif;font-size:24px;font-weight:700;color:#ffffff;margin:0 0 4px;letter-spacing:-0.5px;">${product.title}</h1>
-    <p style="font-family:'Inter',Arial,sans-serif;font-size:14px;color:#888888;margin:0 0 28px;">${product.shortDesc || product.description?.slice(0, 120) + '...'}</p>
+    <p style="font-family:'Inter',Arial,sans-serif;font-size:14px;color:#888888;margin:0 0 28px;">Submitted by ${developer?.name || 'Unknown Developer'} (${developer?.email || 'No Email'}).</p>
 
-    <!-- Product Details Grid -->
-    <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background:#161616;border:1px solid #2a2a2a;border-radius:14px;margin-bottom:24px;overflow:hidden;">
-      <tr style="background:#1a1a1a;border-bottom:1px solid #222;">
-        <td colspan="2" style="padding:12px 20px;font-family:'Inter',Arial,sans-serif;font-size:11px;font-weight:700;color:#555555;text-transform:uppercase;letter-spacing:0.1em;">Product Details</td>
-      </tr>
-      ${[
-        ['Category', product.category || '—'],
-        ['Price', `₹${Number(product.price).toLocaleString('en-IN')}`],
-        ['Delivery Time', `${product.deliveryDays || 7} days`],
-        ['Support Duration', product.support || '—'],
-        ['Deployment Method', product.deploymentMethod || '—'],
-        ['Demo URL', product.demoUrl ? `<a href="${product.demoUrl}" style="color:#108a00;">${product.demoUrl}</a>` : '—'],
-        ['Documentation', product.docsUrl ? `<a href="${product.docsUrl}" style="color:#108a00;">${product.docsUrl}</a>` : '—'],
-        ['Tags', (product.tags || []).join(', ') || '—'],
-        ['Features', (product.features || []).slice(0, 5).join(', ') || '—'],
-      ].map(([label, value], i) => `
-        <tr style="${i % 2 === 0 ? 'background:#161616;' : 'background:#181818;'}">
-          <td style="padding:10px 20px;font-family:'Inter',Arial,sans-serif;font-size:12px;font-weight:600;color:#666666;width:180px;">${label}</td>
-          <td style="padding:10px 20px;font-family:'Inter',Arial,sans-serif;font-size:12px;color:#cccccc;">${value}</td>
-        </tr>`).join('')}
-    </table>
-
-    <!-- Developer Details -->
-    <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background:#161616;border:1px solid #2a2a2a;border-radius:14px;margin-bottom:24px;overflow:hidden;">
-      <tr style="background:#1a1a1a;border-bottom:1px solid #222;">
-        <td colspan="2" style="padding:12px 20px;font-family:'Inter',Arial,sans-serif;font-size:11px;font-weight:700;color:#555555;text-transform:uppercase;letter-spacing:0.1em;">Developer Information</td>
-      </tr>
-      ${[
-        ['Name', developer?.name || '—'],
-        ['Email', developer?.email || '—'],
-        ['Developer ID', developer?.id || '—'],
-      ].map(([label, value], i) => `
-        <tr style="${i % 2 === 0 ? 'background:#161616;' : 'background:#181818;'}">
-          <td style="padding:10px 20px;font-family:'Inter',Arial,sans-serif;font-size:12px;font-weight:600;color:#666666;width:180px;">${label}</td>
-          <td style="padding:10px 20px;font-family:'Inter',Arial,sans-serif;font-size:12px;color:#cccccc;">${value}</td>
-        </tr>`).join('')}
-    </table>
-
-    <!-- Screenshots -->
-    ${screenshotPreviews ? `
-    <p style="font-family:'Inter',Arial,sans-serif;font-size:11px;font-weight:700;color:#555555;text-transform:uppercase;letter-spacing:0.1em;margin:0 0 10px;">Screenshots</p>
-    <div style="margin-bottom:24px;">${screenshotPreviews}</div>` : ''}
-
-    <!-- Config Schema -->
-    <table border="0" cellpadding="0" cellspacing="0" width="100%" style="background:#161616;border:1px solid #2a2a2a;border-radius:14px;margin-bottom:28px;overflow:hidden;">
-      <tr style="background:#1a1a1a;border-bottom:1px solid #222;">
-        <td style="padding:12px 20px;font-family:'Inter',Arial,sans-serif;font-size:11px;font-weight:700;color:#555555;text-transform:uppercase;letter-spacing:0.1em;">Config Builder Schema (${configFields.length} fields)</td>
-        <td style="padding:12px 20px;font-family:'Inter',Arial,sans-serif;font-size:11px;font-weight:700;color:#555555;text-transform:uppercase;letter-spacing:0.1em;text-align:right;">TYPE</td>
-        <td style="padding:12px 20px;font-family:'Inter',Arial,sans-serif;font-size:11px;font-weight:700;color:#555555;text-transform:uppercase;letter-spacing:0.1em;text-align:right;">REQUIRED</td>
-      </tr>
-      ${configRows}
-    </table>
-
-    <!-- Full Description -->
-    <p style="font-family:'Inter',Arial,sans-serif;font-size:11px;font-weight:700;color:#555555;text-transform:uppercase;letter-spacing:0.1em;margin:0 0 10px;">Full Description</p>
-    <div style="background:#161616;border:1px solid #2a2a2a;border-radius:12px;padding:16px 20px;margin-bottom:28px;">
-      <p style="font-family:'Inter',Arial,sans-serif;font-size:13px;color:#aaaaaa;margin:0;line-height:1.7;">${product.description}</p>
-    </div>
+    <p style="font-family:'Inter',Arial,sans-serif;font-size:14px;color:#cccccc;line-height:1.6;margin-bottom:28px;">
+      A new product has been submitted to Deployra and requires your verification. You can view the complete product details, review configuration schemas, and approve or reject it from the Admin Review Center.
+    </p>
 
     ${primaryButton('https://deployra.vercel.app/admin', '→ Open Admin Review Center')}
 

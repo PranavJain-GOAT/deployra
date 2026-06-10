@@ -10,6 +10,8 @@ const {
   trackView,
   getProductAnalytics,
 } = require('../controllers/product.controller');
+const { validate } = require('../middleware/validate');
+const { productSchema, productUpdateSchema } = require('../utils/schemas');
 
 const router = express.Router();
 
@@ -37,10 +39,10 @@ router.post('/:id/view', (req, res, next) => {
 router.get('/my', authenticate, authorize('DEVELOPER', 'ADMIN'), getMyProducts);
 
 // POST create product submission
-router.post('/', authenticate, authorize('DEVELOPER', 'ADMIN'), createProduct);
+router.post('/', authenticate, authorize('DEVELOPER', 'ADMIN'), validate(productSchema), createProduct);
 
 // PATCH update own product
-router.patch('/:id', authenticate, authorize('DEVELOPER', 'ADMIN'), updateProduct);
+router.patch('/:id', authenticate, authorize('DEVELOPER', 'ADMIN'), validate(productUpdateSchema), updateProduct);
 
 // DELETE own product
 router.delete('/:id', authenticate, authorize('DEVELOPER', 'ADMIN'), deleteProduct);
