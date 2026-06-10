@@ -71,7 +71,7 @@ export default function DevVerification() {
   const [resubmitting, setResubmitting] = useState(null);
 
   useEffect(() => {
-    const token = localStorage.getItem("accessToken");
+    const token = localStorage.getItem("auth_token");
     const headers = token ? { Authorization: `Bearer ${token}` } : {};
     axios.get(`${API_URL}/products/my`, { withCredentials: true, headers })
       .then(res => setProducts(Array.isArray(res.data?.data) ? res.data.data : res.data?.products || []))
@@ -81,7 +81,7 @@ export default function DevVerification() {
 
   const handleResubmit = async (id) => {
     setResubmitting(id);
-    const token = localStorage.getItem("accessToken");
+    const token = localStorage.getItem("auth_token");
     try {
       await axios.post(`${API_URL}/products/${id}/resubmit`, {}, {
         headers: token ? { Authorization: `Bearer ${token}` } : {}

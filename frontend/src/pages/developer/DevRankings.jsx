@@ -12,7 +12,7 @@ export default function DevRankings() {
   const [sortBy,   setSortBy]   = useState("revenue");
 
   useEffect(() => {
-    const token = localStorage.getItem("accessToken");
+    const token = localStorage.getItem("auth_token");
     const headers = token ? { Authorization: `Bearer ${token}` } : {};
     Promise.all([
       axios.get(`${API_URL}/products/my`, { withCredentials: true, headers }).catch(() => ({ data: { data: [] } })),

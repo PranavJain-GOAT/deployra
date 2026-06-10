@@ -90,7 +90,7 @@ function ReviewModal({ order, onClose, onSubmit }) {
   const handleSubmit = async () => {
     if (!rating) return;
     setSubmitting(true);
-    const token = localStorage.getItem("accessToken");
+    const token = localStorage.getItem("auth_token");
     try {
       await axios.post(`${API_URL}/reviews`, {
         orderId: order.id,
@@ -169,7 +169,7 @@ function OrderCard({ order, idx, onUpdate }) {
 
   const handleApprove = async () => {
     setProcessing(true);
-    const token = localStorage.getItem("accessToken");
+    const token = localStorage.getItem("auth_token");
     try {
       await axios.post(`${API_URL}/orders/${order.id}/approve`, {}, {
         withCredentials: true,
@@ -188,7 +188,7 @@ function OrderCard({ order, idx, onUpdate }) {
   const handleRevision = async () => {
     if (!revisionNote.trim()) return;
     setProcessing(true);
-    const token = localStorage.getItem("accessToken");
+    const token = localStorage.getItem("auth_token");
     try {
       await axios.post(`${API_URL}/orders/${order.id}/revision`, { note: revisionNote }, {
         withCredentials: true,
@@ -426,7 +426,7 @@ export default function ClientOrders() {
 
   const fetchOrders = useCallback(async () => {
     setLoading(true);
-    const token = localStorage.getItem("accessToken");
+    const token = localStorage.getItem("auth_token");
     try {
       const res = await axios.get(`${API_URL}/orders/my`, {
         withCredentials: true,

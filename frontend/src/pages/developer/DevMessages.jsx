@@ -37,7 +37,7 @@ export default function DevMessages() {
 
   // Fetch conversations from backend
   useEffect(() => {
-    const token = localStorage.getItem("accessToken");
+    const token = localStorage.getItem("auth_token");
     const headers = token ? { Authorization: `Bearer ${token}` } : {};
 
     // Get current user first
@@ -59,7 +59,7 @@ export default function DevMessages() {
   useEffect(() => {
     if (!activeId) return;
     setMsgLoading(true);
-    const token = localStorage.getItem("accessToken");
+    const token = localStorage.getItem("auth_token");
     const headers = token ? { Authorization: `Bearer ${token}` } : {};
     axios.get(`${API_URL}/messages/${activeId}`, { withCredentials: true, headers })
       .then(res => setMessages(Array.isArray(res.data?.data) ? res.data.data : []))
@@ -75,7 +75,7 @@ export default function DevMessages() {
     if (!input.trim() || !activeId) return;
     const text = input.trim();
     setInput("");
-    const token = localStorage.getItem("accessToken");
+    const token = localStorage.getItem("auth_token");
     const headers = token ? { Authorization: `Bearer ${token}` } : {};
     try {
       const res = await axios.post(`${API_URL}/messages/${activeId}`,

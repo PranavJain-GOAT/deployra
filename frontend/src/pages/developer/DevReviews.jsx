@@ -27,7 +27,7 @@ function ReviewCard({ review, idx }) {
     if (!reply.trim()) return;
     setSubmitting(true);
     try {
-      const token = localStorage.getItem("accessToken");
+      const token = localStorage.getItem("auth_token");
       await axios.post(`${API_URL}/reviews/${review.id}/reply`, { reply }, {
         headers: token ? { Authorization: `Bearer ${token}` } : {}
       });
@@ -135,7 +135,7 @@ export default function DevReviews() {
   const [sortBy,  setSortBy]    = useState("recent");
 
   useEffect(() => {
-    const token = localStorage.getItem("accessToken");
+    const token = localStorage.getItem("auth_token");
     const headers = token ? { Authorization: `Bearer ${token}` } : {};
     axios.get(`${API_URL}/reviews/my`, { withCredentials: true, headers })
       .then(res => setReviews(Array.isArray(res.data?.data) ? res.data.data : []))

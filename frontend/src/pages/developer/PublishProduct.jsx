@@ -920,7 +920,7 @@ export default function PublishProduct() {
     setSubmitting(true);
     setSubmitError("");
     try {
-      const token = localStorage.getItem("accessToken");
+      const token = localStorage.getItem("auth_token");
       const headers = token ? { Authorization: `Bearer ${token}` } : {};
       await axios.post(`${API_URL}/products`, {
         ...form,

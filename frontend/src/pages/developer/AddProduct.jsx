@@ -53,7 +53,7 @@ export default function AddProduct() {
     // Load existing product if editing
     useEffect(() => {
         if (!isEdit) return;
-        const token = localStorage.getItem("accessToken");
+        const token = localStorage.getItem("auth_token");
         axios.get(`${API_URL}/products/${id}`, {
             withCredentials: true,
             headers: token ? { Authorization: `Bearer ${token}` } : {}
@@ -106,7 +106,7 @@ export default function AddProduct() {
         setError("");
         setSaving(true);
 
-        const token = localStorage.getItem("accessToken");
+        const token = localStorage.getItem("auth_token");
         const headers = token ? { Authorization: `Bearer ${token}` } : {};
 
         const payload = {

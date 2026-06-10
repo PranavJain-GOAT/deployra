@@ -32,7 +32,7 @@ export default function ClientMessages() {
   const bottomRef = useRef(null);
 
   useEffect(() => {
-    const token = localStorage.getItem("accessToken");
+    const token = localStorage.getItem("auth_token");
     const headers = token ? { Authorization: `Bearer ${token}` } : {};
 
     axios.get(`${API_URL}/users/me`, { withCredentials: true, headers })
@@ -52,7 +52,7 @@ export default function ClientMessages() {
   useEffect(() => {
     if (!activeId) return;
     setMsgLoading(true);
-    const token = localStorage.getItem("accessToken");
+    const token = localStorage.getItem("auth_token");
     axios.get(`${API_URL}/messages/${activeId}`, {
       withCredentials: true,
       headers: token ? { Authorization: `Bearer ${token}` } : {}
@@ -70,7 +70,7 @@ export default function ClientMessages() {
     if (!input.trim() || !activeId) return;
     const text = input.trim();
     setInput("");
-    const token = localStorage.getItem("accessToken");
+    const token = localStorage.getItem("auth_token");
     try {
       const res = await axios.post(`${API_URL}/messages/${activeId}`,
         { content: text },

@@ -204,10 +204,13 @@ export default function Listings() {
   useEffect(() => {
     const load = async () => {
       try {
-        const res = await axios.get(`${API_URL}/products/my`);
+        const token = localStorage.getItem("auth_token");
+        const headers = token ? { Authorization: `Bearer ${token}` } : {};
+        const res = await axios.get(`${API_URL}/products/my`, { withCredentials: true, headers });
         const data = res.data?.data || [];
         setListings(data);
-      } catch {
+      } catch (err) {
+        console.error("Failed to fetch listings:", err);
         setListings([]);
       }
       setLoading(false);

@@ -417,7 +417,7 @@ export default function DevOrders() {
   useEffect(() => {
     const load = async () => {
       try {
-        const token = localStorage.getItem("accessToken");
+        const token = localStorage.getItem("auth_token");
         const headers = token ? { Authorization: `Bearer ${token}` } : {};
         const res = await axios.get(`${API_URL}/orders/my`, {
           withCredentials: true,

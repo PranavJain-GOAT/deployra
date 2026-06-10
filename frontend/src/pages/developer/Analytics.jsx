@@ -34,7 +34,7 @@ export default function Analytics() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    const token = localStorage.getItem("accessToken");
+    const token = localStorage.getItem("auth_token");
     const headers = token ? { Authorization: `Bearer ${token}` } : {};
     axios.get(`${API_URL}/orders/my`, { withCredentials: true, headers })
       .then(res => setOrders(Array.isArray(res.data?.data) ? res.data.data : []))
