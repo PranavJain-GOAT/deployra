@@ -50,8 +50,18 @@ export default function InstallFlow() {
   const type = urlParams.get("type") || "instant";
 
   useEffect(() => {
-    setTimeout(() => {
+    const loadProduct = async () => {
       if (type === "instant") {
+        try {
+          const res = await axios.get(`${API_URL}/products/${id}`);
+          if (res.data?.success && res.data?.data) {
+            setProduct(res.data.data);
+            setLoading(false);
+            return;
+          }
+        } catch (err) {
+          console.error("Failed to fetch product from backend, trying mock fallback...", err.message);
+        }
         const found = MOCK_PRODUCTS.find(p => p.id === id);
         setProduct(found || null);
       } else {
@@ -59,7 +69,9 @@ export default function InstallFlow() {
         setProduct(found || null);
       }
       setLoading(false);
-    }, 400);
+    };
+
+    loadProduct();
   }, [id, type]);
 
   const handleRazorpayCheckout = async () => {

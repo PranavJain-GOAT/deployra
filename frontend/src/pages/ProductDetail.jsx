@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { MOCK_PRODUCTS } from "@/api/mockData";
+import axios from "axios";
+import { API_URL } from "@/lib/config";
 import { Check, X, Clock, Users, Play, CreditCard, Shield, Loader2, ChevronLeft, Zap, Activity, ArrowUpRight, ListChecks, LifeBuoy } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import confetti from "canvas-confetti";
@@ -33,10 +35,50 @@ export default function ProductDetail() {
   const [cardData, setCardData] = useState({ name: "", number: "", expiry: "", cvc: "" });
 
   useEffect(() => {
-    // Use mock data directly - no API needed
-    const found = MOCK_PRODUCTS.find((p) => p.id === id);
-    setProduct(found || null);
-    setLoading(false);
+    const loadProduct = async () => {
+      try {
+        const res = await axios.get(`${API_URL}/products/${id}`);
+        if (res.data?.success && res.data?.data) {
+          const p = res.data.data;
+          setProduct({
+            id: p.id,
+            title: p.title,
+            plain_english: p.shortDesc || p.description?.slice(0, 100),
+            description: p.description,
+            price: p.price,
+            category: p.category || 'Other',
+            rating: p.rating || 5.0,
+            reviews_count: p.reviewCount || p.reviews || 0,
+            installs_count: p.installs || 0,
+            setup_time: p.deliveryDays ? `${p.deliveryDays} days` : '—',
+            status: 'active',
+            badge: p.featured ? 'Featured' : undefined,
+            image_url: p.coverImage || undefined,
+            demo_url: p.demoUrl || undefined,
+            features: p.features || [],
+            what_it_does: p.shortDesc || p.description,
+            who_its_for: p.industries || [],
+            whats_included: p.requirements || [],
+            whats_not_included: [],
+            how_it_works: p.how_it_works || [],
+            prerequisites: p.requirements || [],
+            support_policy: p.support ? `${p.support} support included` : undefined,
+            delivery_info: p.deliveryDays ? `Delivered in ${p.deliveryDays} days` : 'Instant delivery'
+          });
+          setLoading(false);
+          return;
+        }
+      } catch (err) {
+        console.error("Failed to fetch product from backend, trying mock fallback...", err.message);
+      }
+      
+      // Fallback to mock data
+      const found = MOCK_PRODUCTS.find((p) => p.id === id);
+      setProduct(found || null);
+      setLoading(false);
+    };
+
+    loadProduct();
   }, [id]);
 
 

@@ -4,6 +4,8 @@ import { Search, X, Package, Layers } from "lucide-react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import SearchFiltersBar from "../components/home/SearchFiltersBar";
+import axios from "axios";
+import { API_URL } from "@/lib/config";
 
 import HeroSection from "../components/home/HeroSection";
 import ModeSwitch from "../components/home/ModeSwitch";
@@ -131,13 +133,36 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    // Load products from mock data with a brief simulated delay
-    const timer = setTimeout(() => {
-      setProducts(MOCK_PRODUCTS);
-      setCustomSolutions(MOCK_CUSTOM_SOLUTIONS);
-      setLoading(false);
-    }, 400);
-    return () => clearTimeout(timer);
+    axios.get(`${API_URL}/products/public`)
+      .then(res => {
+        const data = res.data?.data || [];
+        const mapped = data.map(p => ({
+          id: p.id,
+          title: p.title,
+          plain_english: p.shortDesc || p.description?.slice(0, 100),
+          description: p.description,
+          price: p.price,
+          category: p.category?.toLowerCase() || 'other',
+          rating: p.rating || 5.0,
+          reviews_count: p.reviewCount || p.reviews || 0,
+          installs_count: p.installs || 0,
+          setup_time: p.deliveryDays ? `${p.deliveryDays} days` : '—',
+          status: 'active',
+          image_url: p.coverImage || undefined,
+          demo_url: p.demoUrl || undefined
+        }));
+        
+        // Merge real products first, then mock products
+        setProducts([...mapped, ...MOCK_PRODUCTS]);
+        setCustomSolutions(MOCK_CUSTOM_SOLUTIONS);
+        setLoading(false);
+      })
+      .catch(() => {
+        // Fallback to mock data if API fails
+        setProducts(MOCK_PRODUCTS);
+        setCustomSolutions(MOCK_CUSTOM_SOLUTIONS);
+        setLoading(false);
+      });
   }, []);
 
   const handleFilterChange = (key, value) => {

@@ -4,6 +4,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Link } from "react-router-dom";
 import { useTheme } from "@/lib/ThemeContext";
 import { MOCK_PRODUCTS, MOCK_CUSTOM_SOLUTIONS } from "@/api/mockData";
+import axios from "axios";
+import { API_URL } from "@/lib/config";
 
 /* ── Fuzzy scorer ──────────────────────────────────────────
    Returns a score 0–100 for how well a product matches query.
@@ -46,10 +48,32 @@ export default function LiveSearch() {
      - Else fetch from API; fall back to mock if empty/error
   ──────────────────────────────────────────────────────── */
   useEffect(() => {
-    // Load all products from mock data
-    setAllProducts(MOCK_PRODUCTS);
-    setAllCustom(MOCK_CUSTOM_SOLUTIONS);
-    setDataLoaded(true);
+    const loadProducts = async () => {
+      try {
+        const res = await axios.get(`${API_URL}/products/public`);
+        const data = res.data?.data || [];
+        const mapped = data.map(p => ({
+          id: p.id,
+          title: p.title,
+          description: p.description,
+          category: p.category || 'Other',
+          price: p.price,
+          rating: p.rating || 5.0,
+          image_url: p.coverImage || undefined,
+          demo_url: p.demoUrl || undefined,
+          features: p.features || [],
+          what_it_does: p.shortDesc || p.description
+        }));
+        setAllProducts([...mapped, ...MOCK_PRODUCTS]);
+      } catch (err) {
+        console.error("Failed to load products in search dropdown:", err.message);
+        setAllProducts(MOCK_PRODUCTS);
+      }
+      setAllCustom(MOCK_CUSTOM_SOLUTIONS);
+      setDataLoaded(true);
+    };
+
+    loadProducts();
   }, []);
 
   /* ── Keyboard shortcuts ─────────────────────────────── */
