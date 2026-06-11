@@ -71,7 +71,9 @@ export default function ClientDashboard() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    axios.get(`${API_URL}/purchases/my`)
+    const token = localStorage.getItem("auth_token");
+    const headers = token ? { Authorization: `Bearer ${token}` } : {};
+    axios.get(`${API_URL}/purchases/my`, { withCredentials: true, headers })
       .then(res => setPurchases(res.data?.data || res.data?.purchases || []))
       .catch(() => {})
       .finally(() => setLoading(false));

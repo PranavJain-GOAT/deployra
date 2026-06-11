@@ -142,21 +142,41 @@ export default function Home() {
     axios.get(`${API_URL}/products/public`)
       .then(res => {
         const data = res.data?.data || [];
-        const mapped = data.map(p => ({
-          id: p.id,
-          title: p.title,
-          plain_english: p.shortDesc || p.description?.slice(0, 100),
-          description: p.description,
-          price: p.price,
-          category: p.category?.toLowerCase() || 'other',
-          rating: p.rating || 5.0,
-          reviews_count: p.reviewCount || p.reviews || 0,
-          installs_count: p.installs || 0,
-          setup_time: p.deliveryDays ? `${p.deliveryDays} days` : '—',
-          status: 'active',
-          image_url: p.coverImage || undefined,
-          demo_url: p.demoUrl || undefined
-        }));
+        const mapped = data.map(p => {
+          const rawCategory = p.category || "";
+          const categoryLower = rawCategory.trim().toLowerCase();
+          
+          // Map 15 developer categories to the 6 high-level homepage filters
+          let mappedCategory = "other";
+          if (categoryLower.includes("chatbot") || categoryLower.includes("agent") || categoryLower.includes("chat")) {
+            mappedCategory = "chatbot";
+          } else if (categoryLower.includes("automation") || categoryLower.includes("pipeline") || categoryLower.includes("devops")) {
+            mappedCategory = "automation";
+          } else if (categoryLower.includes("saas") || categoryLower.includes("ecommerce") || categoryLower.includes("e-commerce") || categoryLower.includes("kit") || categoryLower.includes("booking") || categoryLower.includes("payment") || categoryLower.includes("crm") || categoryLower.includes("erp")) {
+            mappedCategory = "website";
+          } else if (categoryLower.includes("analytics") || categoryLower.includes("dashboard") || categoryLower.includes("data")) {
+            mappedCategory = "analytics";
+          } else if (categoryLower.includes("marketing")) {
+            mappedCategory = "marketing";
+          }
+
+          return {
+            id: p.id,
+            title: p.title,
+            plain_english: p.shortDesc || p.description?.slice(0, 100),
+            description: p.description,
+            price: p.price,
+            category: mappedCategory,
+            displayCategory: rawCategory,
+            rating: p.rating || 5.0,
+            reviews_count: p.reviewCount || p.reviews || 0,
+            installs_count: p.installs || 0,
+            setup_time: p.deliveryDays ? `${p.deliveryDays} days` : '—',
+            status: 'active',
+            image_url: p.coverImage || undefined,
+            demo_url: p.demoUrl || undefined
+          };
+        });
         
         // Merge real products first, then mock products
         setProducts([...mapped, ...MOCK_PRODUCTS]);
@@ -195,7 +215,7 @@ export default function Home() {
     const match = (item) =>
       item.title?.toLowerCase().includes(q) ||
       item.description?.toLowerCase().includes(q) ||
-      item.category?.toLowerCase().includes(q) ||
+      (item.displayCategory || item.category)?.toLowerCase().includes(q) ||
       (item.features || []).some((f) => f.toLowerCase().includes(q));
 
     const matched = [

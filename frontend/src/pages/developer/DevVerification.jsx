@@ -57,10 +57,10 @@ function inferChecks(product) {
   return {
     docs:        !!(product.description && product.description.length > 100),
     demo:        !!(product.demoUrl || product.videoUrl),
-    pricing:     !!(product.price > 0 && product.licenseType),
-    screenshots: !!(product.images?.length >= 1 || product.coverImage),
-    deploy:      !!(product.deploymentInstructions || product.readme),
-    support:     !!(product.supportEmail || product.supportUrl),
+    pricing:     !!(product.price > 0),
+    screenshots: !!((product.screenshots && product.screenshots.length >= 1) || product.coverImage),
+    deploy:      !!(product.deploymentMethod || product.hostingRequirements),
+    support:     !!(product.support && product.support !== "No Support"),
   };
 }
 

@@ -89,7 +89,7 @@ export default function ProductCard({ product, index, featured = false }) {
             )}
             {product.category && (
               <span className="px-2 py-0.5 rounded-full text-[10px] font-mono bg-black/50 text-white/70 border border-white/10 backdrop-blur-sm">
-                {product.category.toUpperCase()}
+                {(product.displayCategory || product.category).toUpperCase()}
               </span>
             )}
           </div>

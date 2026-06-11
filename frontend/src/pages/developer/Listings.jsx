@@ -222,7 +222,9 @@ export default function Listings() {
   const handleDelete = async (id) => {
     if (!confirm("Delete this listing permanently?")) return;
     try {
-      await axios.delete(`${API_URL}/products/${id}`);
+      const token = localStorage.getItem("auth_token");
+      const headers = token ? { Authorization: `Bearer ${token}` } : {};
+      await axios.delete(`${API_URL}/products/${id}`, { withCredentials: true, headers });
       setListings(p => p.filter(l => l.id !== id));
     } catch {
       setListings(p => p.filter(l => l.id !== id)); // optimistic

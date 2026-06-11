@@ -164,9 +164,11 @@ export default function Dashboard() {
 
   const fetchData = async () => {
     try {
+      const token = localStorage.getItem("auth_token");
+      const headers = token ? { Authorization: `Bearer ${token}` } : {};
       const [prodRes, orderRes] = await Promise.all([
-        axios.get(`${API_URL}/products/my`).catch(() => ({ data: { data: [] } })),
-        axios.get(`${API_URL}/orders/my`).catch(() => ({ data: { data: [] } })),
+        axios.get(`${API_URL}/products/my`, { withCredentials: true, headers }).catch(() => ({ data: { data: [] } })),
+        axios.get(`${API_URL}/orders/my`, { withCredentials: true, headers }).catch(() => ({ data: { data: [] } })),
       ]);
       setProducts(prodRes.data?.data || prodRes.data?.products || []);
       setOrders(orderRes.data?.data || orderRes.data?.orders || []);

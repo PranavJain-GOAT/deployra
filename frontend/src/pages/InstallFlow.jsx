@@ -99,9 +99,15 @@ export default function InstallFlow() {
     setLoading(true);
     
     try {
+      const token = localStorage.getItem("auth_token");
+      const headers = token ? { Authorization: `Bearer ${token}` } : {};
+      
       const { data } = await axios.post(`${API_URL}/payment/order`, {
         amount: amount,
         currency: 'USD'
+      }, {
+        withCredentials: true,
+        headers
       });
       
       if (!data.success) {
@@ -127,7 +133,12 @@ export default function InstallFlow() {
             const verifyData = await axios.post(`${API_URL}/payment/verify`, {
               orderId: data.order_id,
               paymentId: response.razorpay_payment_id,
-              signature: response.razorpay_signature
+              signature: response.razorpay_signature,
+              productId: id,
+              details: formData
+            }, {
+              withCredentials: true,
+              headers
             });
             
             if (verifyData.data.success) {
@@ -140,6 +151,7 @@ export default function InstallFlow() {
           } catch (err) {
              console.error("Verification failed", err);
              alert("Payment verification failed.");
+             setLoading(false);
           }
         },
         modal: {

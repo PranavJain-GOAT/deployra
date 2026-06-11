@@ -97,13 +97,12 @@ function RadioRow({ label, sub, checked, onChange }) {
 }
 
 const CATEGORIES = [
-    { name: "Chatbot Development", count: 59000 },
-    { name: "Automation Workflows", count: 36000 },
-    { name: "SaaS Kits", count: 28000 },
-    { name: "Analytics Dashboard", count: 120000 },
-    { name: "Voice Agents", count: 44000 },
-    { name: "API Integration", count: 25000 },
-    { name: "Marketing Bots", count: 17000 },
+    { name: "Chatbots", id: "chatbot", count: 59000 },
+    { name: "Automation", id: "automation", count: 36000 },
+    { name: "SaaS Kits", id: "website", count: 28000 },
+    { name: "Analytics", id: "analytics", count: 120000 },
+    { name: "Marketing", id: "marketing", count: 17000 },
+    { name: "Other", id: "other", count: 15000 },
 ];
 
 export default function SearchFiltersBar({ filters, onFiltersChange }) {
@@ -129,7 +128,7 @@ export default function SearchFiltersBar({ filters, onFiltersChange }) {
           
           {/* Category Dropdown */}
           <DropPanel 
-            label={filters.category || "Category"} 
+            label={CATEGORIES.find(c => c.id === filters.category)?.name || "Category"} 
             active={!!filters.category}
             onClear={() => update("category", "")}
             onApply={apply}
@@ -138,11 +137,11 @@ export default function SearchFiltersBar({ filters, onFiltersChange }) {
               <RadioRow label="All Categories" checked={!tempFilters.category} onChange={() => update("category", "")} />
               {CATEGORIES.map(c => (
                 <RadioRow 
-                  key={c.name} 
+                  key={c.id} 
                   label={c.name} 
                   sub={c.count.toLocaleString()} 
-                  checked={tempFilters.category === c.name} 
-                  onChange={() => update("category", c.name)} 
+                  checked={tempFilters.category === c.id} 
+                  onChange={() => update("category", c.id)} 
                 />
               ))}
             </div>
@@ -272,7 +271,7 @@ export default function SearchFiltersBar({ filters, onFiltersChange }) {
       <div className="flex flex-wrap gap-2">
         {filters.category && (
             <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white/5 border border-white/10 text-[11px] font-bold text-white/60">
-                {filters.category} <X className="w-3 h-3 cursor-pointer hover:text-white" onClick={() => onFiltersChange({ ...filters, category: "" })} />
+                {CATEGORIES.find(c => c.id === filters.category)?.name || filters.category} <X className="w-3 h-3 cursor-pointer hover:text-white" onClick={() => onFiltersChange({ ...filters, category: "" })} />
             </div>
         )}
         {filters.deliveryTime && (

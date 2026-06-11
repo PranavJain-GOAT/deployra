@@ -1,5 +1,6 @@
 const Razorpay = require('razorpay');
 const crypto = require('crypto');
+const { prisma } = require('../config/database');
 const logger = require('../utils/logger');
 
 // Initialize Razorpay conditionally based on env vars
@@ -58,7 +59,7 @@ exports.createOrder = async (req, res, next) => {
 
 exports.verifyPayment = async (req, res, next) => {
     try {
-        const { orderId, paymentId, signature } = req.body;
+        const { orderId, paymentId, signature, productId, details } = req.body;
 
         if (!orderId || !paymentId || !signature) {
             return res.status(400).json({ success: false, message: "Missing required payment parameters." });
@@ -80,6 +81,34 @@ exports.verifyPayment = async (req, res, next) => {
 
         if (isAuthentic) {
             logger.info('Payment verified successfully', { orderId, paymentId });
+
+            if (productId) {
+                const product = await prisma.product.findUnique({ where: { id: productId } });
+                if (product) {
+                    // Create Completed Purchase entry
+                    await prisma.purchase.create({
+                        data: {
+                            userId: req.user.id,
+                            productId,
+                            pricePaid: product.price,
+                            paymentIntentId: paymentId,
+                            status: 'COMPLETED'
+                        }
+                    });
+
+                    // Create Order lifecycle entry
+                    await prisma.order.create({
+                        data: {
+                            userId: req.user.id,
+                            productId,
+                            details: typeof details === 'string' ? details : JSON.stringify(details || {})
+                        }
+                    });
+
+                    logger.info(`Purchase and Order recorded successfully in DB for user ${req.user.email} and product ${productId}`);
+                }
+            }
+
             res.status(200).json({
                 success: true,
                 message: "Payment verified successfully",
