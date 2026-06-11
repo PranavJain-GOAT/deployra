@@ -1,5 +1,5 @@
 const express = require('express');
-const { authenticate, authorize, adminOnly } = require('../middleware/auth.middleware');
+const { authenticate, optionalAuthenticate, authorize } = require('../middleware/auth.middleware');
 const {
   createProduct,
   getMyProducts,
@@ -24,19 +24,11 @@ router.get('/my', authenticate, authorize('DEVELOPER', 'ADMIN'), getMyProducts);
 router.get('/public', getPublicProducts);
 
 // GET single product (auth optional — handled in controller for ownership check)
-router.get('/:id', (req, res, next) => {
-  // Optionally authenticate, but don't require it
-  authenticate(req, res, () => {
-    getProduct(req, res, next);
-  });
-});
+router.get('/:id', optionalAuthenticate, getProduct);
 
 // POST track view
-router.post('/:id/view', (req, res, next) => {
-  authenticate(req, res, () => {
-    trackView(req, res, next);
-  });
-});
+router.post('/:id/view', optionalAuthenticate, trackView);
+
 
 // POST create product submission
 router.post('/', authenticate, authorize('DEVELOPER', 'ADMIN'), validate(productSchema), createProduct);

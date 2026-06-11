@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 import { motion } from "framer-motion";
-import { ShoppingBag, DollarSign, TrendingUp, Loader2, AlertCircle } from "lucide-react";
+import { ShoppingBag, DollarSign, TrendingUp, AlertCircle } from "lucide-react";
 import axios from "axios";
 import { API_URL } from "@/lib/config";
 

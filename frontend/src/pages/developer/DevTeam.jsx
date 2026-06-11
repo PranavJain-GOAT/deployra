@@ -1,8 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Users, Plus, X, Shield, Crown, BarChart3, Code2, Mail, Check, RefreshCw, Loader2 } from "lucide-react";
-import axios from "axios";
-import { API_URL } from "@/lib/config";
+import { Users, Plus, X, Shield, Crown, BarChart3, Code2, Mail, Check, RefreshCw } from "lucide-react";
 import { useAuth } from "@/lib/AuthContext";
 
 const ROLES = [

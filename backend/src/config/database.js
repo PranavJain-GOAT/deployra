@@ -18,11 +18,7 @@ prisma.$on('warn', (e) => {
   logger.warn(e.message);
 });
 
-if (process.env.NODE_ENV === 'development') {
-  prisma.$on('query', (e) => {
-    // logger.debug("Query: " + e.query); // uncomment to debug queries
-  });
-}
+
 
 const connectDB = async () => {
   try {

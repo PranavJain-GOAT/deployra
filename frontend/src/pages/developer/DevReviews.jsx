@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Star, MessageSquare, RefreshCw, Shield,
-  ChevronDown, ChevronUp, Send, Loader2, AlertCircle
+  ChevronDown, ChevronUp, Send, Loader2
 } from "lucide-react";
 import axios from "axios";
 import { API_URL } from "@/lib/config";
@@ -131,7 +131,6 @@ function ReviewCard({ review, idx }) {
 export default function DevReviews() {
   const [reviews, setReviews]   = useState([]);
   const [loading, setLoading]   = useState(true);
-  const [error,   setError]     = useState("");
   const [sortBy,  setSortBy]    = useState("recent");
 
   useEffect(() => {
@@ -168,17 +167,6 @@ export default function DevReviews() {
     return (
       <div className="p-8 flex items-center justify-center min-h-[400px]">
         <Loader2 className="w-8 h-8 animate-spin text-foreground/30" />
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="p-8">
-        <div className="frosted-panel p-6 flex items-center gap-3 text-red-400">
-          <AlertCircle className="w-5 h-5 flex-shrink-0" />
-          <p className="text-sm">{error}</p>
-        </div>
       </div>
     );
   }

@@ -23,28 +23,21 @@ const checkout = async (req, res, next) => {
       return res.status(400).json({ success: false, message: 'You already own this product' });
     }
 
-    // Attempt Stripe Intent
-    let clientSecret = null;
-    let paymentIntentId = null;
-
-    // Create a pending or completed record based on whether stripe is active
-    const purchaseStatus = 'COMPLETED'; // If no stripe, auto complete for testing
-
+    // Create a completed purchase record (Stripe/Razorpay not yet wired up)
     const purchase = await prisma.purchase.create({
       data: {
         userId: req.user.id,
         productId,
         pricePaid: product.price,
-        paymentIntentId,
-        status: purchaseStatus
+        paymentIntentId: null,
+        status: 'COMPLETED'
       }
     });
 
     res.status(200).json({
       success: true,
-      clientSecret,
       data: purchase,
-      message: purchaseStatus === 'COMPLETED' ? 'Purchase successful' : 'Checkout session created'
+      message: 'Purchase successful'
     });
   } catch (error) {
     next(error);

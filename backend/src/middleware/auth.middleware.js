@@ -45,8 +45,38 @@ const authorize = (...roles) => {
 
 const adminOnly = authorize('ADMIN');
 
+const optionalAuthenticate = async (req, res, next) => {
+  try {
+    let token = null;
+
+    // Check for token in cookies first
+    if (req.cookies && req.cookies.accessToken) {
+      token = req.cookies.accessToken;
+    } else {
+      // Fallback to Authorization header
+      const authHeader = req.headers.authorization;
+      if (authHeader && authHeader.startsWith('Bearer ')) {
+        token = authHeader.split(' ')[1];
+      }
+    }
+
+    if (token) {
+      const decoded = verifyAccessToken(token);
+      const user = await prisma.user.findUnique({ where: { id: decoded.userId } });
+      if (user) {
+        req.user = user;
+      }
+    }
+  } catch (error) {
+    // Ignore error for optional authentication, proceed as anonymous
+  }
+  next();
+};
+
 module.exports = {
   authenticate,
+  optionalAuthenticate,
   authorize,
   adminOnly
 };
+

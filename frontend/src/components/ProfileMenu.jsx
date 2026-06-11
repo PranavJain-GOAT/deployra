@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   ChevronDown, LogOut, LayoutDashboard, User, Bell,
@@ -15,9 +15,6 @@ import { useAuth } from '@/lib/AuthContext';
 import { useTheme } from '@/lib/ThemeContext';
 import { useProfile } from '@/hooks/useProfile';
 import { useNotifications } from '@/hooks/useNotifications';
-import axios from 'axios';
-import { API_URL } from '@/lib/config';
-import { toast } from 'react-hot-toast';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 const PLAN_CONFIG = {
@@ -288,10 +285,9 @@ export default function ProfileMenu() {
   const [cropFile, setCropFile] = useState(null);
 
   const ref = useRef(null);
-  const { user, login, logout } = useAuth();
+  const { user, logout } = useAuth();
   const { isDark } = useTheme();
   const { uploadAvatar, isUploading } = useProfile();
-  const navigate = useNavigate();
   useNotifications(); // keep polling alive for bell badge
 
 

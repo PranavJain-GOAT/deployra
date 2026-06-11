@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Trophy, Package, Loader2, AlertCircle, ArrowUp, ArrowDown, Star, TrendingUp } from "lucide-react";
+import { Trophy, Package, Loader2, AlertCircle, ArrowUp, Star, TrendingUp } from "lucide-react";
 import axios from "axios";
 import { API_URL } from "@/lib/config";
 

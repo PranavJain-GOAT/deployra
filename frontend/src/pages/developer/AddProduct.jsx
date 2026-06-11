@@ -387,7 +387,7 @@ export default function AddProduct() {
                     <button
                         type="button"
                         disabled={saving}
-                        onClick={(e) => handleSubmit(null, true)}
+                        onClick={() => handleSubmit(null, true)}
                         className="px-5 py-3.5 rounded-xl font-semibold text-sm border border-foreground/10 text-foreground/50 hover:text-foreground hover:bg-foreground/5 transition-all disabled:opacity-40"
                     >
                         Save as Draft

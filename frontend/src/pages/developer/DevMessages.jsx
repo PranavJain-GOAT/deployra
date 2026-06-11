@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { MessageSquare, Search, Send, Paperclip, Check, CheckCheck, Phone, Video, MoreHorizontal, Loader2, AlertCircle } from "lucide-react";
+import { MessageSquare, Search, Send, Paperclip, Check, CheckCheck, Phone, Video, MoreHorizontal, Loader2 } from "lucide-react";
 import axios from "axios";
 import { API_URL } from "@/lib/config";
 

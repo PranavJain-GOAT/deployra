@@ -1,5 +1,6 @@
 const Razorpay = require('razorpay');
 const crypto = require('crypto');
+const logger = require('../utils/logger');
 
 // Initialize Razorpay conditionally based on env vars
 // In a real production app, this would throw an error if missing, but we'll allow initialization 
@@ -50,7 +51,7 @@ exports.createOrder = async (req, res, next) => {
             amount: response.amount,
         });
     } catch (err) {
-        console.error("Razorpay Create Order Error:", err);
+        logger.error('Razorpay Create Order Error:', err);
         res.status(500).json({ success: false, message: 'Not able to create order. Please try again!' });
     }
 };
@@ -78,10 +79,7 @@ exports.verifyPayment = async (req, res, next) => {
         const isAuthentic = expectedSignature === signature;
 
         if (isAuthentic) {
-            // Payment is successful and verified
-            // Here you would typically update your database with the paymentId and status
-            console.log('Payment request is legitimate:', { orderId, paymentId });
-            
+            logger.info('Payment verified successfully', { orderId, paymentId });
             res.status(200).json({
                 success: true,
                 message: "Payment verified successfully",
@@ -94,7 +92,7 @@ exports.verifyPayment = async (req, res, next) => {
             });
         }
     } catch (err) {
-        console.error("Razorpay Verify Payment Error:", err);
+        logger.error('Razorpay Verify Payment Error:', err);
         res.status(500).json({ success: false, message: 'Server error during verification.' });
     }
 };
