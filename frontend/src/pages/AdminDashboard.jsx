@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Shield, RefreshCw, ArrowLeft, CheckCircle, XCircle, Clock,
   Package, Users, TrendingUp, ExternalLink, AlertTriangle,
-  ChevronRight, X, FileText, Globe, DollarSign, Zap, AlertCircle, Settings, Tag,
+  ChevronRight, X, FileText, Globe, DollarSign, Zap, AlertCircle, Settings, Tag, Trash2
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import axios from "axios";
@@ -78,7 +78,7 @@ function RejectModal({ product, onConfirm, onCancel, loading }) {
 }
 
 // ─── Product Review Card ──────────────────────────────────────────────────────
-function ProductReviewCard({ product, onApprove, onReject, approving, rejecting }) {
+function ProductReviewCard({ product, onApprove, onReject, onDelete, approving, rejecting, deleting }) {
   const [expanded, setExpanded] = useState(false);
   const configFields = product.configFields || [];
 
@@ -116,31 +116,44 @@ function ProductReviewCard({ product, onApprove, onReject, approving, rejecting 
                 </div>
               </div>
 
-              {/* Action Buttons (only for PENDING_REVIEW) */}
-              {product.status === "PENDING_REVIEW" && (
-                <div className="flex items-center gap-2 shrink-0">
-                  <motion.button
-                    whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
-                    onClick={() => onApprove(product)}
-                    disabled={approving === product.id || rejecting === product.id}
-                    className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all disabled:opacity-50"
-                    style={{ background: "rgba(16,138,0,0.12)", border: "0.5px solid rgba(16,138,0,0.4)", color: "#22c55e" }}
-                  >
-                    {approving === product.id ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <CheckCircle className="w-3.5 h-3.5" />}
-                    {approving === product.id ? "Approving..." : "Approve"}
-                  </motion.button>
-                  <motion.button
-                    whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
-                    onClick={() => onReject(product)}
-                    disabled={approving === product.id || rejecting === product.id}
-                    className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all disabled:opacity-50"
-                    style={{ background: "rgba(239,68,68,0.1)", border: "0.5px solid rgba(239,68,68,0.3)", color: "#f87171" }}
-                  >
-                    {rejecting === product.id ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <XCircle className="w-3.5 h-3.5" />}
-                    Reject
-                  </motion.button>
-                </div>
-              )}
+              {/* Action Buttons */}
+              <div className="flex items-center gap-2 shrink-0">
+                {product.status === "PENDING_REVIEW" && (
+                  <>
+                    <motion.button
+                      whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
+                      onClick={() => onApprove(product)}
+                      disabled={approving === product.id || rejecting === product.id || deleting === product.id}
+                      className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all disabled:opacity-50"
+                      style={{ background: "rgba(16,138,0,0.12)", border: "0.5px solid rgba(16,138,0,0.4)", color: "#22c55e" }}
+                    >
+                      {approving === product.id ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <CheckCircle className="w-3.5 h-3.5" />}
+                      {approving === product.id ? "Approving..." : "Approve"}
+                    </motion.button>
+                    <motion.button
+                      whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
+                      onClick={() => onReject(product)}
+                      disabled={approving === product.id || rejecting === product.id || deleting === product.id}
+                      className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all disabled:opacity-50"
+                      style={{ background: "rgba(239,68,68,0.1)", border: "0.5px solid rgba(239,68,68,0.3)", color: "#f87171" }}
+                    >
+                      {rejecting === product.id ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <XCircle className="w-3.5 h-3.5" />}
+                      Reject
+                    </motion.button>
+                  </>
+                )}
+                {/* Delete button (visible for all statuses) */}
+                <motion.button
+                  whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
+                  onClick={() => onDelete(product)}
+                  disabled={approving === product.id || rejecting === product.id || deleting === product.id}
+                  className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all disabled:opacity-50"
+                  style={{ background: "rgba(220,38,38,0.1)", border: "0.5px solid rgba(220,38,38,0.35)", color: "#f87171" }}
+                >
+                  {deleting === product.id ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
+                  Delete
+                </motion.button>
+              </div>
             </div>
 
             {/* Links */}
@@ -383,6 +396,7 @@ export default function AdminDashboard() {
   const [rejecting, setRejecting] = useState(null);
   const [rejectTarget, setRejectTarget] = useState(null);
   const [toast, setToast] = useState(null);
+  const [deleting, setDeleting] = useState(null);
 
   const showToast = (msg, type = "success") => {
     setToast({ msg, type });
@@ -439,6 +453,44 @@ export default function AdminDashboard() {
     } finally {
       setRejecting(null);
       setRejectTarget(null);
+    }
+  };
+
+  const handleDelete = async (product) => {
+    if (!confirm(`Are you sure you want to permanently delete "${product.title}"?`)) return;
+    setDeleting(product.id);
+    try {
+      const token = localStorage.getItem("auth_token");
+      const headers = token ? { Authorization: `Bearer ${token}` } : {};
+      await axios.delete(`${API_URL}/products/${product.id}`, { withCredentials: true, headers });
+
+      // Filter out deleted product
+      setProducts(p => p.filter(x => x.id !== product.id));
+
+      // Update statistics
+      setStats(s => {
+        if (!s) return null;
+        const newStats = { ...s };
+
+        // Decrement corresponding status count
+        if (product.status === "PENDING_REVIEW") {
+          newStats.pendingCount = Math.max(0, newStats.pendingCount - 1);
+        } else if (product.status === "APPROVED") {
+          newStats.approvedCount = Math.max(0, newStats.approvedCount - 1);
+        } else if (product.status === "REJECTED") {
+          newStats.rejectedCount = Math.max(0, newStats.rejectedCount - 1);
+        }
+
+        // Decrement total products
+        newStats.totalProducts = Math.max(0, newStats.totalProducts - 1);
+        return newStats;
+      });
+
+      showToast(`🗑️ "${product.title}" has been deleted.`);
+    } catch (err) {
+      showToast(err.response?.data?.message || "Deletion failed", "error");
+    } finally {
+      setDeleting(null);
     }
   };
 
@@ -603,8 +655,10 @@ export default function AdminDashboard() {
                   product={product}
                   onApprove={handleApprove}
                   onReject={(p) => setRejectTarget(p)}
+                  onDelete={handleDelete}
                   approving={approving}
                   rejecting={rejecting}
+                  deleting={deleting}
                 />
               ))}
             </AnimatePresence>
