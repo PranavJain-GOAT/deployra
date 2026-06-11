@@ -16,7 +16,6 @@ function getRedirectPath(user) {
   if (!user) return '/';
   const role = (user.role || '').toUpperCase();
   if (role === 'ADMIN') return '/admin';
-  if (role === 'DEVELOPER') return '/developer';
   return '/';
 }
 
