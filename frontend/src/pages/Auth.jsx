@@ -16,8 +16,8 @@ function getRedirectPath(user) {
   if (!user) return '/';
   const role = (user.role || '').toUpperCase();
   if (role === 'ADMIN') return '/admin';
-  // After login/signup, always land on marketplace
-  return '/marketplace';
+  if (role === 'DEVELOPER') return '/developer';
+  return '/';
 }
 
 
