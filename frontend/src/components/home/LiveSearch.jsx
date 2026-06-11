@@ -48,6 +48,11 @@ export default function LiveSearch() {
      - Else fetch from API; fall back to mock if empty/error
   ──────────────────────────────────────────────────────── */
   useEffect(() => {
+    // Load mock data instantly to enable search function immediately
+    setAllProducts(MOCK_PRODUCTS);
+    setAllCustom(MOCK_CUSTOM_SOLUTIONS);
+    setDataLoaded(true);
+
     const loadProducts = async () => {
       try {
         const res = await axios.get(`${API_URL}/products/public`);
@@ -67,10 +72,7 @@ export default function LiveSearch() {
         setAllProducts([...mapped, ...MOCK_PRODUCTS]);
       } catch (err) {
         console.error("Failed to load products in search dropdown:", err.message);
-        setAllProducts(MOCK_PRODUCTS);
       }
-      setAllCustom(MOCK_CUSTOM_SOLUTIONS);
-      setDataLoaded(true);
     };
 
     loadProducts();

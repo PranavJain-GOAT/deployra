@@ -50,6 +50,21 @@ export default function InstallFlow() {
   const type = urlParams.get("type") || "instant";
 
   useEffect(() => {
+    // Show mock product or custom solution instantly first
+    let foundMock = null;
+    if (type === "instant") {
+      foundMock = MOCK_PRODUCTS.find(p => p.id === id);
+    } else {
+      foundMock = MOCK_CUSTOM_SOLUTIONS.find(s => s.id === id);
+    }
+
+    if (foundMock) {
+      setProduct(foundMock);
+      setLoading(false);
+    } else {
+      setLoading(true);
+    }
+
     const loadProduct = async () => {
       if (type === "instant") {
         try {
@@ -62,13 +77,18 @@ export default function InstallFlow() {
         } catch (err) {
           console.error("Failed to fetch product from backend, trying mock fallback...", err.message);
         }
-        const found = MOCK_PRODUCTS.find(p => p.id === id);
-        setProduct(found || null);
+        if (!foundMock) {
+          const found = MOCK_PRODUCTS.find(p => p.id === id);
+          setProduct(found || null);
+          setLoading(false);
+        }
       } else {
-        const found = MOCK_CUSTOM_SOLUTIONS.find(s => s.id === id);
-        setProduct(found || null);
+        if (!foundMock) {
+          const found = MOCK_CUSTOM_SOLUTIONS.find(s => s.id === id);
+          setProduct(found || null);
+          setLoading(false);
+        }
       }
-      setLoading(false);
     };
 
     loadProduct();

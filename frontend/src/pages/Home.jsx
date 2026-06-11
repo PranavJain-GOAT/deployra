@@ -133,6 +133,12 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
+    // Show mock data instantly to avoid slow page load if Render is sleeping
+    setProducts(MOCK_PRODUCTS);
+    setCustomSolutions(MOCK_CUSTOM_SOLUTIONS);
+    setLoading(false);
+
+    // Fetch real products in the background
     axios.get(`${API_URL}/products/public`)
       .then(res => {
         const data = res.data?.data || [];
@@ -154,14 +160,9 @@ export default function Home() {
         
         // Merge real products first, then mock products
         setProducts([...mapped, ...MOCK_PRODUCTS]);
-        setCustomSolutions(MOCK_CUSTOM_SOLUTIONS);
-        setLoading(false);
       })
-      .catch(() => {
-        // Fallback to mock data if API fails
-        setProducts(MOCK_PRODUCTS);
-        setCustomSolutions(MOCK_CUSTOM_SOLUTIONS);
-        setLoading(false);
+      .catch((err) => {
+        console.error("Failed to load real products, using mock fallback only:", err.message);
       });
   }, []);
 

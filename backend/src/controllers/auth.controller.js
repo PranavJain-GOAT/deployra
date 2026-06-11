@@ -526,7 +526,9 @@ const resendVerificationEmail = async (req, res, next) => {
 const googleLogin = (req, res) => {
   const role = req.query.role || 'client';
 
-  const redirectUri = (process.env.GOOGLE_REDIRECT_URI || '').startsWith('https://deployra.onrender.com')
+  const redirectUri = (process.env.GOOGLE_REDIRECT_URI || '').startsWith('https://deployra.onrender.com') ||
+                      (process.env.GOOGLE_REDIRECT_URI || '').startsWith('http://localhost') ||
+                      (process.env.GOOGLE_REDIRECT_URI || '').startsWith('http://127.0.0.1')
     ? process.env.GOOGLE_REDIRECT_URI
     : 'https://deployra.onrender.com/auth/google/callback';
 
@@ -554,7 +556,9 @@ const googleCallback = async (req, res, next) => {
   if (!code) return next(new AppError('No authorization code provided', 400));
 
   try {
-    const redirectUri = (process.env.GOOGLE_REDIRECT_URI || '').startsWith('https://deployra.onrender.com')
+    const redirectUri = (process.env.GOOGLE_REDIRECT_URI || '').startsWith('https://deployra.onrender.com') ||
+                        (process.env.GOOGLE_REDIRECT_URI || '').startsWith('http://localhost') ||
+                        (process.env.GOOGLE_REDIRECT_URI || '').startsWith('http://127.0.0.1')
       ? process.env.GOOGLE_REDIRECT_URI
       : 'https://deployra.onrender.com/auth/google/callback';
 

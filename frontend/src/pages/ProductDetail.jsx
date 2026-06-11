@@ -35,6 +35,15 @@ export default function ProductDetail() {
   const [cardData, setCardData] = useState({ name: "", number: "", expiry: "", cvc: "" });
 
   useEffect(() => {
+    // Show mock product instantly first if available to avoid loading wait times
+    const foundMock = MOCK_PRODUCTS.find((p) => p.id === id);
+    if (foundMock) {
+      setProduct(foundMock);
+      setLoading(false);
+    } else {
+      setLoading(true);
+    }
+
     const loadProduct = async () => {
       try {
         const res = await axios.get(`${API_URL}/products/${id}`);
@@ -72,10 +81,12 @@ export default function ProductDetail() {
         console.error("Failed to fetch product from backend, trying mock fallback...", err.message);
       }
       
-      // Fallback to mock data
-      const found = MOCK_PRODUCTS.find((p) => p.id === id);
-      setProduct(found || null);
-      setLoading(false);
+      // If API failed and we didn't set a mock product already
+      if (!foundMock) {
+        const found = MOCK_PRODUCTS.find((p) => p.id === id);
+        setProduct(found || null);
+        setLoading(false);
+      }
     };
 
     loadProduct();
