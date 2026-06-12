@@ -130,14 +130,14 @@ function ListingCard({ listing, idx, onDelete }) {
                         style={{ background: "rgba(15,15,18,0.98)", backdropFilter: "blur(20px)", borderColor: "rgba(255,255,255,0.1)", boxShadow: "0 20px 60px rgba(0,0,0,0.6), 0 0 0 0.5px rgba(255,255,255,0.06) inset" }}
                         onClick={() => setShowMenu(false)}>
                         <Link to={`/developer/edit/${listing.id}`}>
-                          <button className="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs text-left text-foreground/60 hover:text-foreground hover:bg-foreground/5 transition-all"
+                          <button className="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs text-left text-white/60 hover:text-white hover:bg-white/8 transition-all"
                             style={{ fontFamily: "'Inter', sans-serif" }}>
                             <Edit className="w-3.5 h-3.5" /> Edit Product
                           </button>
                         </Link>
                         {listing.demoUrl && (
                           <a href={listing.demoUrl} target="_blank" rel="noopener noreferrer">
-                            <button className="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs text-left text-foreground/60 hover:text-foreground hover:bg-foreground/5 transition-all"
+                            <button className="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs text-left text-white/60 hover:text-white hover:bg-white/8 transition-all"
                               style={{ fontFamily: "'Inter', sans-serif" }}>
                               <Globe className="w-3.5 h-3.5" /> View Demo
                             </button>
@@ -145,13 +145,13 @@ function ListingCard({ listing, idx, onDelete }) {
                         )}
                         <button
                           onClick={() => { navigator.clipboard.writeText(`${window.location.origin}/product/${listing.id}`); setShowMenu(false); }}
-                          className="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs text-left text-foreground/60 hover:text-foreground hover:bg-foreground/5 transition-all"
+                          className="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs text-left text-white/60 hover:text-white hover:bg-white/8 transition-all"
                           style={{ fontFamily: "'Inter', sans-serif" }}>
                           <Copy className="w-3.5 h-3.5" /> Copy Link
                         </button>
-                        <div className="h-px mx-3 my-1 bg-foreground/8" />
+                        <div className="h-px mx-3 my-1" style={{ background: "rgba(255,255,255,0.08)" }} />
                         <button onClick={() => { setShowMenu(false); onDelete(listing.id); }}
-                          className="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs text-left text-red-400 hover:bg-red-400/8 transition-all"
+                          className="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs text-left text-red-400 hover:text-red-300 hover:bg-red-400/10 transition-all"
                           style={{ fontFamily: "'Inter', sans-serif" }}>
                           <Trash2 className="w-3.5 h-3.5" /> Delete
                         </button>
