@@ -164,7 +164,7 @@ const register = async (req, res, next) => {
     });
 
     const accessToken = generateAccessToken(user.id, user.role);
-    const refreshToken = generateRefreshToken(user.id);
+    const refreshToken = generateRefreshToken(user.id, false);
 
     setAuthCookies(res, accessToken, refreshToken, false);
     await storeRefreshToken(user.id, refreshToken, req);
@@ -292,7 +292,7 @@ const login = async (req, res, next) => {
     });
 
     const accessToken = generateAccessToken(user.id, userRole);
-    const refreshToken = generateRefreshToken(user.id);
+    const refreshToken = generateRefreshToken(user.id, !!rememberMe);
 
     setAuthCookies(res, accessToken, refreshToken, !!rememberMe);
     await storeRefreshToken(user.id, refreshToken, req);
@@ -356,11 +356,11 @@ const refresh = async (req, res, next) => {
     });
 
     const newAccessToken = generateAccessToken(user.id, user.role);
-    const newRefreshToken = generateRefreshToken(user.id);
+    // Preserve the rememberMe flag from the original refresh token payload
+    const rememberMe = !!decoded.rememberMe;
+    const newRefreshToken = generateRefreshToken(user.id, rememberMe);
 
-    // Check if original token was long-lived (remember me)
-    const isLongLived = (decoded.exp * 1000 - Date.now()) > 24 * 60 * 60 * 1000;
-    setAuthCookies(res, newAccessToken, newRefreshToken, isLongLived);
+    setAuthCookies(res, newAccessToken, newRefreshToken, rememberMe);
     await storeRefreshToken(user.id, newRefreshToken, req);
 
     res.status(200).json({
@@ -629,7 +629,7 @@ const googleCallback = async (req, res, next) => {
     }
 
     const accessToken = generateAccessToken(user.id, user.role);
-    const refreshToken = generateRefreshToken(user.id);
+    const refreshToken = generateRefreshToken(user.id, true); // Google logins are always long-lived
 
     setAuthCookies(res, accessToken, refreshToken, true);
     await storeRefreshToken(user.id, refreshToken, req);

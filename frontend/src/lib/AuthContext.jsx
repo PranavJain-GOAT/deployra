@@ -47,50 +47,51 @@ export const AuthProvider = ({ children }) => {
       
       if (isAuthError) {
         try {
+          // Try refreshing using the stored refresh token OR the httpOnly cookie
+          // (the cookie is sent automatically via withCredentials)
           const storedRefreshToken = localStorage.getItem('refresh_token');
-          if (storedRefreshToken) {
-            const refreshResponse = await axios.post(
-              `${API_URL}/auth/refresh`, 
-              { refreshToken: storedRefreshToken }, 
-              axiosConfig
-            );
+          const refreshResponse = await axios.post(
+            `${API_URL}/auth/refresh`, 
+            storedRefreshToken ? { refreshToken: storedRefreshToken } : {},
+            { withCredentials: true }
+          );
+          
+          if (refreshResponse.data.success) {
+            const newAccessToken = refreshResponse.data.data?.accessToken;
+            const newRefreshToken = refreshResponse.data.data?.refreshToken;
             
-            if (refreshResponse.data.success) {
-              const newAccessToken = refreshResponse.data.data?.accessToken;
-              const newRefreshToken = refreshResponse.data.data?.refreshToken;
-              
-              if (newAccessToken) {
-                localStorage.setItem('auth_token', newAccessToken);
-                axios.defaults.headers.common['Authorization'] = `Bearer ${newAccessToken}`;
-                axiosConfig.headers = { Authorization: `Bearer ${newAccessToken}` };
-              }
-              if (newRefreshToken) {
-                localStorage.setItem('refresh_token', newRefreshToken);
-              }
+            if (newAccessToken) {
+              localStorage.setItem('auth_token', newAccessToken);
+              axios.defaults.headers.common['Authorization'] = `Bearer ${newAccessToken}`;
+              axiosConfig.headers = { Authorization: `Bearer ${newAccessToken}` };
+            }
+            if (newRefreshToken) {
+              localStorage.setItem('refresh_token', newRefreshToken);
+            }
 
-              // Token refreshed, retry fetching profile
-              const retryResponse = await axios.get(`${API_URL}/users/me`, axiosConfig);
-              if (retryResponse.data.success) {
-                setUser(retryResponse.data.data);
-                setIsAuthenticated(true);
-                setAuthError(null);
-                return;
-              }
+            // Token refreshed, retry fetching profile
+            const retryResponse = await axios.get(`${API_URL}/users/me`, axiosConfig);
+            if (retryResponse.data.success) {
+              setUser(retryResponse.data.data);
+              setIsAuthenticated(true);
+              setAuthError(null);
+              return;
             }
           }
         } catch {
           console.warn("Silent token refresh failed or no valid session exists.");
         }
 
-        // If we reach here and it was an auth error, clean up tokens as they are invalid
+        // Refresh also failed — clear all stored credentials
         localStorage.removeItem('auth_token');
         localStorage.removeItem('refresh_token');
+        localStorage.removeItem('remember_me');
+        localStorage.removeItem('user_role');
         delete axios.defaults.headers.common['Authorization'];
         setUser(null);
         setIsAuthenticated(false);
       } else {
-        // This is a network error or 5xx server error (e.g. Render server is booting up)
-        // DO NOT delete the tokens, so the session is preserved when the server wakes up!
+        // Network error or 5xx — preserve tokens so session restores when server wakes up
         console.warn("fetchUser failed due to network/server issue. Session preserved:", error.message);
         setUser(null);
         setIsAuthenticated(false);
@@ -102,22 +103,17 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
 
-  // Initiate initial authentication check on mount
+  // Always attempt to restore session on app mount.
+  // Even if localStorage is empty, a valid httpOnly cookie may exist
+  // (set by the server when the user previously logged in with Remember Me).
   useEffect(() => {
-    const token = localStorage.getItem('auth_token');
-    const refreshToken = localStorage.getItem('refresh_token');
-    if (!token && !refreshToken) {
-      setIsLoadingAuth(false);
-      setAuthChecked(true);
-    } else {
-      fetchUser();
-    }
+    fetchUser();
   }, [fetchUser]);
 
   /**
    * Handle local authentication context initialization upon successful manual login/signup.
    */
-  const login = (userData, accessToken, refreshToken) => {
+  const login = (userData, accessToken, refreshToken, rememberMe = false) => {
     setUser(userData);
     setIsAuthenticated(true);
     setAuthChecked(true);
@@ -132,6 +128,8 @@ export const AuthProvider = ({ children }) => {
     if (refreshToken) {
       localStorage.setItem('refresh_token', refreshToken);
     }
+    // Track remember-me preference so we know whether to clean up on next startup
+    localStorage.setItem('remember_me', rememberMe ? '1' : '0');
   };
 
   /**
@@ -151,6 +149,7 @@ export const AuthProvider = ({ children }) => {
       localStorage.removeItem('user_role');
       localStorage.removeItem('auth_token');
       localStorage.removeItem('refresh_token');
+      localStorage.removeItem('remember_me');
       delete axios.defaults.headers.common['Authorization'];
       setUser(null);
       setIsAuthenticated(false);

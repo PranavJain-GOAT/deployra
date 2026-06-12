@@ -8,9 +8,9 @@ const generateAccessToken = (userId, role) => {
   );
 };
 
-const generateRefreshToken = (userId) => {
+const generateRefreshToken = (userId, rememberMe = false) => {
   return jwt.sign(
-    { userId },
+    { userId, rememberMe },
     process.env.JWT_REFRESH_SECRET || 'refresh_secret',
     { expiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '7d' }
   );

@@ -5,10 +5,58 @@ import {
   Plus, Edit, Trash2, Eye, Shield, Clock, CheckCircle, XCircle,
   AlertCircle, Package, ChevronRight,
   TrendingUp, Star, RefreshCw, MoreHorizontal,
-  Globe, Copy
+  Globe, Copy, X
 } from "lucide-react";
 import axios from "axios";
 import { API_URL } from "@/lib/config";
+
+// ─── Delete Confirmation Modal ─────────────────────────────────────────────────
+function DeleteModal({ listing, onConfirm, onCancel, loading }) {
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      style={{ background: "rgba(0,0,0,0.85)", backdropFilter: "blur(8px)" }}>
+      <motion.div
+        initial={{ opacity: 0, scale: 0.94 }}
+        animate={{ opacity: 1, scale: 1 }}
+        exit={{ opacity: 0, scale: 0.94 }}
+        className="w-full max-w-sm rounded-2xl p-6"
+        style={{ background: "rgba(10,10,10,0.98)", border: "0.5px solid rgba(239,68,68,0.3)", boxShadow: "0 40px 120px rgba(0,0,0,0.8)" }}
+      >
+        <div className="flex items-center justify-between mb-5">
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center"
+              style={{ background: "rgba(239,68,68,0.1)", border: "0.5px solid rgba(239,68,68,0.25)" }}>
+              <Trash2 className="w-4 h-4 text-red-400" />
+            </div>
+            <div>
+              <h3 className="font-bold text-sm text-foreground" style={{ fontFamily: "Georgia, serif" }}>Delete Listing</h3>
+              <p className="text-[10px] text-foreground/35 mt-0.5 font-mono truncate max-w-[180px]">{listing?.title}</p>
+            </div>
+          </div>
+          <button onClick={onCancel} className="p-1.5 rounded-lg text-foreground/30 hover:text-foreground hover:bg-foreground/5 transition-all">
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+        <p className="text-xs text-foreground/50 mb-5 leading-relaxed" style={{ fontFamily: "'Inter', sans-serif" }}>
+          This will permanently delete <span className="text-foreground/80 font-semibold">"{listing?.title}"</span> and all associated data. This action cannot be undone.
+        </p>
+        <div className="flex gap-3">
+          <button onClick={onCancel} disabled={loading}
+            className="flex-1 py-2.5 rounded-xl text-xs font-semibold border border-foreground/10 text-foreground/50 hover:text-foreground hover:bg-foreground/5 transition-all disabled:opacity-50"
+            style={{ fontFamily: "'Inter', sans-serif" }}>
+            Cancel
+          </button>
+          <button onClick={onConfirm} disabled={loading}
+            className="flex-1 py-2.5 rounded-xl text-xs font-bold flex items-center justify-center gap-2 transition-all disabled:opacity-50"
+            style={{ background: "rgba(239,68,68,0.85)", color: "#fff" }}>
+            {loading ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}
+            {loading ? "Deleting..." : "Delete Permanently"}
+          </button>
+        </div>
+      </motion.div>
+    </div>
+  );
+}
 
 
 // ─── Verification Badge ────────────────────────────────────────────────────────
@@ -199,6 +247,8 @@ export default function Listings() {
   const [listings, setListings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState("ALL");
+  const [deleteTarget, setDeleteTarget] = useState(null); // listing to delete
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     const load = async () => {
@@ -218,15 +268,25 @@ export default function Listings() {
     return () => clearTimeout(timer);
   }, []);
 
-  const handleDelete = async (id) => {
-    if (!confirm("Delete this listing permanently?")) return;
+  const handleDelete = (id) => {
+    const listing = listings.find(l => l.id === id);
+    setDeleteTarget(listing || { id });
+  };
+
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
+    setDeleting(true);
     try {
       const token = localStorage.getItem("auth_token");
       const headers = token ? { Authorization: `Bearer ${token}` } : {};
-      await axios.delete(`${API_URL}/products/${id}`, { withCredentials: true, headers });
-      setListings(p => p.filter(l => l.id !== id));
-    } catch {
-      setListings(p => p.filter(l => l.id !== id)); // optimistic
+      await axios.delete(`${API_URL}/products/${deleteTarget.id}`, { withCredentials: true, headers });
+      setListings(p => p.filter(l => l.id !== deleteTarget.id));
+      setDeleteTarget(null);
+    } catch (err) {
+      console.error("Delete failed:", err);
+      // Keep modal open on failure so user knows it didn't work
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -255,6 +315,18 @@ export default function Listings() {
 
   return (
     <div className="p-6 sm:p-8 max-w-5xl page-fade-in">
+      {/* Delete Confirmation Modal */}
+      <AnimatePresence>
+        {deleteTarget && (
+          <DeleteModal
+            listing={deleteTarget}
+            onConfirm={confirmDelete}
+            onCancel={() => !deleting && setDeleteTarget(null)}
+            loading={deleting}
+          />
+        )}
+      </AnimatePresence>
+
       {/* Header */}
       <div className="flex items-start justify-between mb-8">
         <div>
@@ -330,4 +402,4 @@ export default function Listings() {
       )}
     </div>
   );
-}
+}
