@@ -89,7 +89,7 @@ function ListingCard({ listing, idx, onDelete }) {
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: idx * 0.06, duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-      className="frosted-panel overflow-hidden"
+      className="frosted-panel"
     >
       <div className="p-5">
         <div className="flex items-start gap-4">
@@ -126,7 +126,8 @@ function ListingCard({ listing, idx, onDelete }) {
                         initial={{ opacity: 0, y: -4, scale: 0.95 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: -4, scale: 0.95 }}
-                        className="absolute right-0 top-8 z-20 min-w-40 rounded-xl overflow-hidden py-1 bg-white dark:bg-zinc-950 border border-neutral-200 dark:border-zinc-800 shadow-xl"
+                        className="absolute right-0 top-8 z-50 min-w-44 rounded-xl overflow-hidden py-1 border shadow-2xl"
+                        style={{ background: "rgba(15,15,18,0.98)", backdropFilter: "blur(20px)", borderColor: "rgba(255,255,255,0.1)", boxShadow: "0 20px 60px rgba(0,0,0,0.6), 0 0 0 0.5px rgba(255,255,255,0.06) inset" }}
                         onClick={() => setShowMenu(false)}>
                         <Link to={`/developer/edit/${listing.id}`}>
                           <button className="w-full flex items-center gap-2.5 px-4 py-2.5 text-xs text-left text-foreground/60 hover:text-foreground hover:bg-foreground/5 transition-all"
