@@ -13,8 +13,18 @@ const uploadImage = (req, res, next) => {
       return next(new AppError('Please upload a file', 400));
     }
 
-    // Return S3 location or local file path
-    const imageUrl = req.file.location || `/uploads/${req.file.filename}`;
+    // S3 returns req.file.location (full URL)
+    // Local disk storage returns req.file.filename (just the name)
+    let imageUrl;
+    if (req.file.location) {
+      // S3 URL
+      imageUrl = req.file.location;
+    } else if (req.file.filename) {
+      // Local storage — return a relative path that the static middleware serves
+      imageUrl = `/uploads/${req.file.filename}`;
+    } else {
+      return next(new AppError('Could not determine upload URL', 500));
+    }
 
     res.status(200).json({ success: true, data: { url: imageUrl } });
   });

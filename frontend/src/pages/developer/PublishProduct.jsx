@@ -9,7 +9,7 @@ import {
   Image, Video, Globe, RefreshCw, Shield, AlertCircle,
   Info, Layers, Zap, Package, Type, AlignLeft, Hash, Mail,
   Phone, Calendar, List, CheckSquare, Circle, MapPin, Paperclip,
-  ChevronRight, ToggleLeft, Palette, LayoutGrid, Star, Award
+  ChevronLeft, ChevronRight, ToggleLeft, Palette, LayoutGrid, Star, Award
 } from "lucide-react";
 
 // ─── Constants ─────────────────────────────────────────────────────────────────
