@@ -10,7 +10,7 @@ import {
   Info, Layers, Zap, Package, Type, AlignLeft, Hash, Mail,
   Phone, Calendar, List, CheckSquare, Circle, MapPin, Paperclip,
   ChevronLeft, ChevronRight, ToggleLeft, Palette, LayoutGrid, Star, Award,
-  Lock, CreditCard, Clock
+  Lock, CreditCard, Clock, Play
 } from "lucide-react";
 
 // ─── Constants ─────────────────────────────────────────────────────────────────
@@ -2068,28 +2068,41 @@ export default function PublishProduct() {
       {/* Marketplace Preview Modal */}
       {showPreviewModal && (
         <div className="fixed inset-0 z-50 bg-[#080808]/98 backdrop-blur-xl overflow-y-auto text-foreground flex flex-col">
-          {/* Sticky Header */}
-          <div className="sticky top-0 bg-black/80 backdrop-blur-md border-b border-white/10 px-6 py-4 flex items-center justify-between z-50">
+          {/* Sticky Top Header */}
+          <div className="sticky top-0 bg-black/90 backdrop-blur-md border-b border-white/10 px-6 py-3 flex items-center justify-between z-50">
             <div className="flex items-center gap-2.5">
               <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-              <span className="text-[10px] font-bold uppercase tracking-wider font-mono text-muted-foreground">
-                Marketplace Preview Mode
+              <span className="text-[10px] font-bold uppercase tracking-wider font-mono text-white/50">
+                Marketplace Preview Mode — This is how buyers see your listing
               </span>
             </div>
             <button
-              onClick={() => {
-                setHasPreviewed(true);
-                setShowPreviewModal(false);
-              }}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold bg-white text-black hover:bg-white/90 transition-all shadow-sm"
+              onClick={() => { setHasPreviewed(true); setShowPreviewModal(false); }}
+              className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold bg-white text-black hover:bg-white/90 transition-all"
             >
-              <X className="w-4 h-4" /> Close Preview
+              <X className="w-3.5 h-3.5" /> Exit Preview
             </button>
           </div>
 
           {/* Preview Content */}
-          <div className="flex-1 p-6 sm:p-12 max-w-7xl mx-auto w-full relative">
+          <div className="flex-1 p-6 sm:p-10 max-w-7xl mx-auto w-full pb-32">
             <PreviewModalContent allData={form} />
+          </div>
+
+          {/* Sticky Bottom Exit Bar */}
+          <div className="fixed bottom-0 left-0 right-0 z-50 bg-black/95 backdrop-blur-xl border-t border-white/10 px-6 py-4">
+            <div className="max-w-7xl mx-auto flex items-center justify-between gap-4">
+              <div className="text-xs text-white/40 font-mono">
+                👁 Preview Mode — Not live. Data is your draft.
+              </div>
+              <button
+                onClick={() => { setHasPreviewed(true); setShowPreviewModal(false); }}
+                className="flex items-center gap-2.5 px-6 py-3 rounded-xl text-sm font-bold bg-white text-black hover:bg-white/90 transition-all shadow-lg"
+              >
+                <Check className="w-4 h-4" />
+                Done — Exit Preview & Return to Wizard
+              </button>
+            </div>
           </div>
         </div>
       )}
