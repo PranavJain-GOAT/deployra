@@ -72,7 +72,8 @@ export default function ProductDetail() {
             how_it_works: p.how_it_works || [],
             prerequisites: p.requirements || [],
             support_policy: p.support ? `${p.support} support included` : undefined,
-            delivery_info: p.deliveryDays ? `Delivered in ${p.deliveryDays} days` : 'Instant delivery'
+            delivery_info: p.deliveryDays ? `Delivered in ${p.deliveryDays} days` : 'Instant delivery',
+            preview_images: p.screenshots || []
           });
           setLoading(false);
           return;

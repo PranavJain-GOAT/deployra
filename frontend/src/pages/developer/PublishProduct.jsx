@@ -10,7 +10,7 @@ import {
   Info, Layers, Zap, Package, Type, AlignLeft, Hash, Mail,
   Phone, Calendar, List, CheckSquare, Circle, MapPin, Paperclip,
   ChevronLeft, ChevronRight, ToggleLeft, Palette, LayoutGrid, Star, Award,
-  Lock, CreditCard, Clock, Play
+  Lock, CreditCard, Clock, Play, Users, ArrowUpRight, Activity
 } from "lucide-react";
 
 // ─── Constants ─────────────────────────────────────────────────────────────────
@@ -1416,9 +1416,9 @@ function PreviewConfigReview({ allData, configValues, onConfirm, onBack }) {
 }
 
 function PreviewModalContent({ allData }) {
-  const [activeTab, setActiveTab] = useState("overview");
+  const [showDemo, setShowDemo] = useState(false);
   const [showCheckout, setShowCheckout] = useState(false);
-  const [purchaseStep, setPurchaseStep] = useState("detail"); // detail | config | review | success
+  const [purchaseStep, setPurchaseStep] = useState("config"); // config | review | success
   const [configValues, setConfigValues] = useState({});
   const [mockOrderId, setMockOrderId] = useState("");
   const [processing, setProcessing] = useState(false);
@@ -1445,282 +1445,411 @@ function PreviewModalContent({ allData }) {
 
   const rating = 5.0;
   const reviewCount = mockReviews.length;
+  const installsCount = 5600;
 
-  if (showCheckout) {
-    return (
-      <div className="max-w-2xl mx-auto py-8">
-        <div className="flex items-center justify-between mb-8 border-b border-border pb-4">
-          <div>
-            <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground font-mono">MOCK CHECKOUT</span>
-            <h3 className="text-xl font-bold text-foreground mt-0.5" style={{ fontFamily: "Georgia, serif" }}>{allData.title || "Product Preview"}</h3>
-          </div>
-          <button
-            onClick={() => {
-              setShowCheckout(false);
-              setPurchaseStep("detail");
-            }}
-            className="w-9 h-9 rounded-full bg-muted border border-border flex items-center justify-center text-muted-foreground hover:text-foreground transition-all"
-          >
-            <X className="w-4 h-4" />
-          </button>
-        </div>
-
-        {purchaseStep === "success" && (
-          <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="text-center py-8">
-            <div className="w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-6 bg-emerald-500/10 border border-emerald-500/30">
-              <Check className="w-10 h-10 text-emerald-400" />
-            </div>
-            <h2 className="text-2xl font-bold text-foreground mb-2" style={{ fontFamily: "Georgia, serif" }}>
-              Order Created! (Mock)
-            </h2>
-            <p className="text-sm text-muted-foreground mb-4">
-              Onboarding simulation completed successfully.
-            </p>
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-8 bg-muted border border-border">
-              <span className="text-xs font-mono text-muted-foreground">Mock Order ID:</span>
-              <span className="text-xs font-bold text-foreground font-mono">{mockOrderId}</span>
-            </div>
-            <div className="flex gap-3 justify-center">
-              <button
-                onClick={() => {
-                  setShowCheckout(false);
-                  setPurchaseStep("detail");
-                }}
-                className="px-6 py-3 rounded-xl text-sm font-bold bg-foreground text-background hover:bg-foreground/90 transition-all"
-              >
-                Back to Product Detail
-              </button>
-            </div>
-          </motion.div>
-        )}
-
-        {purchaseStep === "review" && (
-          <div>
-            {processing ? (
-              <div className="text-center py-20">
-                <RefreshCw className="w-12 h-12 animate-spin mx-auto mb-4 text-muted-foreground" />
-                <p className="text-sm font-semibold text-muted-foreground">Simulating escrow payment...</p>
-              </div>
-            ) : (
-              <PreviewConfigReview
-                allData={allData}
-                configValues={configValues}
-                onConfirm={handlePayment}
-                onBack={() => setPurchaseStep("config")}
-              />
-            )}
-          </div>
-        )}
-
-        {purchaseStep === "config" && (
-          <div className="p-6 rounded-2xl border border-border bg-card">
-            <PreviewConfigWizard
-              configFields={allData.configFields}
-              onComplete={(values) => {
-                setConfigValues(values);
-                setPurchaseStep("review");
-              }}
-              onBack={() => {
-                setShowCheckout(false);
-                setPurchaseStep("detail");
-              }}
-            />
-          </div>
-        )}
-      </div>
-    );
-  }
+  const who_its_for = allData.industries || [];
+  const whats_included = allData.requirements || [];
+  const whats_not_included = [
+    "Custom widget styling beyond default theme settings",
+    "Third-party API key generation (e.g. OpenAI, Stripe account registration)"
+  ];
+  const features = allData.features || [];
+  const how_it_works = [
+    { title: "Connect APIs & Credentials", desc: "Define webhook integrations and insert security tokens." },
+    { title: "Customize AI Behaviors", desc: "Fine-tune customer interaction scripts and test flows." }
+  ];
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-      {/* Left Column */}
-      <div className="lg:col-span-2 space-y-6">
-        {/* Cover + Screenshots Carousel */}
-        <div className="p-4 rounded-2xl border border-border bg-card">
-          <MediaCarousel coverImage={allData.coverImage} screenshots={allData.screenshots} />
+    <>
+      {/* Demo Modal */}
+      <AnimatePresence>
+        {showDemo && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-xl flex items-center justify-center p-4"
+            onClick={() => setShowDemo(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0 }}
+              transition={{ type: "spring", bounce: 0.2 }}
+              className="glass rounded-3xl overflow-hidden max-w-3xl w-full shadow-2xl"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="flex items-center justify-between px-6 py-4 border-b border-white/8">
+                <div>
+                  <h3 className="text-white font-bold" style={{ fontFamily: 'Georgia, serif' }}>{allData.title || "Product Preview"}</h3>
+                  <p className="text-white/30 text-xs font-mono">LIVE DEMO</p>
+                </div>
+                <button onClick={() => setShowDemo(false)} className="w-8 h-8 rounded-full glass flex items-center justify-center text-white/50 hover:text-white">
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+              <div className="aspect-video bg-black flex items-center justify-center relative">
+                {allData.demoUrl ? (
+                  <iframe src={allData.demoUrl} className="w-full h-full" title="Demo" />
+                ) : (
+                  <div className="text-center p-10">
+                    <motion.div
+                      whileHover={{ scale: 1.1 }}
+                      className="w-20 h-20 glass rounded-full flex items-center justify-center mx-auto mb-4 cursor-pointer"
+                    >
+                      <Play className="w-7 h-7 text-white ml-1" />
+                    </motion.div>
+                    <p className="text-white font-bold text-xl mb-2" style={{ fontFamily: 'Georgia, serif' }}>Interactive Demo</p>
+                    <p className="text-white/40 text-sm max-w-xs mx-auto font-sans">Live interactive preview of {allData.title || "Product"}</p>
+                  </div>
+                )}
+              </div>
+              <div className="p-5 flex gap-3">
+                <button
+                  onClick={() => { setShowDemo(false); setShowCheckout(true); setPurchaseStep("config"); }}
+                  className="flex-1 shimmer-btn w-full bg-white text-black font-bold text-sm rounded-xl py-3.5 flex items-center justify-center gap-2"
+                >
+                  <CreditCard className="w-4 h-4" />
+                  Install Now — ₹{price.toLocaleString()}
+                </button>
+                <button onClick={() => setShowDemo(false)} className="glass rounded-xl px-5 py-3.5 text-white/60 hover:text-white text-sm transition-colors">
+                  Close
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <motion.div
+        animate={showCheckout ? { scale: 0.96, filter: "blur(4px)" } : { scale: 1, filter: "blur(0px)" }}
+        transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+        className="min-h-screen bg-background text-foreground text-left"
+      >
+        {/* Hero */}
+        <div className="dark-grid border-b border-white/6 pt-12 pb-16 relative overflow-hidden">
+          <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse 60% 50% at 70% 50%, rgba(255,255,255,0.03) 0%, transparent 70%)' }} />
+          <div className="relative max-w-7xl mx-auto px-4 sm:px-6">
+            <span className="inline-flex items-center gap-2 text-white/25 hover:text-white text-xs mb-8 transition-colors font-mono cursor-pointer">
+              <ChevronLeft className="w-3.5 h-3.5" /> BACK TO MARKETPLACE
+            </span>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+              <div>
+                <div className="flex items-center gap-3 mb-5 flex-wrap">
+                  <span className="cyber-tag">
+                    <Zap className="w-2.5 h-2.5" /> INSTANT SETUP
+                  </span>
+                  <span className="cyber-tag">
+                    <Star className="w-2.5 h-2.5 text-yellow-400 fill-yellow-400" />
+                    {rating.toFixed(1)} · {reviewCount} reviews
+                  </span>
+                  <span className="cyber-tag">{installsCount}+ installs</span>
+                </div>
+                <h1 className="text-white font-bold leading-none mb-5" style={{ fontFamily: 'Georgia, serif', fontSize: 'clamp(2.2rem, 5vw, 3.5rem)', letterSpacing: '-0.04em' }}>
+                  {allData.title || "Untitled Product"}
+                </h1>
+                <p className="text-white/45 text-base leading-relaxed mb-8 max-w-lg font-sans" style={{ letterSpacing: '-0.02em' }}>
+                  {allData.shortDesc || "No short description provided."}
+                </p>
+                <div className="flex flex-col sm:flex-row gap-3">
+                  <button
+                    onClick={() => { setShowCheckout(true); setPurchaseStep("config"); }}
+                    className="shimmer-btn inline-flex items-center justify-center gap-2 bg-white text-black font-bold text-sm px-7 py-4 rounded-2xl hover:shadow-[0_0_40px_rgba(255,255,255,0.15)] transition-all w-full sm:w-auto"
+                  >
+                    <CreditCard className="w-4 h-4" />
+                    Get Access — ₹{price.toLocaleString()}
+                  </button>
+                </div>
+              </div>
+
+              {/* Cover screenshot with live demo overlay */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}
+                onClick={() => setShowDemo(true)}
+                className="rounded-3xl overflow-hidden border border-white/10 shadow-2xl relative cursor-pointer group"
+              >
+                <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center z-10 backdrop-blur-[2px]">
+                  <div className="w-16 h-16 glass rounded-full flex items-center justify-center border border-white/20 shadow-2xl mb-4 group-hover:scale-110 group-hover:bg-white/10 transition-all">
+                    <Play className="w-6 h-6 text-white ml-1" />
+                  </div>
+                  <p className="text-white font-bold text-lg flex items-center gap-2 group-hover:text-white/80 transition-colors" style={{ fontFamily: 'Georgia, serif' }}>
+                    View Demo <ArrowUpRight className="w-5 h-5 text-cyber-green" />
+                  </p>
+                </div>
+                {allData.coverImage ? (
+                  <img
+                    src={getFullImageUrl(allData.coverImage)}
+                    alt={allData.title || "Cover"}
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                    style={{ maxHeight: '420px', objectPosition: 'top' }}
+                  />
+                ) : (
+                  <div className="aspect-video bg-white/3 flex items-center justify-center group-hover:scale-105 transition-transform duration-700">
+                    <Zap className="w-12 h-12 text-white/10" />
+                  </div>
+                )}
+              </motion.div>
+            </div>
+          </div>
         </div>
 
-        {/* Tabs */}
-        <div className="flex items-center gap-1 p-1 rounded-xl bg-muted border border-border">
-          {["overview", "features", "requirements", "reviews"].map(tab => (
-            <button key={tab} onClick={() => setActiveTab(tab)}
-              className="flex-1 py-2 rounded-lg text-[11px] font-bold capitalize transition-all font-mono"
-              style={{
-                background: activeTab === tab ? "white" : "transparent",
-                color: activeTab === tab ? "black" : "rgba(255, 255, 255, 0.4)"
-              }}>
-              {tab}
-            </button>
-          ))}
-        </div>
+        {/* Content */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-12">
+          <div className="space-y-10">
+            {allData.description && (
+              <div className="border-t border-white/6 pt-8">
+                <h2 className="text-white font-bold text-xl mb-5" style={{ fontFamily: 'Georgia, serif', letterSpacing: '-0.04em' }}>What this does</h2>
+                <p className="text-white/50 leading-relaxed font-sans" style={{ letterSpacing: '-0.01em' }}>{allData.description}</p>
+              </div>
+            )}
 
-        {/* Tab Content */}
-        <AnimatePresence mode="wait">
-          <motion.div key={activeTab} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }}>
-            {activeTab === "overview" && (
-              <div className="space-y-4">
-                <p className="text-sm text-foreground/60 leading-relaxed">{allData.description || "No description provided."}</p>
+            {who_its_for?.length > 0 && (
+              <div className="border-t border-white/6 pt-8">
+                <h2 className="text-white font-bold text-xl mb-5" style={{ fontFamily: 'Georgia, serif', letterSpacing: '-0.04em' }}>Who this is for</h2>
                 <div className="flex flex-wrap gap-2">
-                  {(allData.tags || []).map(t => (
-                    <span key={t} className="px-2.5 py-1 rounded-lg text-[10px] font-semibold bg-muted border border-border text-muted-foreground font-mono">
-                      {t}
+                  {who_its_for.map((w) => (
+                    <span key={w} className="cyber-tag gap-2 py-2">
+                      <Users className="w-3 h-3 text-muted-foreground" /> {w}
                     </span>
                   ))}
                 </div>
-                {allData.demoUrl && (
-                  <a href={allData.demoUrl} target="_blank" rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold border border-border bg-muted text-foreground hover:bg-foreground/10 transition-all">
-                    <Play className="w-4 h-4" /> Try Live Demo
-                  </a>
-                )}
               </div>
             )}
-            {activeTab === "features" && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {(allData.features || []).map(f => (
-                  <div key={f} className="flex items-center gap-3 p-3 rounded-xl bg-muted/20 border border-border/60">
-                    <div className="w-5 h-5 rounded-lg flex items-center justify-center shrink-0 bg-emerald-500/10">
-                      <Check className="w-3 h-3 text-emerald-400" />
-                    </div>
-                    <span className="text-xs text-foreground/75">{f}</span>
-                  </div>
-                ))}
-                {(allData.features || []).length === 0 && (
-                  <p className="text-xs text-muted-foreground italic col-span-2">No features defined.</p>
-                )}
-              </div>
-            )}
-            {activeTab === "requirements" && (
-              <div className="space-y-3">
-                <p className="text-xs text-muted-foreground mb-3">
-                  What you need to provide for deployment:
-                </p>
-                {(allData.configFields || []).map(f => {
-                  const meta = FIELD_META[f.type] || FIELD_META.text;
-                  const Icon = meta.icon;
-                  return (
-                    <div key={f.id} className="flex items-center gap-3 p-3 rounded-xl bg-muted/20 border border-border/60">
-                      <Icon className="w-4 h-4 text-muted-foreground shrink-0" />
-                      <div>
-                        <div className="text-xs font-semibold text-foreground/80">
-                          {f.label || "Untitled Field"}
-                          {f.required && <span className="text-red-400 ml-1">*</span>}
-                        </div>
-                        {f.description && <div className="text-[10px] text-muted-foreground mt-0.5">{f.description}</div>}
-                      </div>
-                    </div>
-                  );
-                })}
-                {(allData.configFields || []).length === 0 && (
-                  <p className="text-xs text-muted-foreground italic">No custom configuration fields defined.</p>
-                )}
-              </div>
-            )}
-            {activeTab === "reviews" && (
-              <div className="space-y-4">
-                <div className="flex items-center gap-4">
-                  <div className="text-4xl font-bold" style={{ fontFamily: "Georgia, serif" }}>{rating.toFixed(1)}</div>
-                  <div>
-                    <div className="flex items-center gap-0.5">
-                      {[1, 2, 3, 4, 5].map(s => (
-                        <Star key={s} className="w-4 h-4 text-foreground fill-foreground" />
-                      ))}
-                    </div>
-                    <p className="text-xs text-muted-foreground mt-1">{reviewCount} reviews (Mocked for Preview)</p>
-                  </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {whats_included?.length > 0 && (
+                <div className="glass rounded-2xl p-5 border border-white/6">
+                  <h3 className="text-white/70 text-xs font-mono tracking-widest mb-4 flex items-center gap-2">
+                    <span style={{ color: '#4D9FFF' }}>+</span> INCLUDED
+                  </h3>
+                  <ul className="space-y-2.5">
+                    {whats_included.map((item) => (
+                      <li key={item} className="flex items-start gap-2.5 text-left">
+                        <Check className="w-3.5 h-3.5 mt-0.5 shrink-0" style={{ color: '#4D9FFF' }} />
+                        <span className="text-sm text-white/60 font-sans" style={{ letterSpacing: '-0.01em' }}>{item}</span>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
-                {mockReviews.map((r, i) => (
-                  <div key={i} className="p-4 rounded-xl bg-muted/20 border border-border/60">
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center gap-2">
-                        <div className="w-7 h-7 rounded-lg bg-foreground/10 flex items-center justify-center text-xs font-bold">{r.name[0]}</div>
-                        <span className="text-xs font-semibold text-muted-foreground">{r.name}</span>
-                      </div>
-                      <span className="text-[10px] text-muted-foreground font-mono">{r.date}</span>
-                    </div>
-                    <p className="text-xs text-muted-foreground/80 leading-relaxed">{r.comment}</p>
-                  </div>
-                ))}
+              )}
+              {whats_not_included?.length > 0 && (
+                <div className="glass rounded-2xl p-5 border border-white/6">
+                  <h3 className="text-white/70 text-xs font-mono tracking-widest mb-4 flex items-center gap-2">
+                    <span className="text-red-400">−</span> NOT INCLUDED
+                  </h3>
+                  <ul className="space-y-2.5">
+                    {whats_not_included.map((item) => (
+                      <li key={item} className="flex items-start gap-2.5 text-left">
+                        <X className="w-3.5 h-3.5 mt-0.5 shrink-0 text-red-400/60" />
+                        <span className="text-sm text-white/35 font-sans" style={{ letterSpacing: '-0.01em' }}>{item}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+
+            {features?.length > 0 && (
+              <div className="border-t border-white/6 pt-8">
+                <h2 className="text-white font-bold text-xl mb-5" style={{ fontFamily: 'Georgia, serif', letterSpacing: '-0.04em' }}>Features</h2>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {features.map((f) => (
+                    <motion.div
+                      key={f}
+                      whileHover={{ x: 4 }}
+                      className="glass rounded-xl px-4 py-3 flex items-center gap-3 border border-white/4 hover:border-white/12 transition-all cursor-default"
+                    >
+                      <div className="w-1.5 h-1.5 rounded-full bg-white/40 shrink-0" />
+                      <span className="text-sm text-white/60 font-sans text-left" style={{ letterSpacing: '-0.01em' }}>{f}</span>
+                    </motion.div>
+                  ))}
+                </div>
               </div>
             )}
-          </motion.div>
-        </AnimatePresence>
-      </div>
 
-      {/* Right Column (Purchase Card) */}
-      <div className="lg:col-span-1">
-        <div className="sticky top-6 space-y-4">
-          <div className="p-6 rounded-2xl border border-border bg-card">
-            {/* Badges */}
-            <div className="flex items-center gap-2 mb-4">
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-500/10 border border-emerald-500/25 text-emerald-400">
-                <Shield className="w-2.5 h-2.5" /> Verified
-              </span>
-              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-yellow-500/10 border border-yellow-500/25 text-yellow-400">
-                <Award className="w-2.5 h-2.5" /> Featured
-              </span>
+            <div className="border-t border-white/6 pt-8">
+              <h2 className="text-white font-bold text-xl mb-5" style={{ fontFamily: 'Georgia, serif', letterSpacing: '-0.04em' }}>Delivery</h2>
+              <div className="glass rounded-2xl p-5 flex items-start gap-4">
+                <Clock className="w-5 h-5 text-white/30 mt-0.5 shrink-0" />
+                <div className="text-left">
+                  <p className="text-white/80 font-semibold text-sm mb-1 font-sans">Instant delivery</p>
+                  <p className="text-sm text-white/40 font-sans">Delivered in {deliveryDays} days · Support: {support} · Revisions: {revisions} · Method: {deploymentMethod}</p>
+                </div>
+              </div>
             </div>
 
-            <h1 className="text-lg font-bold mb-1" style={{ fontFamily: "Georgia, serif" }}>
-              {allData.title || "Product Title Preview"}
-            </h1>
-            <p className="text-xs text-muted-foreground mb-4">{allData.shortDesc || "No short description provided."}</p>
-
-            <div className="flex items-center gap-3 mb-4">
-              <div className="flex items-center gap-0.5">
-                {[1, 2, 3, 4, 5].map(s => (
-                  <Star key={s} className="w-3.5 h-3.5 text-foreground fill-foreground" />
+            <div className="border-t border-white/6 pt-8">
+              <h2 className="text-white font-bold text-xl mb-5" style={{ fontFamily: 'Georgia, serif', letterSpacing: '-0.04em' }}>How it Works</h2>
+              <div className="space-y-4">
+                {how_it_works.map((step, idx) => (
+                  <div key={idx} className="glass rounded-2xl p-5 border border-white/6 flex gap-4 text-left">
+                    <div className="w-8 h-8 rounded-full bg-white/10 text-white flex items-center justify-center font-mono font-bold shrink-0 mt-0.5">
+                      {idx + 1}
+                    </div>
+                    <div>
+                      <h4 className="text-white font-bold mb-1 font-sans">{step.title}</h4>
+                      <p className="text-sm text-white/60 leading-relaxed font-sans">{step.desc}</p>
+                    </div>
+                  </div>
                 ))}
               </div>
-              <span className="text-xs text-muted-foreground font-mono">5.0 (2)</span>
-              <span className="text-[10px] text-muted-foreground/50">·</span>
-              <span className="text-[10px] text-muted-foreground font-mono">0 deployed</span>
             </div>
 
-            <div className="text-3xl font-bold mb-1" style={{ fontFamily: "Georgia, serif" }}>
-              ₹{price.toLocaleString()}
+            {whats_included?.length > 0 && (
+              <div className="border-t border-white/6 pt-8">
+                <h2 className="text-white font-bold text-xl mb-5" style={{ fontFamily: 'Georgia, serif', letterSpacing: '-0.04em' }}>Prerequisites & Requirements</h2>
+                <div className="glass rounded-2xl p-5 border border-white/6 text-left">
+                  <ul className="space-y-3">
+                    {whats_included.map((req, idx) => (
+                      <li key={idx} className="flex items-start gap-3">
+                        <Check className="w-4 h-4 mt-0.5 text-white/40 shrink-0" style={{ color: '#4D9FFF' }} />
+                        <span className="text-sm text-white/70 font-sans">{req}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            )}
+
+            {allData.hostingRequirements && (
+              <div className="border-t border-white/6 pt-8">
+                <h2 className="text-white font-bold text-xl mb-5" style={{ fontFamily: 'Georgia, serif', letterSpacing: '-0.04em' }}>Hosting & Infrastructure Requirements</h2>
+                <div className="glass rounded-2xl p-5 border border-white/6 text-left">
+                  <p className="text-sm text-white/70 font-sans">{allData.hostingRequirements}</p>
+                </div>
+              </div>
+            )}
+
+            <div className="border-t border-white/6 pt-8">
+              <h2 className="text-white font-bold text-xl mb-5" style={{ fontFamily: 'Georgia, serif', letterSpacing: '-0.04em' }}>Support & Maintenance</h2>
+              <div className="glass rounded-2xl p-5 border border-white/6 flex items-start gap-4 text-left">
+                <Shield className="w-5 h-5 mt-0.5 text-[#4D9FFF] shrink-0" />
+                <div>
+                  <h4 className="text-white font-bold mb-1 font-sans">Post-Purchase Support</h4>
+                  <p className="text-sm text-white/60 leading-relaxed font-sans">{support} support included via Deployra secure communication center.</p>
+                </div>
+              </div>
             </div>
-            <div className="text-[10px] text-muted-foreground font-mono mb-5">+ 18% GST = ₹{Math.round(price * 1.18).toLocaleString()} total</div>
 
-            <button
-              onClick={() => {
-                setShowCheckout(true);
-                setPurchaseStep("config");
-              }}
-              className="w-full py-3.5 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-all bg-foreground text-background hover:bg-foreground/90 shimmer-btn"
-            >
-              <Zap className="w-4 h-4" /> Get Access
-            </button>
-
-            <div className="flex items-center justify-center gap-1.5 mt-3">
-              <Lock className="w-3 h-3 text-muted-foreground/30" />
-              <span className="text-[10px] text-muted-foreground/30">Protected by Deployra Escrow</span>
-            </div>
-
-            {/* Meta */}
-            <div className="mt-5 pt-5 space-y-3 border-t border-border/60">
-              {[
-                { icon: Clock, label: "Delivery", value: `${deliveryDays} days` },
-                { icon: RefreshCw, label: "Revisions", value: revisions },
-                { icon: Shield, label: "Support", value: support },
-                { icon: Package, label: "Deployment", value: deploymentMethod },
-              ].map(item => {
-                const Icon = item.icon;
-                return (
-                  <div key={item.label} className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Icon className="w-3.5 h-3.5 text-muted-foreground" />
-                      <span className="text-[11px] text-muted-foreground">{item.label}</span>
+            {allData.screenshots && allData.screenshots.length > 0 && (
+              <div className="border-t border-white/6 pt-8">
+                <h2 className="text-white font-bold text-xl mb-5" style={{ fontFamily: 'Georgia, serif', letterSpacing: '-0.04em' }}>Interface Previews</h2>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6">
+                  {allData.screenshots.map((img, i) => (
+                    <div key={i} className="rounded-2xl overflow-hidden border border-white/10 glass aspect-video group cursor-pointer relative">
+                      <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity z-10 flex items-center justify-center">
+                        <div className="bg-white/10 backdrop-blur-md px-4 py-2 rounded-full border border-white/20">
+                          <span className="text-white text-xs font-bold tracking-widest uppercase font-mono">Expand</span>
+                        </div>
+                      </div>
+                      <img src={getFullImageUrl(img)} alt={`Preview ${i + 1}`} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
                     </div>
-                    <span className="text-[11px] font-semibold text-foreground/80">{item.value}</span>
-                  </div>
-                );
-              })}
-            </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
-      </div>
-    </div>
+      </motion.div>
+
+      {/* RIGHT SLIDE-OVER Checkout */}
+      <AnimatePresence>
+        {showCheckout && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-[100] bg-black/60 backdrop-blur-sm"
+              onClick={() => purchaseStep !== "paying" && setShowCheckout(false)}
+            />
+            <motion.div
+              initial={{ x: "100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "100%" }}
+              transition={{ type: "spring", damping: 30, stiffness: 300 }}
+              className="fixed top-0 right-0 bottom-0 z-[101] w-full max-w-md bg-[#080808] border-l border-white/10 overflow-y-auto text-left flex flex-col h-full"
+            >
+              <div className="p-8 flex-1">
+                {/* Header */}
+                <div className="flex items-center justify-between mb-8">
+                  <div>
+                    <p className="text-white/20 text-[11px] font-mono tracking-widest mb-1">MOCK CHECKOUT</p>
+                    <h3 className="text-white font-bold text-xl font-sans" style={{ fontFamily: 'Georgia, serif', letterSpacing: '-0.04em' }}>{allData.title || "Product Preview"}</h3>
+                  </div>
+                  <button
+                    onClick={() => setShowCheckout(false)}
+                    className="w-9 h-9 glass rounded-full flex items-center justify-center text-white/40 hover:text-white transition-colors"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+
+                {purchaseStep === "config" && (
+                  <div className="p-1">
+                    <PreviewConfigWizard
+                      configFields={allData.configFields}
+                      onComplete={(values) => {
+                        setConfigValues(values);
+                        setPurchaseStep("review");
+                      }}
+                      onBack={() => {
+                        setShowCheckout(false);
+                      }}
+                    />
+                  </div>
+                )}
+
+                {purchaseStep === "review" && (
+                  <div>
+                    {processing ? (
+                      <div className="text-center py-20">
+                        <RefreshCw className="w-12 h-12 animate-spin mx-auto mb-4 text-white/55" />
+                        <p className="text-sm font-semibold text-white/50">Simulating escrow payment...</p>
+                      </div>
+                    ) : (
+                      <PreviewConfigReview
+                        allData={allData}
+                        configValues={configValues}
+                        onConfirm={handlePayment}
+                        onBack={() => setPurchaseStep("config")}
+                      />
+                    )}
+                  </div>
+                )}
+
+                {purchaseStep === "success" && (
+                  <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="text-center py-8">
+                    <div className="w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-6 bg-emerald-500/10 border border-emerald-500/30">
+                      <Check className="w-10 h-10 text-emerald-400" />
+                    </div>
+                    <h2 className="text-2xl font-bold text-white mb-2" style={{ fontFamily: "Georgia, serif" }}>
+                      Order Created! (Mock)
+                    </h2>
+                    <p className="text-sm text-white/40 mb-4">
+                      Onboarding simulation completed successfully.
+                    </p>
+                    <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-8 bg-white/5 border border-white/10">
+                      <span className="text-xs font-mono text-white/40">Mock Order ID:</span>
+                      <span className="text-xs font-bold text-white font-mono">{mockOrderId}</span>
+                    </div>
+                    <button
+                      onClick={() => {
+                        setShowCheckout(false);
+                        setPurchaseStep("config");
+                      }}
+                      className="w-full py-4 rounded-xl text-sm font-bold bg-white text-black hover:bg-white/90 transition-all font-sans"
+                    >
+                      Back to Product Detail
+                    </button>
+                  </motion.div>
+                )}
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+    </>
   );
 }
 
