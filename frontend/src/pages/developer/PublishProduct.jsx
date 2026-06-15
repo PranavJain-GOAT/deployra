@@ -9,7 +9,7 @@ import {
   Image, Video, Globe, RefreshCw, Shield, AlertCircle,
   Info, Layers, Zap, Package, Type, AlignLeft, Hash, Mail,
   Phone, Calendar, List, CheckSquare, Circle, MapPin, Paperclip,
-  ChevronRight, ToggleLeft, Palette, LayoutGrid
+  ChevronRight, ToggleLeft, Palette, LayoutGrid, Star, Award
 } from "lucide-react";
 
 // ─── Constants ─────────────────────────────────────────────────────────────────
@@ -22,9 +22,19 @@ const STEPS = [
 ];
 
 const CATEGORIES = [
-  "AI Agent","Automation","Chatbot","CRM","Dashboard","Data Pipeline",
-  "E-Commerce","ERP","SaaS Product","Analytics","DevOps","Marketing",
-  "Booking System","Payment System","Other",
+  "AI Agents",
+  "Chatbots",
+  "SaaS Applications",
+  "CRM Systems",
+  "E-commerce Solutions",
+  "Automation Tools",
+  "Analytics Dashboards",
+  "Internal Business Tools",
+  "Marketing Tools",
+  "Customer Support Systems",
+  "Developer Tools",
+  "Productivity Tools",
+  "Other (Requires Admin Review)"
 ];
 const INDUSTRIES = [
   "Restaurants","Healthcare","E-Commerce","Real Estate","Education","Finance",
@@ -232,62 +242,375 @@ function Step1({ data, onChange, errors }) {
 }
 
 // ─── STEP 2: Media & Demo ──────────────────────────────────────────────────────
+// ─── Helpers ───────────────────────────────────────────────────────────────────
+const getFullImageUrl = (path) => {
+  if (!path) return "";
+  if (path.startsWith("http://") || path.startsWith("https://")) {
+    return path;
+  }
+  const cleanPath = path.startsWith("/") ? path : `/${path}`;
+  const baseHost = API_URL.replace("/api/v1", "");
+  return `${baseHost}${cleanPath}`;
+};
+
+const isValidHttpsUrl = (url) => {
+  if (!url) return true;
+  if (url.startsWith("/uploads/") || url.startsWith("http://localhost:5001/uploads/") || url.startsWith("http://127.0.0.1:5001/uploads/")) return true;
+  if (!url.startsWith("https://")) return false;
+  try {
+    new URL(url);
+    return true;
+  } catch (e) {
+    return false;
+  }
+};
+
+// ─── Media Carousel ────────────────────────────────────────────────────────────
+function MediaCarousel({ coverImage, screenshots = [] }) {
+  const [index, setIndex] = useState(0);
+  const media = [coverImage, ...screenshots].filter(Boolean);
+
+  if (media.length === 0) {
+    return (
+      <div className="w-full aspect-video rounded-2xl bg-muted border border-border flex items-center justify-center">
+        <span className="text-xs text-muted-foreground">No media available</span>
+      </div>
+    );
+  }
+
+  const nextSlide = () => {
+    setIndex((prev) => (prev + 1) % media.length);
+  };
+
+  const prevSlide = () => {
+    setIndex((prev) => (prev - 1 + media.length) % media.length);
+  };
+
+  return (
+    <div className="relative w-full aspect-video rounded-2xl overflow-hidden border border-border bg-black group">
+      <AnimatePresence mode="wait">
+        <motion.img
+          key={index}
+          src={getFullImageUrl(media[index])}
+          alt={`Media ${index}`}
+          className="w-full h-full object-cover"
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 1.05 }}
+          transition={{ duration: 0.3 }}
+        />
+      </AnimatePresence>
+
+      {/* Slide Index Badge */}
+      <div className="absolute top-3 left-3 bg-black/60 backdrop-blur-md px-2.5 py-1 rounded-md text-[10px] font-bold text-white uppercase tracking-wider font-mono">
+        {index === 0 ? "Cover Image" : `Screenshot ${index}`}
+      </div>
+
+      {media.length > 1 && (
+        <>
+          <button
+            type="button"
+            onClick={prevSlide}
+            className="absolute left-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/50 text-white flex items-center justify-center hover:bg-black/75 transition-all opacity-0 group-hover:opacity-100"
+          >
+            <ChevronLeft className="w-4 h-4" />
+          </button>
+          <button
+            type="button"
+            onClick={nextSlide}
+            className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/50 text-white flex items-center justify-center hover:bg-black/75 transition-all opacity-0 group-hover:opacity-100"
+          >
+            <ChevronRight className="w-4 h-4" />
+          </button>
+          {/* Dots */}
+          <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-1.5 z-10">
+            {media.map((_, i) => (
+              <button
+                key={i}
+                type="button"
+                onClick={() => setIndex(i)}
+                className={`w-1.5 h-1.5 rounded-full transition-all ${
+                  i === index ? "bg-white w-4" : "bg-white/40"
+                }`}
+              />
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+// ─── STEP 2: Media & Demo ──────────────────────────────────────────────────────
 function Step2({ data, onChange, errors }) {
-  const [screenshotUrl, setScreenshotUrl] = useState("");
-  const addScreenshot = () => {
-    if (screenshotUrl.trim()) {
-      onChange("screenshots", [...(data.screenshots || []), screenshotUrl.trim()]);
-      setScreenshotUrl("");
+  const [dragActive, setDragActive] = useState(false);
+  const [uploadingFiles, setUploadingFiles] = useState({});
+
+  const handleUpload = async (files) => {
+    const validTypes = ["image/png", "image/jpeg", "image/jpg", "image/webp"];
+    const token = localStorage.getItem("auth_token");
+    const headers = token ? { Authorization: `Bearer ${token}` } : {};
+
+    for (let file of files) {
+      if (!validTypes.includes(file.type)) {
+        alert("Invalid file format. Supported formats: PNG, JPG, JPEG, WEBP");
+        continue;
+      }
+
+      const fileId = `${file.name}-${Date.now()}`;
+      setUploadingFiles(prev => ({ ...prev, [fileId]: { name: file.name, progress: 0 } }));
+
+      const formData = new FormData();
+      formData.append("image", file);
+
+      try {
+        const res = await axios.post(`${API_URL}/uploads/image`, formData, {
+          headers: {
+            ...headers,
+            "Content-Type": "multipart/form-data"
+          },
+          withCredentials: true,
+          onUploadProgress: (progressEvent) => {
+            const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+            setUploadingFiles(prev => ({
+              ...prev,
+              [fileId]: { ...prev[fileId], progress: percentCompleted }
+            }));
+          }
+        });
+
+        if (res.data?.success && res.data?.data?.url) {
+          const uploadedUrl = res.data.data.url;
+          onChange("screenshots", [...(data.screenshots || []), uploadedUrl]);
+        }
+      } catch (err) {
+        console.error("Upload failed for", file.name, err);
+        alert(`Failed to upload image: ${err.response?.data?.message || err.message}`);
+      } finally {
+        setUploadingFiles(prev => {
+          const next = { ...prev };
+          delete next[fileId];
+          return next;
+        });
+      }
     }
   };
+
+  const handleCoverUpload = async (file) => {
+    const validTypes = ["image/png", "image/jpeg", "image/jpg", "image/webp"];
+    if (!validTypes.includes(file.type)) {
+      alert("Invalid file format. Supported formats: PNG, JPG, JPEG, WEBP");
+      return;
+    }
+    const token = localStorage.getItem("auth_token");
+    const headers = token ? { Authorization: `Bearer ${token}` } : {};
+
+    const formData = new FormData();
+    formData.append("image", file);
+
+    try {
+      const res = await axios.post(`${API_URL}/uploads/image`, formData, {
+        headers: {
+          ...headers,
+          "Content-Type": "multipart/form-data"
+        },
+        withCredentials: true
+      });
+      if (res.data?.success && res.data?.data?.url) {
+        onChange("coverImage", res.data.data.url);
+      }
+    } catch (err) {
+      console.error("Cover upload failed", err);
+      alert(`Cover image upload failed: ${err.response?.data?.message || err.message}`);
+    }
+  };
+
+  const onDrag = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.type === "dragenter" || e.type === "dragover") {
+      setDragActive(true);
+    } else if (e.type === "dragleave") {
+      setDragActive(false);
+    }
+  };
+
+  const onDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      handleUpload(Array.from(e.dataTransfer.files));
+    }
+  };
+
+  const moveLeft = (index) => {
+    if (index === 0) return;
+    const newScreenshots = [...data.screenshots];
+    const temp = newScreenshots[index];
+    newScreenshots[index] = newScreenshots[index - 1];
+    newScreenshots[index - 1] = temp;
+    onChange("screenshots", newScreenshots);
+  };
+
+  const moveRight = (index) => {
+    if (index === data.screenshots.length - 1) return;
+    const newScreenshots = [...data.screenshots];
+    const temp = newScreenshots[index];
+    newScreenshots[index] = newScreenshots[index + 1];
+    newScreenshots[index + 1] = temp;
+    onChange("screenshots", newScreenshots);
+  };
+
+  const removeScreenshot = (index) => {
+    onChange("screenshots", data.screenshots.filter((_, idx) => idx !== index));
+  };
+
   return (
     <div className="space-y-6">
-      <Field label="Cover Image" required hint="Min 1200×630px recommended." error={errors.coverImage}>
-        <input value={data.coverImage} onChange={e => onChange("coverImage", e.target.value)}
-          placeholder="https://your-cdn.com/cover-image.jpg" className={inputCls} />
+      {/* Cover Image Field */}
+      <Field label="Cover Image" required hint="Min 1200×630px recommended. Paste a URL or upload an image." error={errors.coverImage}>
+        <div className="flex flex-col sm:flex-row gap-3">
+          <input
+            value={data.coverImage}
+            onChange={e => onChange("coverImage", e.target.value)}
+            placeholder="https://your-cdn.com/cover-image.jpg"
+            className={`${inputCls} flex-1`}
+          />
+          <label className="cursor-pointer shrink-0">
+            <div className="px-4 py-3 rounded-xl text-xs font-bold bg-muted border border-border text-foreground hover:bg-foreground hover:text-background transition-all flex items-center gap-2">
+              <Upload className="w-4 h-4" /> Upload Cover
+            </div>
+            <input
+              type="file"
+              accept=".png,.jpg,.jpeg,.webp"
+              className="hidden"
+              onChange={e => e.target.files?.[0] && handleCoverUpload(e.target.files[0])}
+            />
+          </label>
+        </div>
         {data.coverImage && (
-          <div className="mt-3 rounded-xl overflow-hidden border border-border">
-            <img src={data.coverImage} alt="Cover preview" className="w-full h-48 object-cover"
+          <div className="mt-3 rounded-xl overflow-hidden border border-border max-w-md">
+            <img src={getFullImageUrl(data.coverImage)} alt="Cover preview" className="w-full h-48 object-cover"
               onError={e => e.target.style.display = "none"} />
           </div>
         )}
       </Field>
 
-      <Field label="Product Screenshots" required hint="Min 3 required." error={errors.screenshots}>
-        <div className="flex gap-2 mb-3">
-          <input value={screenshotUrl} onChange={e => setScreenshotUrl(e.target.value)}
-            onKeyDown={e => e.key === "Enter" && (e.preventDefault(), addScreenshot())}
-            placeholder="Screenshot URL..." className={inputCls} />
-          <button type="button" onClick={addScreenshot}
-            className="px-4 rounded-xl text-xs font-bold bg-muted border border-border text-foreground hover:bg-foreground hover:text-background transition-all">
-            <Plus className="w-4 h-4" />
-          </button>
+      {/* Screenshots Uploader Field */}
+      <Field label="Product Screenshots" required hint="Upload at least 3 screenshots (PNG, JPG, JPEG, WEBP)." error={errors.screenshots}>
+        {/* Drop Zone */}
+        <div
+          onDragEnter={onDrag}
+          onDragOver={onDrag}
+          onDragLeave={onDrag}
+          onDrop={onDrop}
+          className={`relative border-2 border-dashed rounded-xl p-8 text-center transition-all duration-200 cursor-pointer ${
+            dragActive
+              ? "border-foreground bg-foreground/10"
+              : "border-border bg-muted/30 hover:border-foreground/40 hover:bg-muted/50"
+          }`}
+          onClick={() => document.getElementById("screenshot-file-input")?.click()}
+        >
+          <input
+            id="screenshot-file-input"
+            type="file"
+            multiple
+            accept=".png,.jpg,.jpeg,.webp"
+            className="hidden"
+            onChange={e => e.target.files && handleUpload(Array.from(e.target.files))}
+          />
+          <Upload className="w-8 h-8 mx-auto mb-3 text-muted-foreground" />
+          <p className="text-sm font-semibold text-foreground">Drag and drop screenshots here, or click to browse</p>
+          <p className="text-xs text-muted-foreground mt-1">Supports PNG, JPG, JPEG, WEBP</p>
         </div>
-        {(data.screenshots || []).length > 0 && (
-          <div className="grid grid-cols-3 gap-3">
-            {(data.screenshots || []).map((url, i) => (
-              <div key={i} className="relative group rounded-xl overflow-hidden border border-border">
-                <img src={url} alt={`Screenshot ${i+1}`} className="w-full h-24 object-cover" />
-                <button type="button" onClick={() => onChange("screenshots", data.screenshots.filter((_,idx) => idx !== i))}
-                  className="absolute top-1.5 right-1.5 w-6 h-6 rounded-lg bg-black/80 text-red-400 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all">
-                  <X className="w-3 h-3" />
-                </button>
+
+        {/* Uploading Progress Indicators */}
+        {Object.keys(uploadingFiles).length > 0 && (
+          <div className="mt-4 space-y-2.5">
+            {Object.entries(uploadingFiles).map(([id, file]) => (
+              <div key={id} className="p-3.5 rounded-xl border border-border bg-muted/40">
+                <div className="flex items-center justify-between text-xs mb-1.5">
+                  <span className="font-semibold text-foreground truncate max-w-[80%]">{file.name}</span>
+                  <span className="text-muted-foreground font-mono">{file.progress}%</span>
+                </div>
+                <div className="w-full h-1.5 rounded-full bg-border overflow-hidden">
+                  <div className="h-full bg-foreground transition-all duration-150" style={{ width: `${file.progress}%` }} />
+                </div>
               </div>
             ))}
           </div>
         )}
-        {(data.screenshots || []).length < 3 && (
-          <div className="flex items-center gap-1.5 mt-2">
-            <Info className="w-3 h-3 text-amber-500" />
-            <span className="text-[11px] text-amber-600 dark:text-amber-400">
-              {3 - (data.screenshots || []).length} more screenshot(s) recommended
-            </span>
+
+        {/* Screenshots Grid & Controls */}
+        {(data.screenshots || []).length > 0 && (
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 mt-4">
+            {(data.screenshots || []).map((url, i) => (
+              <div key={i} className="relative group rounded-xl overflow-hidden border border-border bg-muted/20 flex flex-col">
+                <div className="aspect-video w-full overflow-hidden">
+                  <img src={getFullImageUrl(url)} alt={`Screenshot ${i+1}`} className="w-full h-full object-cover" />
+                </div>
+                {/* Control Overlay */}
+                <div className="absolute inset-0 bg-black/60 flex items-center justify-center gap-1.5 opacity-0 group-hover:opacity-100 transition-all duration-200">
+                  <button
+                    type="button"
+                    disabled={i === 0}
+                    onClick={() => moveLeft(i)}
+                    className="w-8 h-8 rounded-lg bg-black/80 text-white flex items-center justify-center hover:bg-black disabled:opacity-40 disabled:hover:bg-black/80 transition-all"
+                    title="Move Left"
+                  >
+                    <ArrowLeft className="w-3.5 h-3.5" />
+                  </button>
+                  <button
+                    type="button"
+                    disabled={i === data.screenshots.length - 1}
+                    onClick={() => moveRight(i)}
+                    className="w-8 h-8 rounded-lg bg-black/80 text-white flex items-center justify-center hover:bg-black disabled:opacity-40 disabled:hover:bg-black/80 transition-all"
+                    title="Move Right"
+                  >
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => removeScreenshot(i)}
+                    className="w-8 h-8 rounded-lg bg-black/80 text-red-400 flex items-center justify-center hover:bg-red-500 hover:text-white transition-all"
+                    title="Remove Image"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </div>
+            ))}
           </div>
         )}
+
+        {/* Required Count Reminder */}
+        <div className="flex items-center gap-1.5 mt-3">
+          {data.screenshots.length >= 3 ? (
+            <div className="flex items-center gap-1 text-emerald-600 dark:text-cyber-green text-[11px] font-bold">
+              <Check className="w-3.5 h-3.5" /> {data.screenshots.length} screenshot(s) uploaded
+            </div>
+          ) : (
+            <div className="flex items-center gap-1.5 text-amber-600 dark:text-amber-400 text-[11px] font-bold">
+              <Info className="w-3.5 h-3.5" /> {3 - data.screenshots.length} more screenshot(s) required (Minimum 3)
+            </div>
+          )}
+        </div>
       </Field>
 
+      {/* Product Live Media Carousel Preview */}
+      { (data.coverImage || data.screenshots.length > 0) && (
+        <div className="p-5 rounded-2xl border border-border bg-card">
+          <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground font-mono mb-3">
+            Product Media Carousel Preview
+          </div>
+          <MediaCarousel coverImage={data.coverImage} screenshots={data.screenshots} />
+        </div>
+      )}
+
+      {/* URL fields */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <Field label="Product Video URL" hint="YouTube, Loom, or Vimeo">
+        <Field label="Product Video URL" hint="YouTube, Loom, or Vimeo" error={errors.videoUrl}>
           <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-muted border border-border">
             <Video className="w-4 h-4 text-muted-foreground shrink-0" />
             <input value={data.videoUrl} onChange={e => onChange("videoUrl", e.target.value)}
@@ -314,7 +637,7 @@ function Step2({ data, onChange, errors }) {
               className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground outline-none" />
           </div>
         </Field>
-        <Field label="Product Walkthrough URL" hint="Arcade, Loom, or similar">
+        <Field label="Product Walkthrough URL" hint="Arcade, Loom, or similar" error={errors.walkthroughUrl}>
           <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-muted border border-border">
             <Layers className="w-4 h-4 text-muted-foreground shrink-0" />
             <input value={data.walkthroughUrl} onChange={e => onChange("walkthroughUrl", e.target.value)}
@@ -326,6 +649,7 @@ function Step2({ data, onChange, errors }) {
     </div>
   );
 }
+
 
 // ─── STEP 3: Pricing & Delivery ────────────────────────────────────────────────
 function Step3({ data, onChange, errors }) {
@@ -772,7 +1096,635 @@ function Step4({ data, onChange }) {
 }
 
 // ─── STEP 5: Review & Submit ────────────────────────────────────────────────────
-function Step5({ allData, onSubmit, submitting, submitError }) {
+// ─── Preview Support Components ────────────────────────────────────────────────
+const FIELD_META = {
+  text: { icon: Type, label: "Text" },
+  textarea: { icon: AlignLeft, label: "Text Area" },
+  number: { icon: Hash, label: "Number" },
+  email: { icon: Mail, label: "Email" },
+  phone: { icon: Phone, label: "Phone" },
+  url: { icon: Globe, label: "URL" },
+  dropdown: { icon: ChevronDown, label: "Dropdown" },
+  multiselect: { icon: List, label: "Multi Select" },
+  checkbox: { icon: CheckSquare, label: "Checkbox" },
+  radio: { icon: Circle, label: "Radio" },
+  date: { icon: Calendar, label: "Date" },
+  file: { icon: Paperclip, label: "File" },
+  pdf: { icon: FileText, label: "PDF" },
+  image: { icon: Image, label: "Image" },
+  video: { icon: Video, label: "Video" },
+  color: { icon: Palette, label: "Color" },
+  location: { icon: MapPin, label: "Location" },
+  toggle: { icon: ToggleLeft, label: "Toggle" },
+};
+
+function PreviewFieldRenderer({ field, value, onChange, error }) {
+  const meta = FIELD_META[field.type] || FIELD_META.text;
+  const Icon = meta.icon;
+
+  const wrapperStyle = {
+    background: "rgba(255,255,255,0.03)",
+    border: error ? "0.5px solid rgba(239,68,68,0.5)" : "0.5px solid rgba(255,255,255,0.1)",
+    borderRadius: 12,
+    padding: "12px 16px",
+    display: "flex",
+    alignItems: "flex-start",
+    gap: 12,
+  };
+
+  const inputStyle = {
+    background: "transparent",
+    color: "white",
+    outline: "none",
+    width: "100%",
+    fontSize: 13,
+    fontFamily: "'Inter', sans-serif",
+  };
+
+  return (
+    <div>
+      <label className="flex items-center gap-1.5 text-xs font-semibold text-foreground/70 mb-2">
+        <Icon className="w-3.5 h-3.5 text-foreground/45 shrink-0" />
+        {field.label || "Untitled Field"}
+        {field.required && <span className="text-red-400 ml-0.5">*</span>}
+      </label>
+      {field.description && (
+        <p className="text-[11px] text-foreground/35 mb-2">{field.description}</p>
+      )}
+
+      {field.type === "textarea" ? (
+        <div style={wrapperStyle}>
+          <textarea value={value || ""} onChange={e => onChange(e.target.value)}
+            placeholder={field.placeholder || ""} rows={3}
+            style={{ ...inputStyle, resize: "none", lineHeight: 1.6 }} />
+        </div>
+      ) : field.type === "dropdown" ? (
+        <div style={wrapperStyle}>
+          <Icon className="w-4 h-4 text-foreground/30 shrink-0 mt-0.5" />
+          <select value={value || ""} onChange={e => onChange(e.target.value)} style={{ ...inputStyle, appearance: "none" }} className="bg-black/90 text-white border-0 outline-none w-full cursor-pointer">
+            <option value="">Select option...</option>
+            {(field.options || []).map(o => <option key={o} value={o}>{o}</option>)}
+          </select>
+        </div>
+      ) : ["file", "pdf", "image", "video"].includes(field.type) ? (
+        <label className="cursor-pointer block">
+          <div style={{ ...wrapperStyle, cursor: "pointer" }} className="hover:bg-foreground/4 transition-colors">
+            <Upload className="w-4 h-4 text-foreground/30 shrink-0 mt-0.5" />
+            <div>
+              {value ? (
+                <span className="text-sm text-emerald-400 font-semibold">✓ {value.name || "File selected"}</span>
+              ) : (
+                <span className="text-sm text-foreground/30">
+                  Click to mock upload {field.type === "pdf" ? "PDF" : field.type}
+                </span>
+              )}
+            </div>
+          </div>
+          <input type="file" className="hidden" accept={field.accept || (field.type === "pdf" ? ".pdf" : field.type === "image" ? ".jpg,.jpeg,.png,.webp,.svg" : "")}
+            onChange={e => onChange({ name: e.target.files?.[0]?.name || "MockFile.ext" })} />
+        </label>
+      ) : field.type === "toggle" ? (
+        <div className="flex items-center gap-3">
+          <div onClick={() => onChange(value === "true" ? "false" : "true")}
+            className="cursor-pointer rounded-full relative transition-all duration-200"
+            style={{ width: 44, height: 24, background: value === "true" ? "white" : "rgba(255,255,255,0.12)" }}>
+            <div className="absolute rounded-full bg-black shadow-sm transition-all duration-200"
+              style={{ width: 18, height: 18, top: 3, left: value === "true" ? 23 : 3 }} />
+          </div>
+          <span className="text-sm text-foreground/60 font-medium">
+            {value === "true" ? "Yes" : "No"}
+          </span>
+        </div>
+      ) : field.type === "color" ? (
+        <div className="flex items-center gap-3">
+          <input type="color" value={value || "#000000"} onChange={e => onChange(e.target.value)}
+            className="w-12 h-10 rounded-xl cursor-pointer bg-transparent border-0" />
+          <span className="text-sm text-foreground/40 font-mono">{value || "#000000"}</span>
+        </div>
+      ) : (
+        <div style={wrapperStyle}>
+          <Icon className="w-4 h-4 text-foreground/30 shrink-0 mt-0.5" />
+          <input
+            type={field.type === "email" ? "email" : field.type === "phone" ? "tel" : field.type === "url" ? "url" : field.type === "number" ? "number" : "text"}
+            value={value || ""} onChange={e => onChange(e.target.value)}
+            placeholder={field.placeholder || ""}
+            style={inputStyle}
+          />
+        </div>
+      )}
+
+      {error && (
+        <div className="flex items-center gap-1.5 mt-1.5">
+          <AlertCircle className="w-3 h-3 text-red-400" />
+          <span className="text-[11px] text-red-400">{error}</span>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function PreviewConfigWizard({ configFields, onComplete, onBack }) {
+  const fields = configFields || [];
+  const [values, setValues] = useState({});
+  const [errors, setErrors] = useState({});
+  const [currentGroup, setCurrentGroup] = useState(0);
+
+  const groups = [];
+  for (let i = 0; i < fields.length; i += 4) groups.push(fields.slice(i, i + 4));
+  if (groups.length === 0) groups.push([]);
+
+  const visibleFields = (groups[currentGroup] || []).filter(f => {
+    if (!f.conditionalOn) return true;
+    return values[f.conditionalOn] === f.conditionalValue;
+  });
+
+  const validate = () => {
+    const e = {};
+    (groups[currentGroup] || []).forEach(f => {
+      if (f.required && !values[f.id]) e[f.id] = `${f.label || 'Field'} is required`;
+    });
+    setErrors(e);
+    return Object.keys(e).length === 0;
+  };
+
+  const next = () => {
+    if (!validate()) return;
+    if (currentGroup < groups.length - 1) setCurrentGroup(g => g + 1);
+    else onComplete(values);
+  };
+
+  const groupLabels = ["Business Information", "Brand Assets", "Technical Setup", "Custom Requirements"];
+
+  return (
+    <div className="space-y-6 text-foreground">
+      {/* Progress */}
+      <div className="flex items-center gap-2 mb-6">
+        {groups.map((_, i) => (
+          <div key={i} className="flex items-center flex-1">
+            <div className={`h-1.5 w-full rounded-full transition-all duration-500 ${i <= currentGroup ? "bg-white" : "bg-white/10"}`} />
+          </div>
+        ))}
+      </div>
+
+      <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1 font-mono">
+        Step {currentGroup + 1} of {Math.max(groups.length, 1)}
+      </div>
+      <h2 className="text-lg font-bold mb-6" style={{ fontFamily: "Georgia, serif" }}>
+        {groupLabels[currentGroup] || "Configuration Setup"}
+      </h2>
+
+      <div className="space-y-5">
+        {fields.length === 0 ? (
+          <div className="text-center py-8 text-muted-foreground text-sm">
+            No dynamic onboarding fields defined.
+          </div>
+        ) : visibleFields.length > 0 ? (
+          visibleFields.map(field => (
+            <PreviewFieldRenderer
+              key={field.id}
+              field={field}
+              value={values[field.id]}
+              onChange={v => setValues(p => ({ ...p, [field.id]: v }))}
+              error={errors[field.id]}
+            />
+          ))
+        ) : (
+          <div className="text-center py-8 text-muted-foreground text-sm">
+            No fields visible on this step.
+          </div>
+        )}
+      </div>
+
+      <div className="flex items-center justify-between pt-4">
+        <button onClick={() => currentGroup > 0 ? setCurrentGroup(g => g - 1) : onBack()}
+          className="flex items-center gap-2 px-5 py-3 rounded-xl text-sm font-semibold transition-all border border-border bg-muted hover:bg-foreground/10">
+          <ArrowLeft className="w-4 h-4" /> Back
+        </button>
+        <button onClick={next}
+          className="flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-bold bg-foreground text-background hover:bg-foreground/90">
+          {currentGroup < groups.length - 1 ? "Continue" : "Review Configuration"}
+          <ChevronRight className="w-4 h-4" />
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function PreviewConfigReview({ allData, configValues, onConfirm, onBack }) {
+  const [confirmed, setConfirmed] = useState(false);
+  const fields = allData.configFields || [];
+  const price = parseFloat(allData.price) || 0;
+  const gst = Math.round(price * 0.18);
+  const total = price + gst;
+
+  const getDisplayValue = (field, value) => {
+    if (!value) return "—";
+    if (value.name) return value.name;
+    if (field.type === "toggle") return value === "true" ? "Yes" : "No";
+    if (field.type === "color") return value;
+    return String(value);
+  };
+
+  return (
+    <div className="space-y-6 text-foreground">
+      <div>
+        <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1 font-mono">Step 5 of 5</div>
+        <h2 className="text-lg font-bold" style={{ fontFamily: "Georgia, serif" }}>
+          Review & Confirm Onboarding
+        </h2>
+        <p className="text-xs text-muted-foreground mt-1">
+          Verify configuration fields from the buyer's perspective.
+        </p>
+      </div>
+
+      <div className="p-5 rounded-xl border border-border bg-muted/20">
+        <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-4 font-mono">
+          Configuration Summary
+        </div>
+        <div className="space-y-3">
+          {fields.map(field => {
+            const val = getDisplayValue(field, configValues[field.id]);
+            return (
+              <div key={field.id} className="flex items-start justify-between gap-3">
+                <span className="text-xs text-muted-foreground shrink-0">{field.label || "Untitled field"}</span>
+                <span className="text-xs font-semibold text-right text-foreground/85 truncate max-w-xs">
+                  {val === "—" ? <span className="text-muted-foreground/30">Not provided</span> : val}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      <div className="p-5 rounded-xl border border-border bg-muted/20">
+        <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-4 font-mono">
+          Order Summary (Escrow Mockup)
+        </div>
+        <div className="space-y-3">
+          <div className="flex justify-between">
+            <span className="text-xs text-muted-foreground">Product: {allData.title}</span>
+            <span className="text-sm font-bold">₹{price.toLocaleString()}</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-xs text-muted-foreground">GST (18%)</span>
+            <span className="text-xs text-muted-foreground">₹{gst.toLocaleString()}</span>
+          </div>
+          <div className="h-px bg-border" />
+          <div className="flex justify-between items-center">
+            <span className="text-sm font-bold">Total (Escrow)</span>
+            <span className="text-xl font-bold">₹{total.toLocaleString()}</span>
+          </div>
+          <div className="flex items-center gap-2 mt-2">
+            <Lock className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+            <span className="text-[10px] text-emerald-400/80">
+              Protected by Deployra Escrow. Released only after delivery approval.
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* Confirmations */}
+      <div className="space-y-3">
+        {[
+          "My configuration is correct and complete",
+          "Uploaded files are the final versions",
+          "I understand payment goes into Deployra Escrow",
+        ].map((text, i) => (
+          <label key={i} className="flex items-start gap-3 cursor-pointer group">
+            <div onClick={() => setConfirmed(p => !p)}
+              className={`w-5 h-5 rounded-md border flex items-center justify-center shrink-0 mt-0.5 transition-all ${confirmed ? "bg-foreground border-foreground" : "border-border group-hover:border-foreground/40"}`}>
+              {confirmed && <Check className="w-3 h-3 text-background" />}
+            </div>
+            <span className="text-xs text-muted-foreground leading-relaxed">{text}</span>
+          </label>
+        ))}
+      </div>
+
+      <div className="flex gap-3">
+        <button onClick={onBack}
+          className="px-5 py-3 rounded-xl text-sm font-semibold border border-border bg-muted hover:bg-foreground/10">
+          <ArrowLeft className="w-4 h-4" /> Back
+        </button>
+        <button onClick={() => confirmed && onConfirm()} disabled={!confirmed}
+          className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-bold bg-foreground text-background hover:bg-foreground/90 disabled:opacity-40">
+          <CreditCard className="w-4 h-4" /> Proceed to Payment — ₹{total.toLocaleString()}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function PreviewModalContent({ allData }) {
+  const [activeTab, setActiveTab] = useState("overview");
+  const [showCheckout, setShowCheckout] = useState(false);
+  const [purchaseStep, setPurchaseStep] = useState("detail"); // detail | config | review | success
+  const [configValues, setConfigValues] = useState({});
+  const [mockOrderId, setMockOrderId] = useState("");
+  const [processing, setProcessing] = useState(false);
+
+  const price = parseFloat(allData.price) || 0;
+  const deliveryDays = parseInt(allData.deliveryDays, 10) || 7;
+  const revisions = allData.revisions || "2";
+  const support = allData.support || "30 Days";
+  const deploymentMethod = allData.deploymentMethod || "Developer Hosted";
+  const category = allData.category || "Other";
+
+  const handlePayment = async () => {
+    setProcessing(true);
+    await new Promise(r => setTimeout(r, 2000));
+    setMockOrderId("ORD-" + Math.floor(Math.random() * 90000 + 10000));
+    setProcessing(false);
+    setPurchaseStep("success");
+  };
+
+  const mockReviews = [
+    { name: "John Doe", rating: 5, comment: "This fits perfectly into our team's workflow. Extremely easy to use and maintain.", date: "Today" },
+    { name: "Sarah Connor", rating: 4.8, comment: "Outstanding product, robust configurations. The support duration is great.", date: "Yesterday" }
+  ];
+
+  const rating = 5.0;
+  const reviewCount = mockReviews.length;
+
+  if (showCheckout) {
+    return (
+      <div className="max-w-2xl mx-auto py-8">
+        <div className="flex items-center justify-between mb-8 border-b border-border pb-4">
+          <div>
+            <span className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground font-mono">MOCK CHECKOUT</span>
+            <h3 className="text-xl font-bold text-foreground mt-0.5" style={{ fontFamily: "Georgia, serif" }}>{allData.title || "Product Preview"}</h3>
+          </div>
+          <button
+            onClick={() => {
+              setShowCheckout(false);
+              setPurchaseStep("detail");
+            }}
+            className="w-9 h-9 rounded-full bg-muted border border-border flex items-center justify-center text-muted-foreground hover:text-foreground transition-all"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        </div>
+
+        {purchaseStep === "success" && (
+          <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="text-center py-8">
+            <div className="w-20 h-20 rounded-2xl flex items-center justify-center mx-auto mb-6 bg-emerald-500/10 border border-emerald-500/30">
+              <Check className="w-10 h-10 text-emerald-400" />
+            </div>
+            <h2 className="text-2xl font-bold text-foreground mb-2" style={{ fontFamily: "Georgia, serif" }}>
+              Order Created! (Mock)
+            </h2>
+            <p className="text-sm text-muted-foreground mb-4">
+              Onboarding simulation completed successfully.
+            </p>
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full mb-8 bg-muted border border-border">
+              <span className="text-xs font-mono text-muted-foreground">Mock Order ID:</span>
+              <span className="text-xs font-bold text-foreground font-mono">{mockOrderId}</span>
+            </div>
+            <div className="flex gap-3 justify-center">
+              <button
+                onClick={() => {
+                  setShowCheckout(false);
+                  setPurchaseStep("detail");
+                }}
+                className="px-6 py-3 rounded-xl text-sm font-bold bg-foreground text-background hover:bg-foreground/90 transition-all"
+              >
+                Back to Product Detail
+              </button>
+            </div>
+          </motion.div>
+        )}
+
+        {purchaseStep === "review" && (
+          <div>
+            {processing ? (
+              <div className="text-center py-20">
+                <RefreshCw className="w-12 h-12 animate-spin mx-auto mb-4 text-muted-foreground" />
+                <p className="text-sm font-semibold text-muted-foreground">Simulating escrow payment...</p>
+              </div>
+            ) : (
+              <PreviewConfigReview
+                allData={allData}
+                configValues={configValues}
+                onConfirm={handlePayment}
+                onBack={() => setPurchaseStep("config")}
+              />
+            )}
+          </div>
+        )}
+
+        {purchaseStep === "config" && (
+          <div className="p-6 rounded-2xl border border-border bg-card">
+            <PreviewConfigWizard
+              configFields={allData.configFields}
+              onComplete={(values) => {
+                setConfigValues(values);
+                setPurchaseStep("review");
+              }}
+              onBack={() => {
+                setShowCheckout(false);
+                setPurchaseStep("detail");
+              }}
+            />
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      {/* Left Column */}
+      <div className="lg:col-span-2 space-y-6">
+        {/* Cover + Screenshots Carousel */}
+        <div className="p-4 rounded-2xl border border-border bg-card">
+          <MediaCarousel coverImage={allData.coverImage} screenshots={allData.screenshots} />
+        </div>
+
+        {/* Tabs */}
+        <div className="flex items-center gap-1 p-1 rounded-xl bg-muted border border-border">
+          {["overview", "features", "requirements", "reviews"].map(tab => (
+            <button key={tab} onClick={() => setActiveTab(tab)}
+              className="flex-1 py-2 rounded-lg text-[11px] font-bold capitalize transition-all font-mono"
+              style={{
+                background: activeTab === tab ? "white" : "transparent",
+                color: activeTab === tab ? "black" : "rgba(255, 255, 255, 0.4)"
+              }}>
+              {tab}
+            </button>
+          ))}
+        </div>
+
+        {/* Tab Content */}
+        <AnimatePresence mode="wait">
+          <motion.div key={activeTab} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.15 }}>
+            {activeTab === "overview" && (
+              <div className="space-y-4">
+                <p className="text-sm text-foreground/60 leading-relaxed">{allData.description || "No description provided."}</p>
+                <div className="flex flex-wrap gap-2">
+                  {(allData.tags || []).map(t => (
+                    <span key={t} className="px-2.5 py-1 rounded-lg text-[10px] font-semibold bg-muted border border-border text-muted-foreground font-mono">
+                      {t}
+                    </span>
+                  ))}
+                </div>
+                {allData.demoUrl && (
+                  <a href={allData.demoUrl} target="_blank" rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold border border-border bg-muted text-foreground hover:bg-foreground/10 transition-all">
+                    <Play className="w-4 h-4" /> Try Live Demo
+                  </a>
+                )}
+              </div>
+            )}
+            {activeTab === "features" && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {(allData.features || []).map(f => (
+                  <div key={f} className="flex items-center gap-3 p-3 rounded-xl bg-muted/20 border border-border/60">
+                    <div className="w-5 h-5 rounded-lg flex items-center justify-center shrink-0 bg-emerald-500/10">
+                      <Check className="w-3 h-3 text-emerald-400" />
+                    </div>
+                    <span className="text-xs text-foreground/75">{f}</span>
+                  </div>
+                ))}
+                {(allData.features || []).length === 0 && (
+                  <p className="text-xs text-muted-foreground italic col-span-2">No features defined.</p>
+                )}
+              </div>
+            )}
+            {activeTab === "requirements" && (
+              <div className="space-y-3">
+                <p className="text-xs text-muted-foreground mb-3">
+                  What you need to provide for deployment:
+                </p>
+                {(allData.configFields || []).map(f => {
+                  const meta = FIELD_META[f.type] || FIELD_META.text;
+                  const Icon = meta.icon;
+                  return (
+                    <div key={f.id} className="flex items-center gap-3 p-3 rounded-xl bg-muted/20 border border-border/60">
+                      <Icon className="w-4 h-4 text-muted-foreground shrink-0" />
+                      <div>
+                        <div className="text-xs font-semibold text-foreground/80">
+                          {f.label || "Untitled Field"}
+                          {f.required && <span className="text-red-400 ml-1">*</span>}
+                        </div>
+                        {f.description && <div className="text-[10px] text-muted-foreground mt-0.5">{f.description}</div>}
+                      </div>
+                    </div>
+                  );
+                })}
+                {(allData.configFields || []).length === 0 && (
+                  <p className="text-xs text-muted-foreground italic">No custom configuration fields defined.</p>
+                )}
+              </div>
+            )}
+            {activeTab === "reviews" && (
+              <div className="space-y-4">
+                <div className="flex items-center gap-4">
+                  <div className="text-4xl font-bold" style={{ fontFamily: "Georgia, serif" }}>{rating.toFixed(1)}</div>
+                  <div>
+                    <div className="flex items-center gap-0.5">
+                      {[1, 2, 3, 4, 5].map(s => (
+                        <Star key={s} className="w-4 h-4 text-foreground fill-foreground" />
+                      ))}
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1">{reviewCount} reviews (Mocked for Preview)</p>
+                  </div>
+                </div>
+                {mockReviews.map((r, i) => (
+                  <div key={i} className="p-4 rounded-xl bg-muted/20 border border-border/60">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <div className="w-7 h-7 rounded-lg bg-foreground/10 flex items-center justify-center text-xs font-bold">{r.name[0]}</div>
+                        <span className="text-xs font-semibold text-muted-foreground">{r.name}</span>
+                      </div>
+                      <span className="text-[10px] text-muted-foreground font-mono">{r.date}</span>
+                    </div>
+                    <p className="text-xs text-muted-foreground/80 leading-relaxed">{r.comment}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </motion.div>
+        </AnimatePresence>
+      </div>
+
+      {/* Right Column (Purchase Card) */}
+      <div className="lg:col-span-1">
+        <div className="sticky top-6 space-y-4">
+          <div className="p-6 rounded-2xl border border-border bg-card">
+            {/* Badges */}
+            <div className="flex items-center gap-2 mb-4">
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-500/10 border border-emerald-500/25 text-emerald-400">
+                <Shield className="w-2.5 h-2.5" /> Verified
+              </span>
+              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-yellow-500/10 border border-yellow-500/25 text-yellow-400">
+                <Award className="w-2.5 h-2.5" /> Featured
+              </span>
+            </div>
+
+            <h1 className="text-lg font-bold mb-1" style={{ fontFamily: "Georgia, serif" }}>
+              {allData.title || "Product Title Preview"}
+            </h1>
+            <p className="text-xs text-muted-foreground mb-4">{allData.shortDesc || "No short description provided."}</p>
+
+            <div className="flex items-center gap-3 mb-4">
+              <div className="flex items-center gap-0.5">
+                {[1, 2, 3, 4, 5].map(s => (
+                  <Star key={s} className="w-3.5 h-3.5 text-foreground fill-foreground" />
+                ))}
+              </div>
+              <span className="text-xs text-muted-foreground font-mono">5.0 (2)</span>
+              <span className="text-[10px] text-muted-foreground/50">·</span>
+              <span className="text-[10px] text-muted-foreground font-mono">0 deployed</span>
+            </div>
+
+            <div className="text-3xl font-bold mb-1" style={{ fontFamily: "Georgia, serif" }}>
+              ₹{price.toLocaleString()}
+            </div>
+            <div className="text-[10px] text-muted-foreground font-mono mb-5">+ 18% GST = ₹{Math.round(price * 1.18).toLocaleString()} total</div>
+
+            <button
+              onClick={() => {
+                setShowCheckout(true);
+                setPurchaseStep("config");
+              }}
+              className="w-full py-3.5 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-all bg-foreground text-background hover:bg-foreground/90 shimmer-btn"
+            >
+              <Zap className="w-4 h-4" /> Get Access
+            </button>
+
+            <div className="flex items-center justify-center gap-1.5 mt-3">
+              <Lock className="w-3 h-3 text-muted-foreground/30" />
+              <span className="text-[10px] text-muted-foreground/30">Protected by Deployra Escrow</span>
+            </div>
+
+            {/* Meta */}
+            <div className="mt-5 pt-5 space-y-3 border-t border-border/60">
+              {[
+                { icon: Clock, label: "Delivery", value: `${deliveryDays} days` },
+                { icon: RefreshCw, label: "Revisions", value: revisions },
+                { icon: Shield, label: "Support", value: support },
+                { icon: Package, label: "Deployment", value: deploymentMethod },
+              ].map(item => {
+                const Icon = item.icon;
+                return (
+                  <div key={item.label} className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Icon className="w-3.5 h-3.5 text-muted-foreground" />
+                      <span className="text-[11px] text-muted-foreground">{item.label}</span>
+                    </div>
+                    <span className="text-[11px] font-semibold text-foreground/80">{item.value}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── STEP 5: Review & Submit ────────────────────────────────────────────────────
+function Step5({ allData, onSubmit, submitting, submitError, hasPreviewed, onOpenPreview }) {
   const [confirmed, setConfirmed] = useState(false);
 
   const sections = [
@@ -829,6 +1781,23 @@ function Step5({ allData, onSubmit, submitting, submitError }) {
         ))}
       </div>
 
+      {/* Marketplace Preview Section */}
+      <div className="p-5 rounded-xl border border-border bg-muted/40 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="space-y-1">
+          <h4 className="text-xs font-bold text-foreground uppercase tracking-wider font-mono">Marketplace Preview Required</h4>
+          <p className="text-xs text-muted-foreground">
+            Verify how buyers will view and configure your product listing before submitting.
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={onOpenPreview}
+          className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold bg-foreground text-background hover:bg-foreground/90 transition-all shrink-0"
+        >
+          <Eye className="w-4 h-4" /> Preview Listing
+        </button>
+      </div>
+
       <div className="space-y-3">
         {["I confirm the demo URL is live and accessible",
           "All screenshots are real product screenshots",
@@ -853,10 +1822,10 @@ function Step5({ allData, onSubmit, submitting, submitError }) {
         </div>
       )}
 
-      <button type="button" onClick={onSubmit} disabled={!confirmed || submitting}
+      <button type="button" onClick={onSubmit} disabled={!confirmed || submitting || !hasPreviewed}
         className="w-full py-4 rounded-xl font-bold text-sm flex items-center justify-center gap-3 transition-all disabled:opacity-40 disabled:cursor-not-allowed bg-foreground text-background hover:bg-foreground/90">
         {submitting ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
-        {submitting ? "Submitting for Review..." : "Submit Product for Review"}
+        {!hasPreviewed ? "Please preview listing first" : submitting ? "Submitting for Review..." : "Submit Product for Review"}
       </button>
     </div>
   );
@@ -869,6 +1838,8 @@ export default function PublishProduct() {
   const [submitted, setSubmitted] = useState(false);
   const [errors, setErrors] = useState({});
   const [submitError, setSubmitError] = useState("");
+  const [showPreviewModal, setShowPreviewModal] = useState(false);
+  const [hasPreviewed, setHasPreviewed] = useState(false);
 
   const [form, setForm] = useState({
     title:"", shortDesc:"", description:"", category:"",
@@ -884,18 +1855,39 @@ export default function PublishProduct() {
     setErrors(p => ({ ...p, [key]: undefined }));
   }, []);
 
-  // Validate but don't block — show warnings only
   const validate = (currentStep) => {
     const e = {};
     if (currentStep === 1) {
       if (!form.title.trim())    e.title    = "Product name is required";
       if (!form.shortDesc.trim()) e.shortDesc = "Short description is required";
       if (!form.description.trim()) e.description = "Full description is required";
-      if (!form.category)        e.category  = "Please select a category";
+      if (!form.category || !CATEGORIES.includes(form.category)) e.category = "Please select a valid category.";
     }
     if (currentStep === 2) {
-      if (!form.demoUrl.trim())  e.demoUrl  = "Demo URL is required";
-      if (!form.docsUrl.trim())  e.docsUrl  = "Documentation URL is required";
+      if (!form.coverImage.trim()) {
+        e.coverImage = "Cover image is required";
+      } else if (!isValidHttpsUrl(form.coverImage)) {
+        e.coverImage = "Please enter a valid URL starting with https://";
+      }
+      if (!form.demoUrl.trim()) {
+        e.demoUrl = "Demo URL is required";
+      } else if (!isValidHttpsUrl(form.demoUrl)) {
+        e.demoUrl = "Please enter a valid URL starting with https://";
+      }
+      if (!form.docsUrl.trim()) {
+        e.docsUrl = "Documentation URL is required";
+      } else if (!isValidHttpsUrl(form.docsUrl)) {
+        e.docsUrl = "Please enter a valid URL starting with https://";
+      }
+      if (form.videoUrl && !isValidHttpsUrl(form.videoUrl)) {
+        e.videoUrl = "Please enter a valid URL starting with https://";
+      }
+      if (form.walkthroughUrl && !isValidHttpsUrl(form.walkthroughUrl)) {
+        e.walkthroughUrl = "Please enter a valid URL starting with https://";
+      }
+      if (!form.screenshots || form.screenshots.length < 3) {
+        e.screenshots = "Please upload at least 3 screenshots";
+      }
     }
     if (currentStep === 3) {
       if (!form.price)           e.price    = "Price is required";
@@ -904,11 +1896,11 @@ export default function PublishProduct() {
     return Object.keys(e).length === 0;
   };
 
-  // Always advance — show errors but don't block navigation
   const next = () => {
-    validate(step); // sets errors for display
-    setStep(s => Math.min(s + 1, 5));
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    if (validate(step)) {
+      setStep(s => Math.min(s + 1, 5));
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
   };
 
   const prev = () => {
@@ -938,7 +1930,7 @@ export default function PublishProduct() {
   };
 
   const resetForm = () => {
-    setSubmitted(false); setStep(1); setErrors({});
+    setSubmitted(false); setStep(1); setErrors({}); setHasPreviewed(false); setShowPreviewModal(false);
     setForm({ title:"", shortDesc:"", description:"", category:"", tags:[], features:[], industries:[], requirements:[], coverImage:"", screenshots:[], videoUrl:"", demoUrl:"", docsUrl:"", walkthroughUrl:"", price:"", deliveryDays:"7", revisions:"2", support:"30 Days", deploymentMethod:"Developer Hosted", hostingRequirements:"", configFields:[] });
   };
 
@@ -979,7 +1971,7 @@ export default function PublishProduct() {
 
   // ─── Wizard ─────────────────────────────────────────────────────────────────
   return (
-    <div className="p-6 sm:p-8 max-w-5xl page-fade-in">
+    <div className="p-6 sm:p-8 max-w-5xl page-fade-in relative">
       {/* Header */}
       <div className="mb-8">
         <Link to="/developer/listings"
@@ -1008,7 +2000,7 @@ export default function PublishProduct() {
             {step === 2 && <Step2 data={form} onChange={update} errors={errors} />}
             {step === 3 && <Step3 data={form} onChange={update} errors={errors} />}
             {step === 4 && <Step4 data={form} onChange={update} />}
-            {step === 5 && <Step5 allData={form} onSubmit={handleSubmit} submitting={submitting} submitError={submitError} />}
+            {step === 5 && <Step5 allData={form} onSubmit={handleSubmit} submitting={submitting} submitError={submitError} hasPreviewed={hasPreviewed} onOpenPreview={() => setShowPreviewModal(true)} />}
           </motion.div>
         </AnimatePresence>
       </div>
@@ -1037,6 +2029,36 @@ export default function PublishProduct() {
           </button>
         </div>
       )}
+
+      {/* Marketplace Preview Modal */}
+      {showPreviewModal && (
+        <div className="fixed inset-0 z-50 bg-[#080808]/98 backdrop-blur-xl overflow-y-auto text-foreground flex flex-col">
+          {/* Sticky Header */}
+          <div className="sticky top-0 bg-black/80 backdrop-blur-md border-b border-white/10 px-6 py-4 flex items-center justify-between z-50">
+            <div className="flex items-center gap-2.5">
+              <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+              <span className="text-[10px] font-bold uppercase tracking-wider font-mono text-muted-foreground">
+                Marketplace Preview Mode
+              </span>
+            </div>
+            <button
+              onClick={() => {
+                setHasPreviewed(true);
+                setShowPreviewModal(false);
+              }}
+              className="flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold bg-white text-black hover:bg-white/90 transition-all shadow-sm"
+            >
+              <X className="w-4 h-4" /> Close Preview
+            </button>
+          </div>
+
+          {/* Preview Content */}
+          <div className="flex-1 p-6 sm:p-12 max-w-7xl mx-auto w-full relative">
+            <PreviewModalContent allData={form} />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
+

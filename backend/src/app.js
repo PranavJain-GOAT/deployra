@@ -60,9 +60,14 @@ app.use(cors({
 
 
 
+const path = require('path');
+
 // Body parser
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Serve local uploads statically
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 // Health Check
 app.get('/api/v1/health', (req, res) => {
