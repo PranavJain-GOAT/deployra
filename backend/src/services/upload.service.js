@@ -3,86 +3,74 @@ const path = require('path');
 const fs = require('fs');
 const logger = require('../utils/logger');
 
-// ─── File Filter ─────────────────────────────────────────────────────────────
+// ─── File Filter ──────────────────────────────────────────────────────────────
 const fileFilter = (req, file, cb) => {
   if (file.mimetype.startsWith('image/')) {
     cb(null, true);
   } else {
-    cb(new Error('Not an image! Please upload only images.'), false);
+    cb(new Error('Not an image! Please upload only images (PNG, JPG, JPEG, WEBP).'), false);
   }
 };
 
-// ─── Ensure uploads directory exists ─────────────────────────────────────────
-const uploadDir = path.join(__dirname, '../../uploads');
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
-  logger.info('Created uploads directory at: ' + uploadDir);
+// ─── Helper: Local Disk Storage ───────────────────────────────────────────────
+function makeLocalUpload() {
+  const uploadDir = path.join(__dirname, '../../uploads');
+  if (!fs.existsSync(uploadDir)) {
+    fs.mkdirSync(uploadDir, { recursive: true });
+    logger.info('Created local uploads directory: ' + uploadDir);
+  }
+
+  const diskStorage = multer.diskStorage({
+    destination: (_req, _file, cb) => cb(null, uploadDir),
+    filename: (_req, file, cb) => {
+      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+      cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
+    },
+  });
+
+  return multer({
+    storage: diskStorage,
+    fileFilter,
+    limits: { fileSize: 5 * 1024 * 1024 }, // 5 MB
+  });
 }
 
-// ─── Local Disk Storage ───────────────────────────────────────────────────────
-const localStorage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, uploadDir);
-  },
-  filename: function (req, file, cb) {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
-  }
-});
+// ─── Choose Storage Backend ───────────────────────────────────────────────────
+let upload;
+let cloudinaryInstance = null;
 
-const localUpload = multer({
-  storage: localStorage,
-  fileFilter: fileFilter,
-  limits: { fileSize: 5 * 1024 * 1024 } // 5MB
-});
-
-// ─── S3 Upload (only if configured) ──────────────────────────────────────────
-const isS3Configured = !!(
-  process.env.AWS_ACCESS_KEY_ID &&
-  process.env.AWS_SECRET_ACCESS_KEY &&
-  process.env.AWS_S3_BUCKET_NAME &&
-  process.env.AWS_ACCESS_KEY_ID !== 'fake_access_key'
+const cloudinaryReady = !!(
+  process.env.CLOUDINARY_CLOUD_NAME &&
+  process.env.CLOUDINARY_API_KEY &&
+  process.env.CLOUDINARY_API_SECRET
 );
 
-let upload = localUpload;
-
-if (isS3Configured) {
+if (cloudinaryReady) {
   try {
-    const { S3Client } = require('@aws-sdk/client-s3');
-    const multerS3 = require('multer-s3');
+    const cloudinary = require('cloudinary').v2;
 
-    const s3Config = new S3Client({
-      region: process.env.AWS_REGION || 'us-east-1',
-      credentials: {
-        accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-      }
+    cloudinary.config({
+      cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+      api_key:    process.env.CLOUDINARY_API_KEY,
+      api_secret: process.env.CLOUDINARY_API_SECRET,
     });
 
-    const s3Upload = multer({
-      storage: multerS3({
-        s3: s3Config,
-        bucket: process.env.AWS_S3_BUCKET_NAME,
-        metadata: function (req, file, cb) {
-          cb(null, { fieldName: file.fieldname });
-        },
-        key: function (req, file, cb) {
-          const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-          cb(null, 'products/' + file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
-        }
-      }),
-      fileFilter: fileFilter,
-      limits: { fileSize: 5 * 1024 * 1024 }
+    // Use memory storage + stream to Cloudinary in the controller
+    upload = multer({
+      storage: multer.memoryStorage(),
+      fileFilter,
+      limits: { fileSize: 5 * 1024 * 1024 },
     });
 
-    upload = s3Upload;
-    logger.info('Using S3 storage for uploads');
+    cloudinaryInstance = cloudinary;
+    logger.info('✅ Upload service: Cloudinary storage active');
   } catch (err) {
-    logger.warn('S3 setup failed, falling back to local storage: ' + err.message);
-    upload = localUpload;
+    logger.error('Cloudinary setup failed, falling back to local storage: ' + err.message);
+    upload = makeLocalUpload();
   }
 } else {
-  logger.info('AWS S3 not configured — using local disk storage for uploads');
+  upload = makeLocalUpload();
+  logger.info('ℹ️  Upload service: Local disk storage (development mode)');
 }
 
-module.exports = { upload };
+module.exports = { upload, cloudinaryInstance };
