@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { Link } from "react-router-dom";
 import axios from "axios";
 import { API_URL } from "@/lib/config";
@@ -9,7 +9,8 @@ import {
   Image, Video, Globe, RefreshCw, Shield, AlertCircle,
   Info, Layers, Zap, Package, Type, AlignLeft, Hash, Mail,
   Phone, Calendar, List, CheckSquare, Circle, MapPin, Paperclip,
-  ChevronLeft, ChevronRight, ToggleLeft, Palette, LayoutGrid, Star, Award
+  ChevronLeft, ChevronRight, ToggleLeft, Palette, LayoutGrid, Star, Award,
+  Lock, CreditCard, Clock
 } from "lucide-react";
 
 // ─── Constants ─────────────────────────────────────────────────────────────────
@@ -1831,9 +1832,36 @@ function Step5({ allData, onSubmit, submitting, submitError, hasPreviewed, onOpe
   );
 }
 
+// ─── Persistence Key ────────────────────────────────────────────────────────────
+const DRAFT_KEY = "deployra_publish_draft";
+const STEP_KEY  = "deployra_publish_step";
+
+const EMPTY_FORM = {
+  title:"", shortDesc:"", description:"", category:"",
+  tags:[], features:[], industries:[], requirements:[],
+  coverImage:"", screenshots:[], videoUrl:"", demoUrl:"", docsUrl:"", walkthroughUrl:"",
+  price:"", deliveryDays:"7", revisions:"2", support:"30 Days",
+  deploymentMethod:"Developer Hosted", hostingRequirements:"",
+  configFields:[],
+};
+
+function loadDraft() {
+  try {
+    const raw = localStorage.getItem(DRAFT_KEY);
+    return raw ? { ...EMPTY_FORM, ...JSON.parse(raw) } : EMPTY_FORM;
+  } catch { return EMPTY_FORM; }
+}
+
+function loadStep() {
+  try {
+    const s = parseInt(localStorage.getItem(STEP_KEY) || "1", 10);
+    return (s >= 1 && s <= 5) ? s : 1;
+  } catch { return 1; }
+}
+
 // ─── Main Component ─────────────────────────────────────────────────────────────
 export default function PublishProduct() {
-  const [step, setStep] = useState(1);
+  const [step, setStep] = useState(loadStep);
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [errors, setErrors] = useState({});
@@ -1841,14 +1869,17 @@ export default function PublishProduct() {
   const [showPreviewModal, setShowPreviewModal] = useState(false);
   const [hasPreviewed, setHasPreviewed] = useState(false);
 
-  const [form, setForm] = useState({
-    title:"", shortDesc:"", description:"", category:"",
-    tags:[], features:[], industries:[], requirements:[],
-    coverImage:"", screenshots:[], videoUrl:"", demoUrl:"", docsUrl:"", walkthroughUrl:"",
-    price:"", deliveryDays:"7", revisions:"2", support:"30 Days",
-    deploymentMethod:"Developer Hosted", hostingRequirements:"",
-    configFields:[],
-  });
+  const [form, setForm] = useState(loadDraft);
+
+  // ── Auto-save form to localStorage on every change ───────────────────────────
+  useEffect(() => {
+    try { localStorage.setItem(DRAFT_KEY, JSON.stringify(form)); } catch {}
+  }, [form]);
+
+  // ── Auto-save current step ───────────────────────────────────────────────────
+  useEffect(() => {
+    try { localStorage.setItem(STEP_KEY, String(step)); } catch {}
+  }, [step]);
 
   const update = useCallback((key, value) => {
     setForm(p => ({ ...p, [key]: value }));
@@ -1920,6 +1951,8 @@ export default function PublishProduct() {
         deliveryDays: parseInt(form.deliveryDays, 10) || 7,
         isDraft: false,
       }, { withCredentials: true, headers });
+      // Clear draft after successful submission
+      try { localStorage.removeItem(DRAFT_KEY); localStorage.removeItem(STEP_KEY); } catch {}
       setSubmitted(true);
     } catch (err) {
       const msg = err.response?.data?.message || "Submission failed. Please try again.";
@@ -1931,7 +1964,9 @@ export default function PublishProduct() {
 
   const resetForm = () => {
     setSubmitted(false); setStep(1); setErrors({}); setHasPreviewed(false); setShowPreviewModal(false);
-    setForm({ title:"", shortDesc:"", description:"", category:"", tags:[], features:[], industries:[], requirements:[], coverImage:"", screenshots:[], videoUrl:"", demoUrl:"", docsUrl:"", walkthroughUrl:"", price:"", deliveryDays:"7", revisions:"2", support:"30 Days", deploymentMethod:"Developer Hosted", hostingRequirements:"", configFields:[] });
+    setForm(EMPTY_FORM);
+    // Clear saved draft from localStorage
+    try { localStorage.removeItem(DRAFT_KEY); localStorage.removeItem(STEP_KEY); } catch {}
   };
 
   // ─── Success Screen ─────────────────────────────────────────────────────────
