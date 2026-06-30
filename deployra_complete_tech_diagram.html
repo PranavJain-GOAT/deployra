@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Deployra - Complete Tech Architecture</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:#060912;color:#e2e8f0;font-family:Inter,sans-serif;padding:32px 24px 80px}
+h1{font-size:2.2rem;font-weight:900;background:linear-gradient(135deg,#6366f1,#8b5cf6,#ec4899);-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-align:center;margin-bottom:8px}
+.sub{text-align:center;color:#64748b;font-size:.95rem;margin-bottom:16px}
+.badges{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin-bottom:40px}
+.b{padding:4px 12px;border-radius:20px;font-size:11px;font-weight:600;font-family:'IBM Plex Mono',monospace}
+.diagram{max-width:1400px;margin:0 auto}
+.arr{text-align:center;padding:6px 0}
+.aline{width:2px;height:32px;background:linear-gradient(to bottom,#334155,#6366f1);margin:0 auto 4px}
+.atxt{font-size:10px;color:#475569;letter-spacing:.5px}
+.layer{border-radius:16px;padding:20px 24px;border:1px solid transparent;margin-bottom:2px}
+.lt{font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.lt::after{content:'';flex:1;height:1px;opacity:.3}
+.lb{background:#0c1220;border-color:#1e3a5f}.lb .lt{color:#60a5fa}.lb .lt::after{background:#60a5fa}
+.ln{background:#0d0e1a;border-color:#312e81}.ln .lt{color:#818cf8}.ln .lt::after{background:#818cf8}
+.lm{background:#0f1118;border-color:#4c1d95}.lm .lt{color:#a78bfa}.lm .lt::after{background:#a78bfa}
+.lr{background:#0c1018;border-color:#5b21b6}.lr .lt{color:#c084fc}.lr .lt::after{background:#c084fc}
+.lc{background:#0f1014;border-color:#831843}.lc .lt{color:#f472b6}.lc .lt::after{background:#f472b6}
+.ls{background:#0c1212;border-color:#065f46}.ls .lt{color:#34d399}.ls .lt::after{background:#34d399}
+.ldb{background:#0d0f14;border-color:#92400e}.ldb .lt{color:#fbbf24}.ldb .lt::after{background:#fbbf24}
+.le{background:#0d1214;border-color:#1e4e3d}.le .lt{color:#4ade80}.le .lt::after{background:#4ade80}
+.lf{background:#0a0f1a;border:1px solid #1e3a5f}.lf .lt{color:#60a5fa}.lf .lt::after{background:#60a5fa}
+.cards{display:flex;flex-wrap:wrap;gap:10px;margin-top:4px}
+.card{background:#111827;border:1px solid #1f2937;border-radius:10px;padding:12px 14px;flex:1;min-width:160px;max-width:260px}
+.card:hover{border-color:#374151}
+.ci{font-size:12px;font-weight:700;color:#f1f5f9;font-family:'IBM Plex Mono',monospace;margin-bottom:4px}
+.cd{font-size:11px;color:#64748b;line-height:1.5}
+.ct{display:inline-block;margin-top:6px;padding:2px 7px;border-radius:4px;font-size:10px;font-weight:600;font-family:'IBM Plex Mono',monospace}
+.tb{background:#1e3a8a20;color:#60a5fa;border:1px solid #1e3a8a}
+.tp{background:#4c1d9520;color:#a78bfa;border:1px solid #4c1d95}
+.tk{background:#83184320;color:#f472b6;border:1px solid #831843}
+.tg{background:#06402020;color:#34d399;border:1px solid #064020}
+.tr{background:#7f1d1d20;color:#f87171;border:1px solid #7f1d1d}
+.tt{background:#13433920;color:#2dd4bf;border:1px solid #134339}
+.ts{background:#0f172a20;color:#94a3b8;border:1px solid #1e293b}
+.ty{background:#92400e20;color:#fbbf24;border:1px solid #92400e}
+.co{background:linear-gradient(135deg,#1e1b4b,#1a1242);border:1px solid #4338ca;border-radius:10px;padding:14px 18px;margin-top:12px;display:flex;gap:16px;flex-wrap:wrap}
+.col{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#818cf8;margin-bottom:4px}
+.cov{font-size:11px;color:#c7d2fe;font-family:'IBM Plex Mono',monospace;line-height:1.6}
+.coi{flex:1;min-width:200px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.sg{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.sm{background:#0f172a;border:1px solid #1e293b;border-radius:8px;padding:8px 12px;min-width:130px}
+.smn{font-size:11px;font-weight:700;color:#fbbf24;font-family:'IBM Plex Mono',monospace;margin-bottom:4px}
+.smf{font-size:10px;color:#64748b;line-height:1.7;font-family:'IBM Plex Mono',monospace}
+table.ft{width:100%;border-collapse:collapse;font-size:11px;margin-top:8px}
+table.ft th{background:#1e293b;color:#94a3b8;text-align:left;padding:6px 10px;font-weight:600;font-family:'IBM Plex Mono',monospace}
+table.ft td{padding:6px 10px;border-bottom:1px solid #1e293b;vertical-align:top;color:#cbd5e1}
+table.ft td:first-child{color:#60a5fa;font-family:'IBM Plex Mono',monospace;white-space:nowrap}
+table.ft td:nth-child(2){color:#f472b6}
+table.ft tr:last-child td{border-bottom:none}
+.leg{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin-top:48px;padding-top:24px;border-top:1px solid #1e293b}
+.li{display:flex;align-items:center;gap:6px;font-size:11px;color:#64748b}
+.ldot{width:10px;height:10px;border-radius:50%}
+</style>
+</head>
+<body>
+<h1>&#x1F680; Deployra &#8212; Complete End-to-End Tech Architecture</h1>
+<p class="sub">Every package, middleware, route, controller, service and external API &mdash; mapped to the full request lifecycle</p>
+<div class="badges">
+<span class="b tb">React 18 + Vite 6</span>
+<span class="b tp">Express 5 + Node.js</span>
+<span class="b ty">Prisma + PostgreSQL</span>
+<span class="b tg">Cloudinary + AWS S3</span>
+<span class="b tk">JWT + HttpOnly Cookie</span>
+<span class="b tr">Razorpay Payments</span>
+<span class="b tt">Nodemailer + Winston</span>
+<span class="b ts">Helmet + CORS + Rate Limit</span>
+</div>
+<div class="diagram">
+
+<!-- LAYER 1: BROWSER -->
+<div class="layer lb">
+<div class="lt">&#x1F310; Layer 1 &mdash; Browser / Client (User's Machine)</div>
+<div class="cards">
+<div class="card"><div class="ci">React 18</div><div class="cd">Component tree, hooks, context. Renders all pages: Marketplace, Dashboard, Product detail, Auth forms. State via useState/useContext.</div><span class="ct tb">SPA</span></div>
+<div class="card"><div class="ci">React Router DOM v6</div><div class="cd">Client-side routing. /login /marketplace /dashboard /product/:id /admin/* &mdash; no full page reload. BrowserRouter wraps App.</div><span class="ct tb">Routing</span></div>
+<div class="card"><div class="ci">TanStack Query v5</div><div class="cd">Server state: useQuery + useMutation. Auto caches responses, background refetch, stale-while-revalidate, cache invalidation on mutations.</div><span class="ct tb">Data Fetching</span></div>
+<div class="card"><div class="ci">Axios (frontend)</div><div class="cd">HTTP client configured with baseURL + withCredentials:true so HttpOnly cookies are auto-sent with every cross-origin API request.</div><span class="ct tb">HTTP Client</span></div>
+<div class="card"><div class="ci">TailwindCSS + shadcn/ui</div><div class="cd">Utility-first CSS. shadcn provides Radix UI primitives (Dialog, Dropdown, Tabs). tailwind-merge + clsx for conditional class merging.</div><span class="ct tb">Styling</span></div>
+<div class="card"><div class="ci">Framer Motion</div><div class="cd">Page transitions, card animations, loading skeletons, hover effects &mdash; declarative physics-based animations throughout the UI.</div><span class="ct tb">Animation</span></div>
+<div class="card"><div class="ci">React Hot Toast</div><div class="cd">Non-blocking toasts for success/error/loading on all async ops: login, purchase, upload, form submit. No modal interruption.</div><span class="ct tb">UX</span></div>
+<div class="card"><div class="ci">Recharts</div><div class="cd">Revenue graphs, sales analytics dashboards rendered via SVG React components. Used in developer and admin dashboards.</div><span class="ct tb">Charts</span></div>
+</div>
+<div class="co">
+<div class="coi"><div class="col">&#x1F36A; HttpOnly Cookie: accessToken</div><div class="cov">Set by backend via Set-Cookie header.<br>HttpOnly = JS cannot read it (XSS-proof).<br>Secure = only sent over HTTPS.<br>SameSite=Strict = CSRF-proof.<br>Axios withCredentials:true auto-sends it on every request.</div></div>
+<div class="coi"><div class="col">&#x1F36A; HttpOnly Cookie: refreshToken</div><div class="cov">Long-lived (7 days). Only used on POST /api/v1/auth/refresh.<br>Stored in DB as SHA-256 hash (RefreshToken table).<br>Allows silent re-authentication without re-login when access token expires.</div></div>
+<div class="coi"><div class="col">&#x1F511; Google OAuth Token</div><div class="cov">Google returns code to /auth/google/callback.<br>Backend Axios exchanges code for Google profile.<br>Upserts User in DB via Prisma.<br>Issues JWT pair and sets HttpOnly cookies.<br>Redirects browser to dashboard.</div></div>
+</div>
+</div>
+
+<div class="arr"><div class="aline"></div><div class="atxt">HTTPS request &rarr; Vercel CDN Edge Network &rarr; React bundle served to browser</div></div>
+
+<!-- LAYER 2: NETWORK -->
+<div class="layer ln">
+<div class="lt">&#x2601;&#xFE0F; Layer 2 &mdash; Deployment &amp; Network Infrastructure</div>
+<div class="cards">
+<div class="card"><div class="ci">Vercel (Frontend)</div><div class="cd">Hosts built React static bundle on global CDN. Auto-deploys on git push. vercel.json rewrites all paths to index.html for SPA client-side routing.</div><span class="ct tp">CDN Hosting</span></div>
+<div class="card"><div class="ci">Render (Backend)</div><div class="cd">Hosts Node.js Express server. Runs: node src/server.js. Provides env vars, HTTPS termination, and load balancer with X-Forwarded-For header for real IP.</div><span class="ct tp">Server Hosting</span></div>
+<div class="card"><div class="ci">Vite 6 (Build Tool)</div><div class="cd">Bundles React for production. Tree-shakes unused code, content-hashes all assets for cache-busting. Reads VITE_API_BASE_URL from .env.local at build time and bakes it into JS bundle.</div><span class="ct tp">Bundler</span></div>
+<div class="card"><div class="ci">Neon PostgreSQL</div><div class="cd">Serverless Postgres DB. Connected via DATABASE_URL env var. Prisma runs prisma migrate deploy on each Render deployment. Serverless-compatible connection pooling.</div><span class="ct tp">Cloud DB</span></div>
+</div>
+</div>
+
+<div class="arr"><div class="aline"></div><div class="atxt">API call &rarr; HTTPS &rarr; Render load balancer &rarr; Node.js Express process</div></div>
+
+<!-- LAYER 3: EXPRESS MIDDLEWARE -->
+<div class="layer lm">
+<div class="lt">&#x1F6E1;&#xFE0F; Layer 3 &mdash; Express Entry: app.js (Middleware Pipeline &mdash; runs IN ORDER)</div>
+<div class="cards">
+<div class="card"><div class="ci">trust proxy: 1</div><div class="cd">app.set('trust proxy', 1). Makes Express trust X-Forwarded-For from Render's load balancer. Without this rate-limiter sees Render's internal IP, not user's real IP &mdash; breaking all IP-based limits.</div><span class="ct tr">Config</span></div>
+<div class="card"><div class="ci">Helmet</div><div class="cd">Sets 15 security HTTP headers automatically: X-Content-Type-Options:nosniff, X-Frame-Options:DENY (anti-clickjack), Strict-Transport-Security (force HTTPS), Content-Security-Policy, X-XSS-Protection. crossOriginResourcePolicy:cross-origin so Cloudinary images load.</div><span class="ct tr">Security Headers</span></div>
+<div class="card"><div class="ci">CORS</div><div class="cd">Whitelisted origins: deployra.vercel.app + localhost:3000/5173. credentials:true allows HttpOnly cookies cross-origin. Methods: GET POST PUT DELETE PATCH OPTIONS. All other origins receive a CORS error.</div><span class="ct tr">Cross-Origin</span></div>
+<div class="card"><div class="ci">Custom Cookie Parser</div><div class="cd">Lightweight inline middleware (zero external deps). Parses the Cookie header string into req.cookies object. auth.middleware reads req.cookies.accessToken first, then falls back to Authorization: Bearer header.</div><span class="ct tp">Cookie Parsing</span></div>
+<div class="card"><div class="ci">express.json()</div><div class="cd">Parses Content-Type: application/json request bodies into req.body. Built into Express. Used by all POST and PUT endpoints to receive structured API payloads.</div><span class="ct tp">Body Parsing</span></div>
+<div class="card"><div class="ci">express.urlencoded()</div><div class="cd">Parses application/x-www-form-urlencoded bodies. extended:true allows nested objects. Used by OAuth callbacks and HTML form submissions.</div><span class="ct tp">Body Parsing</span></div>
+<div class="card"><div class="ci">express.static()</div><div class="cd">Serves /uploads directory at the /uploads/* URL path. Dev fallback when Cloudinary is not configured. In production all images go to Cloudinary CDN and this path is unused.</div><span class="ct tp">Static Files</span></div>
+<div class="card"><div class="ci">dotenv</div><div class="cd">Loads .env into process.env at startup. Key vars: DATABASE_URL, JWT_SECRET, JWT_REFRESH_SECRET, CLOUDINARY_URL, AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET, SMTP_HOST, SMTP_USER, SMTP_PASS, GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, FRONTEND_URL.</div><span class="ct ts">Config</span></div>
+</div>
+</div>
+
+<div class="arr"><div class="aline"></div><div class="atxt">Rate limiting applied per endpoint type &rarr; before any controller runs</div></div>
+
+<!-- LAYER 4: RATE LIMITING -->
+<div class="layer lm">
+<div class="lt">&#x23F1;&#xFE0F; Layer 4 &mdash; Rate Limiting (express-rate-limit) &mdash; OWASP Anti-Brute-Force</div>
+<div class="cards">
+<div class="card"><div class="ci">authLimiter</div><div class="cd">Applied to ALL /auth/* routes. 30 req / 15 min / IP. standardHeaders:true adds RateLimit-* response headers per RFC 6585. On breach: Winston logs IP + path, returns HTTP 429 JSON response.</div><span class="ct tr">OWASP</span></div>
+<div class="card"><div class="ci">loginLimiter</div><div class="cd">POST /login and POST /register only. 8 attempts / 15 min / IP. skipSuccessfulRequests:true so successful logins don't count against the limit. Logs email on breach. Prevents credential stuffing attacks.</div><span class="ct tr">Brute-Force</span></div>
+<div class="card"><div class="ci">passwordResetLimiter</div><div class="cd">POST /forgot-password only. 5 req / 1 hour / IP. Logs email on breach. Prevents account enumeration via password reset endpoint timing side-channel attacks.</div><span class="ct tr">Anti-Enum</span></div>
+<div class="card"><div class="ci">emailResendLimiter</div><div class="cd">POST /resend-verification only. 3 req / 1 hour / IP. Prevents email bombing of SMTP provider and exhaustion of email quota from malicious resend spam.</div><span class="ct tr">Anti-Spam</span></div>
+</div>
+</div>
+
+<div class="arr"><div class="aline"></div><div class="atxt">Joi validates request body &rarr; authenticate verifies JWT &rarr; authorize checks role &rarr; controller runs</div></div>
+
+<!-- LAYER 5: AUTH MIDDLEWARE -->
+<div class="layer lm">
+<div class="lt">&#x2705; Layer 5 &mdash; Validation + Authentication + RBAC Middleware</div>
+<div class="two">
+<div>
+<p style="font-size:11px;color:#94a3b8;margin-bottom:8px;font-weight:700">INPUT VALIDATION (Joi)</p>
+<div class="card" style="max-width:100%">
+<div class="ci">validate(schema) middleware</div>
+<div class="cd">Joi schema validation runs BEFORE the controller. The controller never executes if validation fails.<br><br>
+<b>registerSchema:</b> name (required), email (valid format), password (min 8 chars + complexity), role (CLIENT or DEVELOPER enum).<br>
+<b>loginSchema:</b> email + password both required.<br><br>
+Returns HTTP 400 with field-level error messages on failure. Consistent error format prevents information leakage.</div>
+<span class="ct tp">Input Validation</span>
+</div>
+</div>
+<div>
+<p style="font-size:11px;color:#94a3b8;margin-bottom:8px;font-weight:700">JWT AUTH + RBAC</p>
+<div class="cards">
+<div class="card" style="max-width:100%">
+<div class="ci">authenticate middleware</div>
+<div class="cd">Guards all protected routes:<br>
+1. Read req.cookies.accessToken<br>
+2. Fallback: Authorization: Bearer header<br>
+3. jwt.verify(token, JWT_SECRET) &rarr; decoded payload<br>
+4. prisma.user.findUnique({where:{id: decoded.userId}})<br>
+5. req.user = user &rarr; next()<br><br>
+Returns 401 if token is missing, expired, or invalid.</div>
+<span class="ct tr">Auth Guard</span>
+</div>
+<div class="card" style="max-width:100%">
+<div class="ci">authorize / adminOnly (RBAC)</div>
+<div class="cd">Role-based access control via req.user.role.<br>
+Enum roles: CLIENT | DEVELOPER | ADMIN.<br>
+authorize('ADMIN','DEVELOPER') checks role inclusion.<br>
+adminOnly = authorize('ADMIN') shorthand.<br>
+Returns 403 Forbidden if role does not match.</div>
+<span class="ct tr">RBAC</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="arr"><div class="aline"></div><div class="atxt">Express Router matches HTTP method + path &rarr; controller function invoked</div></div>
+
+<!-- LAYER 6: ROUTES -->
+<div class="layer lr">
+<div class="lt">&#x1F6E3;&#xFE0F; Layer 6 &mdash; Routes: /api/v1/* (9 route files, mounted in routes/index.js)</div>
+<table class="ft">
+<thead><tr><th>Route File</th><th>Mount Point</th><th>Key Endpoints</th><th>Middleware Stack</th></tr></thead>
+<tbody>
+<tr><td>auth.routes.js</td><td>/api/v1/auth</td><td>POST /register, POST /login, POST /refresh, POST /logout, POST /logout-all, GET /me, GET /google, GET+POST /google/callback, GET /verify-email, POST /resend-verification, POST /forgot-password, POST /reset-password</td><td>authLimiter &rarr; loginLimiter &rarr; validate(schema) &rarr; authenticate</td></tr>
+<tr><td>product.routes.js</td><td>/api/v1/products</td><td>GET / (browse+filter), POST / (create listing), GET /:id, PUT /:id, DELETE /:id, POST /:id/review, GET /:id/reviews, POST /:id/wishlist, POST /:id/view (analytics)</td><td>optionalAuthenticate &rarr; authenticate &rarr; authorize(DEV or ADMIN)</td></tr>
+<tr><td>user.routes.js</td><td>/api/v1/users</td><td>GET /profile, PUT /profile, GET /purchases, GET /wishlist, DELETE /wishlist/:id, GET /dashboard (stats), PUT /change-password, POST /2fa/setup, POST /2fa/verify, GET /login-history, GET+POST /messages, GET /notifications</td><td>authenticate &rarr; authorize(role)</td></tr>
+<tr><td>payment.routes.js</td><td>/api/v1/payment</td><td>POST /create-order (creates Razorpay order_id), POST /verify (HMAC sig check + create Purchase record)</td><td>authenticate</td></tr>
+<tr><td>upload.routes.js</td><td>/api/v1/uploads</td><td>POST /image &mdash; receives multipart/form-data single image, sends to Cloudinary or S3</td><td>authenticate &rarr; multer(memoryStorage)</td></tr>
+<tr><td>admin.routes.js</td><td>/api/v1/admin</td><td>GET /products (all+filter by status), PUT /products/:id/approve, PUT /products/:id/reject, PUT /products/:id/suspend, GET /users, GET /stats, GET /audit-logs</td><td>authenticate &rarr; adminOnly (RBAC)</td></tr>
+<tr><td>purchase.routes.js</td><td>/api/v1/purchases</td><td>GET / (user purchase history), POST / (create after payment), GET /:id</td><td>authenticate</td></tr>
+<tr><td>order.routes.js</td><td>/api/v1/orders</td><td>POST / (place order), GET / (list), GET /:id</td><td>authenticate</td></tr>
+<tr><td>notification.routes.js</td><td>/api/v1/notifications</td><td>GET / (list), PATCH /:id/read, PATCH /read-all, DELETE /:id</td><td>authenticate</td></tr>
+</tbody>
+</table>
+</div>
+
+<div class="arr"><div class="aline"></div><div class="atxt">Controller handles business logic + Prisma DB queries + service calls</div></div>
+
+<!-- LAYER 7: CONTROLLERS -->
+<div class="layer lc">
+<div class="lt">&#x1F3AE; Layer 7 &mdash; Controllers (Business Logic)</div>
+<div class="cards">
+<div class="card" style="min-width:280px;max-width:420px">
+<div class="ci">auth.controller.js</div>
+<div class="cd">
+<b>register:</b> bcrypt.hash(pw,12) &rarr; prisma.user.create &rarr; sendVerificationEmail &rarr; 201<br><br>
+<b>login:</b> findUser &rarr; bcrypt.compare &rarr; check lockedUntil &rarr; check isEmailVerified &rarr; generateAccessToken + generateRefreshToken &rarr; sha256(refresh) &rarr; prisma.refreshToken.create &rarr; Set-Cookie httpOnly x2 &rarr; prisma.loginHistory.create<br><br>
+<b>refresh:</b> read refreshToken cookie &rarr; sha256 &rarr; prisma find by hash &rarr; check revoked + expired &rarr; jwt.verify &rarr; new accessToken &rarr; Set-Cookie<br><br>
+<b>logout:</b> res.clearCookie x2 &rarr; prisma.refreshToken.update({revoked:true})<br>
+<b>logoutAll:</b> prisma.refreshToken.updateMany (all sessions for user)<br>
+<b>googleCallback:</b> Axios GET userinfo &rarr; prisma.user.upsert(googleId) &rarr; JWT pair &rarr; redirect frontend
+</div>
+<span class="ct tk">Auth</span>
+</div>
+<div class="card">
+<div class="ci">product.controller.js</div>
+<div class="cd">Full CRUD. Create: prisma.product.create with status PENDING_REVIEW. List: findMany with where filters (category, tags, title search, status). Review: prisma.review.create. Wishlist: upsert with @@unique guard to prevent duplicates. View tracking: prisma.productView.create for analytics.</div>
+<span class="ct tk">Products</span>
+</div>
+<div class="card">
+<div class="ci">payment.controller.js</div>
+<div class="cd"><b>createOrder:</b> razorpay.orders.create({amount: price*100, currency:'INR', receipt}) &rarr; returns order_id to frontend.<br><br><b>verifyPayment:</b> crypto.createHmac('sha256', RAZORPAY_KEY_SECRET).update(orderId+'|'+paymentId).digest('hex') === razorpay_signature &rarr; prisma.purchase.create &rarr; prisma.notification.create (for developer)</div>
+<span class="ct tk">Payments</span>
+</div>
+<div class="card">
+<div class="ci">upload.controller.js</div>
+<div class="cd">multer.single('image') &rarr; req.file.buffer stored in RAM. If CLOUDINARY_URL set: Readable.from(buffer).pipe(cloudinary.uploader.upload_stream({folder:'deployra/products', quality:'auto', fetch_format:'auto'})) &rarr; result.secure_url returned. Else: local /uploads disk path.</div>
+<span class="ct tk">File Upload</span>
+</div>
+<div class="card">
+<div class="ci">user.controller.js</div>
+<div class="cd">Profile GET/PUT, password change (bcrypt.compare then bcrypt.hash), wishlist management, purchase history, dashboard stats (Prisma aggregations), notifications read/delete, messages send/receive, 2FA TOTP secret setup and verify, login history read (immutable audit log).</div>
+<span class="ct tk">User</span>
+</div>
+<div class="card">
+<div class="ci">admin.controller.js</div>
+<div class="cd">Approve/Reject/Suspend products &rarr; prisma.product.update({status}) &rarr; prisma.auditLog.create &rarr; prisma.notification.create for developer. Platform-wide stats: user count, product count, total revenue via Prisma count + aggregate queries.</div>
+<span class="ct tk">Admin</span>
+</div>
+</div>
+<div class="co" style="border-color:#7c3aed;margin-top:14px">
+<div class="coi"><div class="col">&#x1F511; JWT Access Token (jsonwebtoken)</div><div class="cov">jwt.sign({userId, role}, JWT_SECRET, {expiresIn:'15m'})<br>Set-Cookie: accessToken=&lt;token&gt;; HttpOnly; Secure; SameSite=Strict; Path=/<br>Verified on every protected request. Expires in 15 minutes.</div></div>
+<div class="coi"><div class="col">&#x1F504; JWT Refresh Token (jsonwebtoken)</div><div class="cov">jwt.sign({userId}, JWT_REFRESH_SECRET, {expiresIn:'7d'})<br>SHA-256 hashed via crypto.createHash before DB storage<br>Set-Cookie: refreshToken=&lt;token&gt;; HttpOnly; Secure; SameSite=Strict; Path=/api/v1/auth/refresh<br>Stored in RefreshToken table. Revoked on logout. Rotated on refresh.</div></div>
+<div class="coi"><div class="col">&#x1F512; bcrypt Password Hashing</div><div class="cov">bcrypt.hash(password, 12) on register and change-password<br>bcrypt.compare(plaintext, storedHash) on every login<br>Salt rounds: 12 = ~250ms per hash on modern hardware.<br>GPU brute-force is computationally infeasible. Adaptive &mdash; cost factor can increase over time.</div></div>
+</div>
+</div>
+
+<div class="arr"><div class="aline"></div><div class="atxt">Services called by controllers &rarr; interact with external systems and DB</div></div>
+
+<!-- LAYER 8: SERVICES -->
+<div class="layer ls">
+<div class="lt">&#x2699;&#xFE0F; Layer 8 &mdash; Services &amp; Utilities</div>
+<div class="cards">
+<div class="card">
+<div class="ci">upload.service.js</div>
+<div class="cd"><b>Multer:</b> multer({storage:memoryStorage()}) &mdash; file in RAM buffer, never touches disk.<br><br><b>Cloudinary v2:</b> cloudinary.config({cloud_name,api_key,api_secret}) &rarr; uploader.upload_stream({folder:'deployra/products', quality:'auto', fetch_format:'auto'}) &rarr; returns secure_url (HTTPS Cloudinary CDN link).<br><br><b>AWS S3 (multer-s3 + @aws-sdk/client-s3):</b> S3Client streams file buffer directly to bucket. Uses AWS_ACCESS_KEY_ID + AWS_SECRET_ACCESS_KEY + AWS_REGION from env.</div>
+<span class="ct tg">Storage</span>
+</div>
+<div class="card">
+<div class="ci">email.service.js (Nodemailer)</div>
+<div class="cd">nodemailer.createTransport({host:SMTP_HOST, port:465, auth:{user,pass}})<br><br>
+<b>Sends:</b><br>
+&bull; Email verify link (crypto.randomBytes(32) token, 24h TTL)<br>
+&bull; Password reset link (token, 10min TTL)<br>
+&bull; Purchase confirmation to buyer<br>
+&bull; Product approval/rejection notification to developer</div>
+<span class="ct tg">Email</span>
+</div>
+<div class="card">
+<div class="ci">Razorpay Service</div>
+<div class="cd">new Razorpay({key_id: RAZORPAY_KEY_ID, key_secret: RAZORPAY_KEY_SECRET})<br><br>razorpay.orders.create({amount: price*100, currency:'INR', receipt})<br><br>Signature verify: crypto.createHmac('sha256', secret).update(orderId + '|' + paymentId).digest('hex')</div>
+<span class="ct tg">Payments</span>
+</div>
+<div class="card">
+<div class="ci">winston (Logger)</div>
+<div class="cd">Structured logging at 3 levels:<br>
+&bull; <b>info</b> &mdash; logins, successful requests<br>
+&bull; <b>warn</b> &mdash; rate limit breaches, suspicious IPs<br>
+&bull; <b>error</b> &mdash; unhandled exceptions, DB failures<br><br>
+Transports: Console + logs/combined.log + logs/error.log<br>
+Used in: rateLimiter handlers, errorHandler, auth flow</div>
+<span class="ct tg">Logging</span>
+</div>
+<div class="card">
+<div class="ci">jwt.utils.js (jsonwebtoken)</div>
+<div class="cd">generateAccessToken(userId, role) &rarr; 15min JWT signed with JWT_SECRET<br>generateRefreshToken(userId) &rarr; 7day JWT signed with JWT_REFRESH_SECRET<br>verifyAccessToken(token) &rarr; decoded payload or throws<br>verifyRefreshToken(token) &rarr; decoded payload or throws<br><br>Used by: auth.controller, auth.middleware</div>
+<span class="ct tg">JWT Utils</span>
+</div>
+<div class="card">
+<div class="ci">Axios (backend)</div>
+<div class="cd">Server-side outbound HTTP calls:<br>
+&bull; POST accounts.google.com/token (exchange OAuth authorization code for access_token)<br>
+&bull; GET googleapis.com/oauth2/v2/userinfo (fetch Google user profile: id, email, name, picture)<br>
+&bull; Any outbound webhook or third-party API calls</div>
+<span class="ct tg">HTTP Client</span>
+</div>
+<div class="card">
+<div class="ci">errorHandler.js</div>
+<div class="cd">Global Express error middleware (4 params: err, req, res, next). AppError class extends Error with statusCode + isOperational flag. Formats all errors as {success:false, message, stack(dev only)}. Logs every error via Winston. Called via: next(new AppError('msg', 400)).</div>
+<span class="ct tg">Error Handler</span>
+</div>
+<div class="card">
+<div class="ci">config/database.js</div>
+<div class="cd">PrismaClient singleton pattern. One shared instance across the entire app. Critical: creating new PrismaClient() per request causes connection pool exhaustion. exports {prisma} imported by every controller and middleware that needs DB access.</div>
+<span class="ct tg">DB Singleton</span>
+</div>
+</div>
+</div>
+
+<div class="arr"><div class="aline"></div><div class="atxt">Prisma ORM converts method calls &rarr; type-safe SQL &rarr; executes on PostgreSQL (Neon)</div></div>
+
+<!-- LAYER 9: DATABASE -->
+<div class="layer ldb">
+<div class="lt">&#x1F5C4;&#xFE0F; Layer 9 &mdash; Database: Prisma ORM + PostgreSQL (Neon Serverless)</div>
+<div class="co" style="border-color:#92400e;margin-bottom:12px">
+<div class="coi"><div class="col">What Prisma Does End-to-End</div><div class="cov">schema.prisma &rarr; <b>prisma generate</b> &rarr; @prisma/client (type-safe query builder with full IntelliSense)<br><b>prisma migrate dev</b> &rarr; generates SQL migration files in prisma/migrations/<br><b>prisma migrate deploy</b> &rarr; runs migrations on production DB (called in npm run build on Render)<br><br>Example: prisma.user.findUnique({where:{email}}) &rarr; becomes &rarr; SELECT * FROM "User" WHERE email = $1 LIMIT 1</div></div>
+</div>
+<div class="sg">
+<div class="sm"><div class="smn">User</div><div class="smf">id: uuid PK<br>email: unique<br>password: bcrypt hash<br>googleId: for OAuth<br>role: CLIENT|DEV|ADMIN<br>isEmailVerified: bool<br>failedLoginAttempts: int<br>lockedUntil: DateTime<br>twoFactorSecret: string<br>stripeAccountId: future</div></div>
+<div class="sm"><div class="smn">RefreshToken</div><div class="smf">id: uuid PK<br>userId: FK &rarr; User<br>tokenHash: SHA-256<br>userAgent: browser string<br>ipAddress: string<br>expiresAt: DateTime<br>revoked: bool<br>createdAt: DateTime</div></div>
+<div class="sm"><div class="smn">Product</div><div class="smf">id: uuid PK<br>title, description<br>price: float<br>status: PENDING|APPROVED<br>|REJECTED|SUSPENDED<br>developerId: FK &rarr; User<br>configSchema: JSON string<br>coverImage: CDN URL<br>screenshots: string[]</div></div>
+<div class="sm"><div class="smn">Purchase</div><div class="smf">id: uuid PK<br>userId: FK &rarr; User<br>productId: FK &rarr; Product<br>pricePaid: float<br>paymentIntentId: string<br>status: COMPLETED|REFUNDED<br>isInstalled: bool<br>createdAt, updatedAt</div></div>
+<div class="sm"><div class="smn">Order</div><div class="smf">id: uuid PK<br>userId: FK &rarr; User<br>productId: FK &rarr; Product<br>details: string<br>createdAt, updatedAt</div></div>
+<div class="sm"><div class="smn">Review</div><div class="smf">id: uuid PK<br>rating: int (1-5)<br>comment: string?<br>userId: FK &rarr; User<br>productId: FK &rarr; Product<br>createdAt, updatedAt</div></div>
+<div class="sm"><div class="smn">Notification</div><div class="smf">id: uuid PK<br>userId: FK &rarr; User<br>type: string (enum-like)<br>title: string<br>message: string<br>isRead: bool<br>createdAt: DateTime</div></div>
+<div class="sm"><div class="smn">LoginHistory</div><div class="smf">id: uuid PK<br>userId: FK &rarr; User<br>ipAddress: string<br>userAgent: string<br>success: bool<br>failReason: string?<br>(immutable audit log)<br>createdAt: DateTime</div></div>
+<div class="sm"><div class="smn">AuditLog</div><div class="smf">id: uuid PK<br>action: APPROVED|REJECTED<br>actorId: admin userId<br>targetId: product/user id<br>targetType: PRODUCT|USER<br>metadata: JSON string<br>(immutable admin audit)<br>createdAt: DateTime</div></div>
+<div class="sm"><div class="smn">Wishlist</div><div class="smf">id: uuid PK<br>userId: FK &rarr; User<br>productId: FK &rarr; Product<br>@@unique[userId, productId]<br>(prevents duplicates at DB level)<br>createdAt: DateTime</div></div>
+<div class="sm"><div class="smn">Message</div><div class="smf">id: uuid PK<br>senderId: FK &rarr; User<br>receiverId: FK &rarr; User<br>content: string<br>isRead: bool<br>createdAt: DateTime</div></div>
+<div class="sm"><div class="smn">ProductView</div><div class="smf">id: uuid PK<br>productId: FK &rarr; Product<br>visitorId: string (anon or userId)<br>createdAt: DateTime<br>@@index[productId]<br>(analytics tracking)</div></div>
+</div>
+</div>
+
+<div class="arr"><div class="aline"></div><div class="atxt">Services make outbound calls to third-party external APIs</div></div>
+
+<!-- LAYER 10: EXTERNAL -->
+<div class="layer le">
+<div class="lt">&#x1F30D; Layer 10 &mdash; External Third-Party Services</div>
+<div class="cards">
+<div class="card"><div class="ci">Cloudinary</div><div class="cd">Image CDN. Multer stores file in RAM buffer &rarr; Readable.from(buffer).pipe(upload_stream) with quality:auto and fetch_format:auto optimization &rarr; stored in deployra/products folder &rarr; returns HTTPS secure_url stored in Product.coverImage / screenshots columns in DB.</div><span class="ct tt">Image CDN</span></div>
+<div class="card"><div class="ci">AWS S3 (@aws-sdk/client-s3)</div><div class="cd">S3Client with multer-s3 streams file buffer directly to S3 bucket. No disk touch. Uses AWS_ACCESS_KEY_ID + AWS_SECRET_ACCESS_KEY + AWS_REGION from env vars. Alternative to Cloudinary for large file uploads.</div><span class="ct tt">Object Storage</span></div>
+<div class="card"><div class="ci">Razorpay</div><div class="cd">Indian payments gateway. createOrder API &rarr; frontend opens Razorpay checkout modal &rarr; user pays &rarr; Razorpay returns razorpay_payment_id + razorpay_signature &rarr; backend HMAC-SHA256 verify &rarr; prisma.purchase.create on success.</div><span class="ct tt">Payments</span></div>
+<div class="card"><div class="ci">Google OAuth 2.0</div><div class="cd">GET /auth/google &rarr; redirect to accounts.google.com with client_id + scope. User authenticates &rarr; GET /auth/google/callback?code= &rarr; Axios POST /token &rarr; Axios GET /userinfo &rarr; prisma.user.upsert(googleId) &rarr; JWT pair issued &rarr; redirect to frontend dashboard.</div><span class="ct tt">OAuth</span></div>
+<div class="card"><div class="ci">SMTP (Nodemailer)</div><div class="cd">Transactional email via SMTP_HOST on port 465 (TLS). Sends: email verification link (24h token), password reset link (10min token), purchase confirmation, product status notifications to developers on approve/reject.</div><span class="ct tt">Email</span></div>
+<div class="card"><div class="ci">Neon PostgreSQL</div><div class="cd">Serverless Postgres. Connected via DATABASE_URL connection string. Prisma manages connection pooling with serverless-compatible driver. Supports DB branching for dev/staging/production environments. All application data persisted here.</div><span class="ct tt">Database</span></div>
+</div>
+</div>
+
+<div class="arr"><div class="aline" style="background:linear-gradient(to bottom,#1e293b,#334155)"></div></div>
+
+<!-- FLOW TABLES -->
+<div class="layer lf">
+<div class="lt">&#x1F4CB; Complete Request Lifecycle Flows &mdash; Step by Step</div>
+<div class="two">
+<div>
+<p style="font-size:11px;color:#94a3b8;margin-bottom:8px;font-weight:700">&#x1F4E7; EMAIL REGISTER + LOGIN + TOKEN REFRESH</p>
+<table class="ft">
+<thead><tr><th>Step</th><th>What Happens</th><th>Package / Tool</th></tr></thead>
+<tbody>
+<tr><td>1. Fill form</td><td>React form state &rarr; Axios POST /api/v1/auth/register {name, email, password, role}</td><td>React + Axios</td></tr>
+<tr><td>2. Rate limit check</td><td>loginLimiter: 8 req / 15 min / IP. Returns 429 + Winston log if limit exceeded</td><td>express-rate-limit</td></tr>
+<tr><td>3. Joi validate</td><td>registerSchema: name required, email format, password min 8 chars, role must be CLIENT or DEVELOPER</td><td>Joi</td></tr>
+<tr><td>4. Hash password</td><td>bcrypt.hash(password, 12) produces a 60-character bcrypt hash string</td><td>bcrypt</td></tr>
+<tr><td>5. Save user</td><td>prisma.user.create({email, password:hash, name, role}) &rarr; PostgreSQL INSERT, UUID auto-generated</td><td>Prisma</td></tr>
+<tr><td>6. Send verify email</td><td>crypto.randomBytes(32).toString('hex') token &rarr; Nodemailer sends verify link with 24h TTL</td><td>Nodemailer + crypto</td></tr>
+<tr><td>7. Email verified</td><td>GET /verify-email?token=xxx &rarr; find user by emailVerifyToken &rarr; prisma.user.update({isEmailVerified:true})</td><td>Prisma</td></tr>
+<tr><td>8. Login attempt</td><td>POST /login &rarr; findUser by email &rarr; bcrypt.compare(pw, hash) &rarr; check lockedUntil &rarr; check isEmailVerified</td><td>bcrypt + Prisma</td></tr>
+<tr><td>9. Issue Access JWT</td><td>jwt.sign({userId, role}, JWT_SECRET, {expiresIn:'15m'}) &rarr; compact signed JWT string</td><td>jsonwebtoken</td></tr>
+<tr><td>10. Issue Refresh JWT</td><td>jwt.sign({userId}, JWT_REFRESH_SECRET, {expiresIn:'7d'}) &rarr; long-lived JWT</td><td>jsonwebtoken</td></tr>
+<tr><td>11. Hash + store refresh</td><td>crypto.createHash('sha256').update(refreshToken).digest('hex') &rarr; prisma.refreshToken.create({tokenHash, userAgent, ipAddress})</td><td>crypto + Prisma</td></tr>
+<tr><td>12. Set HttpOnly cookies</td><td>res.cookie('accessToken', token, {httpOnly:true, secure:true, sameSite:'strict', path:'/'})<br>res.cookie('refreshToken', token, {httpOnly:true, secure:true, sameSite:'strict', path:'/api/v1/auth/refresh'})</td><td>Express</td></tr>
+<tr><td>13. Log login history</td><td>prisma.loginHistory.create({userId, ipAddress, userAgent, success:true}) &rarr; immutable audit record</td><td>Prisma</td></tr>
+<tr><td>14. Subsequent requests</td><td>Browser auto-sends cookie &rarr; authenticate middleware verifies JWT &rarr; Prisma confirms user &rarr; req.user attached for controller</td><td>jsonwebtoken + Prisma</td></tr>
+<tr><td>15. Access token expires</td><td>Axios response interceptor catches 401 &rarr; POST /api/v1/auth/refresh &rarr; sha256 cookie &rarr; DB lookup &rarr; new accessToken issued &rarr; original request retried</td><td>Axios interceptor + jsonwebtoken</td></tr>
+</tbody>
+</table>
+</div>
+<div>
+<p style="font-size:11px;color:#94a3b8;margin-bottom:8px;font-weight:700">&#x1F510; GOOGLE OAUTH FLOW</p>
+<table class="ft">
+<thead><tr><th>Step</th><th>What Happens</th><th>Package / Tool</th></tr></thead>
+<tbody>
+<tr><td>1. Click Google btn</td><td>GET /api/v1/auth/google &rarr; backend builds Google OAuth URL with client_id, redirect_uri, scope=email+profile</td><td>Express + Axios</td></tr>
+<tr><td>2. Google auth</td><td>User authenticates on accounts.google.com &rarr; Google redirects GET /auth/google/callback?code=xxx</td><td>Google OAuth 2.0</td></tr>
+<tr><td>3. Exchange code</td><td>Axios POST accounts.google.com/token {code, client_id, client_secret, redirect_uri} &rarr; access_token returned</td><td>Axios</td></tr>
+<tr><td>4. Fetch profile</td><td>Axios GET googleapis.com/oauth2/v2/userinfo with access_token &rarr; {id, email, name, picture} returned</td><td>Axios</td></tr>
+<tr><td>5. Upsert user</td><td>prisma.user.upsert({where:{googleId: id}, create:{email,name,googleId,isEmailVerified:true}, update:{lastLogin}})</td><td>Prisma</td></tr>
+<tr><td>6. Issue JWT pair</td><td>Same as email login steps 9&ndash;12: access token + refresh token issued, cookies set</td><td>jsonwebtoken + Express</td></tr>
+<tr><td>7. Redirect</td><td>res.redirect('https://deployra.vercel.app/dashboard') &mdash; browser follows with cookies already set in response headers</td><td>Express</td></tr>
+</tbody>
+</table>
+
+<p style="font-size:11px;color:#94a3b8;margin:16px 0 8px;font-weight:700">&#x1F4B3; RAZORPAY PAYMENT FLOW</p>
+<table class="ft">
+<thead><tr><th>Step</th><th>What Happens</th><th>Package / Tool</th></tr></thead>
+<tbody>
+<tr><td>1. Buy click</td><td>Axios POST /api/v1/payment/create-order {productId, amount} &mdash; authenticate guard runs first</td><td>Axios + JWT cookie</td></tr>
+<tr><td>2. Create Razorpay order</td><td>razorpay.orders.create({amount: price*100, currency:'INR', receipt: 'receipt_'+Date.now()}) &rarr; order_id returned to frontend</td><td>Razorpay SDK</td></tr>
+<tr><td>3. Checkout modal</td><td>new Razorpay({key: RAZORPAY_KEY_ID, order_id, name, description, prefill}).open() &rarr; Razorpay payment UI appears</td><td>Razorpay JS</td></tr>
+<tr><td>4. Payment done</td><td>Razorpay SDK returns {razorpay_order_id, razorpay_payment_id, razorpay_signature} on success callback</td><td>Razorpay</td></tr>
+<tr><td>5. Verify HMAC</td><td>crypto.createHmac('sha256', RAZORPAY_KEY_SECRET).update(order_id + '|' + payment_id).digest('hex') must equal razorpay_signature</td><td>Node.js crypto</td></tr>
+<tr><td>6. Create records</td><td>prisma.purchase.create({userId, productId, pricePaid, paymentIntentId}) &rarr; prisma.notification.create for developer &rarr; HTTP 200 OK</td><td>Prisma</td></tr>
+</tbody>
+</table>
+
+<p style="font-size:11px;color:#94a3b8;margin:16px 0 8px;font-weight:700">&#x1F5BC;&#xFE0F; IMAGE UPLOAD FLOW</p>
+<table class="ft">
+<thead><tr><th>Step</th><th>What Happens</th><th>Package / Tool</th></tr></thead>
+<tbody>
+<tr><td>1. File selected</td><td>React file input &rarr; new FormData() with file &rarr; Axios POST /api/v1/uploads/image with Content-Type: multipart/form-data</td><td>React + Axios</td></tr>
+<tr><td>2. Multer intercepts</td><td>multer({storage: memoryStorage()}).single('image') &rarr; file stored in req.file.buffer (RAM, not disk)</td><td>Multer</td></tr>
+<tr><td>3. Stream to Cloudinary</td><td>const stream = cloudinary.uploader.upload_stream({folder:'deployra/products', quality:'auto', fetch_format:'auto'}, cb)<br>Readable.from(req.file.buffer).pipe(stream)</td><td>Cloudinary SDK + Node.js stream</td></tr>
+<tr><td>4. URL returned</td><td>Cloudinary callback returns result.secure_url (HTTPS Cloudinary CDN URL) &rarr; res.json({success:true, data:{url: result.secure_url}})</td><td>Cloudinary CDN</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+
+</div><!-- end .diagram -->
+
+<div class="leg">
+<div class="li"><div class="ldot" style="background:#60a5fa"></div>Browser / Frontend</div>
+<div class="li"><div class="ldot" style="background:#818cf8"></div>Network / Infra</div>
+<div class="li"><div class="ldot" style="background:#a78bfa"></div>Express Middleware</div>
+<div class="li"><div class="ldot" style="background:#c084fc"></div>Routes</div>
+<div class="li"><div class="ldot" style="background:#f472b6"></div>Controllers</div>
+<div class="li"><div class="ldot" style="background:#34d399"></div>Services &amp; Utils</div>
+<div class="li"><div class="ldot" style="background:#fbbf24"></div>Database (Prisma + PostgreSQL)</div>
+<div class="li"><div class="ldot" style="background:#4ade80"></div>External APIs</div>
+</div>
+
+</body>
+</html>
