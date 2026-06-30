@@ -2,6 +2,7 @@ const express = require('express');
 const {
   register,
   login,
+  verify2FA,
   refresh,
   getMe,
   googleLogin,
@@ -31,6 +32,7 @@ router.use(authLimiter);
 // ── Core Auth ──────────────────────────────────────────────────────────────
 router.post('/register', loginLimiter, validate(registerSchema), register);
 router.post('/login',    loginLimiter, validate(loginSchema), login);
+router.post('/verify-2fa', loginLimiter, verify2FA);
 router.post('/refresh',  refresh);
 router.post('/logout',   logout);
 router.post('/logout-all', authenticate, logoutAll);

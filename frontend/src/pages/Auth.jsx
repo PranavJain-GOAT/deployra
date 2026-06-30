@@ -33,6 +33,13 @@ export default function Auth() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
+
+  // 2FA Challenge States
+  const [requires2fa, setRequires2fa] = useState(false);
+  const [totpCode, setTotpCode] = useState("");
+  const [totpUserId, setTotpUserId] = useState("");
+  const [totpRememberMe, setTotpRememberMe] = useState(false);
+  const [totpRequestedRole, setTotpRequestedRole] = useState("client");
   
   const [form, setForm] = useState({ 
     firstName: "", 
@@ -126,6 +133,16 @@ export default function Auth() {
       const response = await axios.post(`${API_URL}${endpoint}`, payload);
 
       if (response.data.success) {
+        if (response.data.data?.requires2FA) {
+          toast.success("Two-Factor Authentication required!");
+          setRequires2fa(true);
+          setTotpUserId(response.data.data.userId);
+          setTotpRememberMe(!!response.data.data.rememberMe);
+          setTotpRequestedRole(response.data.data.requestedRole || "client");
+          setLoading(false);
+          return;
+        }
+
         toast.success(tab === "login" ? "Logged in successfully!" : "Account created successfully!");
         const { user, accessToken, refreshToken } = response.data.data;
         login(user, accessToken, refreshToken, tab === "login" ? !!form.rememberMe : false);
@@ -133,6 +150,34 @@ export default function Auth() {
       }
     } catch (err) {
       const errorMsg = err.response?.data?.message || "Authentication failed. Please check your credentials.";
+      setError(errorMsg);
+      toast.error(errorMsg);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handle2FAVerify = async (e) => {
+    e.preventDefault();
+    setError("");
+    setLoading(true);
+
+    try {
+      const response = await axios.post(`${API_URL}/auth/verify-2fa`, {
+        userId: totpUserId,
+        token: totpCode,
+        rememberMe: totpRememberMe,
+        requestedRole: totpRequestedRole
+      });
+
+      if (response.data.success) {
+        toast.success("2FA Verified. Welcome!");
+        const { user, accessToken, refreshToken } = response.data.data;
+        login(user, accessToken, refreshToken, totpRememberMe);
+        navigate(getRedirectPath(user));
+      }
+    } catch (err) {
+      const errorMsg = err.response?.data?.message || "Invalid 2FA code or recovery key. Please try again.";
       setError(errorMsg);
       toast.error(errorMsg);
     } finally {
@@ -503,6 +548,53 @@ export default function Auth() {
                           >
                             {loading ? <Loader2 className="w-6 h-6 animate-spin" /> : "Reset and Update Password"}
                           </Button>
+                        </div>
+                      </motion.form>
+                    ) : requires2fa ? (
+                      <motion.form
+                        key="2fa-form"
+                        onSubmit={handle2FAVerify}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        className="space-y-5"
+                      >
+                        <div className="space-y-2">
+                          <label className="text-sm font-bold text-gray-800 dark:text-gray-300 flex items-center gap-2">
+                            <Lock className="w-4 h-4 text-gray-400" /> Enter 6-digit Authenticator Code
+                          </label>
+                          <input
+                            type="text"
+                            required
+                            maxLength={6}
+                            placeholder="000000"
+                            value={totpCode}
+                            onChange={(e) => setTotpCode(e.target.value.replace(/\D/g, ''))}
+                            className="w-full px-4 py-3 bg-white dark:bg-[#060a13] border border-gray-300 dark:border-gray-800 focus:border-gray-900 dark:focus:border-white rounded-xl outline-none transition-all text-gray-900 dark:text-white font-mono text-center text-lg tracking-widest font-bold"
+                          />
+                          <p className="text-[10px] text-gray-400 dark:text-gray-500 leading-relaxed">
+                            Open the authenticator app on your mobile device (e.g. Google Authenticator) or enter one of your 8-character recovery codes to log in.
+                          </p>
+                        </div>
+
+                        <div className="pt-4">
+                          <Button
+                            type="submit"
+                            disabled={loading}
+                            className="w-full h-12 rounded-full bg-[#108a00] hover:bg-[#0c6b00] text-white font-bold text-base shadow-lg shadow-green-100 dark:shadow-none"
+                          >
+                            {loading ? <Loader2 className="w-6 h-6 animate-spin" /> : "Verify and Login"}
+                          </Button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setRequires2fa(false);
+                              setTotpCode("");
+                              setError("");
+                            }}
+                            className="w-full text-center text-xs text-gray-500 hover:text-gray-900 dark:hover:text-white mt-4 font-bold"
+                          >
+                            Back to Login
+                          </button>
                         </div>
                       </motion.form>
                     ) : (

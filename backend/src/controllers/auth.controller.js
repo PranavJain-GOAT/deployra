@@ -280,6 +280,20 @@ const login = async (req, res, next) => {
       }
     }
 
+    // ── 2FA Check ──
+    if (user.twoFactorEnabled) {
+      return res.status(200).json({
+        success: true,
+        message: 'Two-factor authentication required',
+        data: {
+          requires2FA: true,
+          userId: user.id,
+          rememberMe: !!rememberMe,
+          requestedRole: userRole
+        }
+      });
+    }
+
     // Reset lockout counters on success and update role if changed
     await prisma.user.update({
       where: { id: user.id },
@@ -299,6 +313,86 @@ const login = async (req, res, next) => {
     await recordLoginHistory(user.id, req, true);
 
     logger.info(`User logged in: ${user.email} (Role: ${userRole})`);
+
+    res.status(200).json({
+      success: true,
+      data: {
+        user: {
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          role: userRole,
+          authProvider: user.authProvider,
+          profileImage: user.profileImage,
+          isEmailVerified: user.isEmailVerified
+        },
+        accessToken,
+        refreshToken
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+/**
+ * Verify a 2FA TOTP code or recovery code during login.
+ */
+const verify2FA = async (req, res, next) => {
+  try {
+    const { userId, token, rememberMe, requestedRole } = req.body;
+    if (!userId || !token) {
+      return next(new AppError('User ID and 2FA code are required', 400));
+    }
+
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    if (!user || !user.twoFactorEnabled || !user.twoFactorSecret) {
+      return next(new AppError('2FA is not enabled for this user', 400));
+    }
+
+    // Verify TOTP token
+    const { verifyTOTP } = require('../utils/totp');
+    let isValid = verifyTOTP(token, user.twoFactorSecret);
+
+    // If TOTP invalid, check backup recovery codes
+    if (!isValid && user.twoFactorRecoveryCodes) {
+      const codes = user.twoFactorRecoveryCodes.split(',');
+      const codeIndex = codes.indexOf(token.toUpperCase().trim());
+      if (codeIndex !== -1) {
+        isValid = true;
+        // Consume the code so it cannot be used again
+        codes.splice(codeIndex, 1);
+        await prisma.user.update({
+          where: { id: userId },
+          data: { twoFactorRecoveryCodes: codes.join(',') }
+        });
+      }
+    }
+
+    if (!isValid) {
+      return res.status(401).json({ success: false, message: 'Invalid 2FA verification code or recovery key.' });
+    }
+
+    // Success — run login logic
+    const userRole = requestedRole || user.role;
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        lastLogin: new Date(),
+        failedLoginAttempts: 0,
+        lockedUntil: null,
+        role: userRole
+      }
+    });
+
+    const accessToken = generateAccessToken(user.id, userRole);
+    const refreshToken = generateRefreshToken(user.id, !!rememberMe);
+
+    setAuthCookies(res, accessToken, refreshToken, !!rememberMe);
+    await storeRefreshToken(user.id, refreshToken, req);
+    await recordLoginHistory(user.id, req, true);
+
+    logger.info(`User logged in via 2FA: ${user.email} (Role: ${userRole})`);
 
     res.status(200).json({
       success: true,
@@ -803,6 +897,7 @@ const resetPassword = async (req, res, next) => {
 module.exports = {
   register,
   login,
+  verify2FA,
   refresh,
   getMe,
   googleLogin,
