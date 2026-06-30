@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Deployra - Request Flow Diagram</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0a0c14;font-family:'Inter',sans-serif;overflow:auto;min-height:100vh}
+h1{text-align:center;padding:24px 0 8px;font-size:1.5rem;font-weight:800;
+   background:linear-gradient(135deg,#6366f1,#8b5cf6,#ec4899);
+   -webkit-background-clip:text;-webkit-text-fill-color:transparent}
+p.sub{text-align:center;color:#475569;font-size:12px;margin-bottom:16px;font-family:'IBM Plex Mono',monospace}
+#canvas-wrap{position:relative;width:1600px;margin:0 auto;height:1100px}
+svg#arrows{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:1}
+.node{position:absolute;z-index:2;cursor:default;transition:transform .15s,box-shadow .15s}
+.node:hover{transform:scale(1.05)}
+.node-box{border-radius:8px;padding:8px 12px;font-size:11px;font-weight:600;white-space:nowrap;
+          font-family:'IBM Plex Mono',monospace;border:1px solid transparent;line-height:1.4;text-align:center}
+.node-sub{font-size:9px;font-weight:400;color:#94a3b8;margin-top:2px;font-family:'Inter',sans-serif}
+/* Node styles */
+.n-user{background:#1e1b4b;border-color:#6366f1;color:#a5b4fc;
+        box-shadow:0 0 20px #6366f140}
+.n-fe{background:#0f2236;border-color:#0ea5e9;color:#7dd3fc;
+       box-shadow:0 0 16px #0ea5e920}
+.n-cookie{background:#1a1242;border-color:#818cf8;color:#c7d2fe;
+           box-shadow:0 0 16px #818cf820}
+.n-infra{background:#1e1030;border-color:#7c3aed;color:#c084fc;
+          box-shadow:0 0 16px #7c3aed20}
+.n-mw{background:#0c1a10;border-color:#16a34a;color:#86efac;
+       box-shadow:0 0 12px #16a34a20}
+.n-auth{background:#1a0f0f;border-color:#dc2626;color:#fca5a5;
+         box-shadow:0 0 16px #dc262620}
+.n-route{background:#1a1010;border-color:#ea580c;color:#fdba74;
+          box-shadow:0 0 16px #ea580c20}
+.n-ctrl{background:#170d25;border-color:#9333ea;color:#d8b4fe;
+         box-shadow:0 0 16px #9333ea20}
+.n-svc{background:#0a1a1a;border-color:#0d9488;color:#5eead4;
+        box-shadow:0 0 16px #0d948820}
+.n-db{background:#1a1200;border-color:#ca8a04;color:#fde68a;
+       box-shadow:0 0 20px #ca8a0430}
+.n-ext{background:#0a1a12;border-color:#15803d;color:#86efac;
+        box-shadow:0 0 12px #15803d20}
+.n-resp{background:#1e1b4b;border-color:#6366f1;color:#a5b4fc;
+         box-shadow:0 0 20px #6366f140}
+/* Step badge */
+.step{position:absolute;top:-9px;left:-9px;width:18px;height:18px;border-radius:50%;
+      background:#6366f1;color:#fff;font-size:9px;font-weight:700;
+      display:flex;align-items:center;justify-content:center;z-index:3;
+      font-family:'IBM Plex Mono',monospace}
+/* Legend */
+.legend{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;padding:20px;
+        border-top:1px solid #1e293b;margin-top:8px}
+.li{display:flex;align-items:center;gap:6px;font-size:11px;color:#64748b}
+.ldot{width:10px;height:10px;border-radius:3px}
+</style>
+</head>
+<body>
+<h1>&#x1F680; Deployra &mdash; Request Flow Diagram</h1>
+<p class="sub">From browser click to HTTP response &mdash; every node your request passes through</p>
+
+<div id="canvas-wrap">
+
+<!-- SVG ARROWS -->
+<svg id="arrows" xmlns="http://www.w3.org/2000/svg">
+<defs>
+  <marker id="arr" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+    <path d="M0,0 L0,6 L8,3 z" fill="#6366f1"/>
+  </marker>
+  <marker id="arr-g" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+    <path d="M0,0 L0,6 L8,3 z" fill="#16a34a"/>
+  </marker>
+  <marker id="arr-r" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+    <path d="M0,0 L0,6 L8,3 z" fill="#dc2626"/>
+  </marker>
+  <marker id="arr-y" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+    <path d="M0,0 L0,6 L8,3 z" fill="#ca8a04"/>
+  </marker>
+  <marker id="arr-c" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+    <path d="M0,0 L0,6 L8,3 z" fill="#0d9488"/>
+  </marker>
+  <marker id="arr-o" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+    <path d="M0,0 L0,6 L8,3 z" fill="#ea580c"/>
+  </marker>
+  <marker id="arr-p" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+    <path d="M0,0 L0,6 L8,3 z" fill="#9333ea"/>
+  </marker>
+  <!-- dashed marker for response path -->
+  <marker id="arr-back" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+    <path d="M0,0 L0,6 L8,3 z" fill="#818cf8"/>
+  </marker>
+
+  <!-- Glow filter -->
+  <filter id="glow">
+    <feGaussianBlur stdDeviation="3" result="blur"/>
+    <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+  </filter>
+</defs>
+
+<!-- REQUEST PATH (solid lines) -->
+<!-- 1. User -> Frontend -->
+<line x1="110" y1="90" x2="230" y2="90" stroke="#6366f1" stroke-width="2" marker-end="url(#arr)" filter="url(#glow)"/>
+<!-- label -->
+<text x="155" y="82" fill="#818cf8" font-size="9" font-family="IBM Plex Mono">HTTPS req</text>
+
+<!-- 2. Frontend -> Axios withCredentials -->
+<line x1="380" y1="90" x2="480" y2="90" stroke="#0ea5e9" stroke-width="2" marker-end="url(#arr)"/>
+<text x="390" y="82" fill="#7dd3fc" font-size="9" font-family="IBM Plex Mono">fetch/Axios</text>
+
+<!-- 3. Axios -> Cookie attaches -->
+<line x1="620" y1="90" x2="680" y2="90" stroke="#818cf8" stroke-width="2" marker-end="url(#arr)"/>
+
+<!-- 4. Cookie -> Render LB -->
+<line x1="820" y1="90" x2="880" y2="90" stroke="#7c3aed" stroke-width="2" marker-end="url(#arr)"/>
+<text x="830" y="82" fill="#c084fc" font-size="9" font-family="IBM Plex Mono">HTTPS POST</text>
+
+<!-- 5. Render LB -> Express -->
+<line x1="1010" y1="90" x2="1060" y2="90" stroke="#7c3aed" stroke-width="2" marker-end="url(#arr)"/>
+<text x="1015" y="82" fill="#c084fc" font-size="9" font-family="IBM Plex Mono">port-forward</text>
+
+<!-- Middleware chain: vertical top-down from Express -->
+<!-- Express -> trust proxy -->
+<line x1="1130" y1="120" x2="1130" y2="165" stroke="#16a34a" stroke-width="2" marker-end="url(#arr-g)"/>
+
+<!-- trust proxy -> Helmet -->
+<line x1="1130" y1="200" x2="1130" y2="245" stroke="#16a34a" stroke-width="2" marker-end="url(#arr-g)"/>
+
+<!-- Helmet -> CORS -->
+<line x1="1130" y1="280" x2="1130" y2="325" stroke="#16a34a" stroke-width="2" marker-end="url(#arr-g)"/>
+
+<!-- CORS -> Cookie Parser -->
+<line x1="1130" y1="360" x2="1130" y2="405" stroke="#16a34a" stroke-width="2" marker-end="url(#arr-g)"/>
+
+<!-- Cookie Parser -> Body Parser -->
+<line x1="1130" y1="440" x2="1130" y2="485" stroke="#16a34a" stroke-width="2" marker-end="url(#arr-g)"/>
+
+<!-- Body Parser -> Rate Limiter -->
+<line x1="1130" y1="520" x2="1130" y2="565" stroke="#dc2626" stroke-width="2" marker-end="url(#arr-r)"/>
+
+<!-- Rate Limiter -> Router -->
+<line x1="1130" y1="600" x2="1130" y2="645" stroke="#ea580c" stroke-width="2" marker-end="url(#arr-o)"/>
+
+<!-- Router -> Joi Validate -->
+<line x1="1070" y1="680" x2="940" y2="680" stroke="#ea580c" stroke-width="2" marker-end="url(#arr-o)"/>
+
+<!-- Joi Validate -> authenticate -->
+<line x1="840" y1="680" x2="730" y2="680" stroke="#dc2626" stroke-width="2" marker-end="url(#arr-r)"/>
+
+<!-- authenticate -> authorize RBAC -->
+<line x1="630" y1="680" x2="510" y2="680" stroke="#dc2626" stroke-width="2" marker-end="url(#arr-r)"/>
+
+<!-- authorize -> Controller -->
+<line x1="410" y1="680" x2="310" y2="680" stroke="#9333ea" stroke-width="2" marker-end="url(#arr-p)"/>
+
+<!-- Controller -> Prisma ORM -->
+<line x1="200" y1="715" x2="200" y2="770" stroke="#ca8a04" stroke-width="2" marker-end="url(#arr-y)"/>
+
+<!-- Prisma -> Neon DB -->
+<line x1="200" y1="810" x2="200" y2="855" stroke="#ca8a04" stroke-width="2" marker-end="url(#arr-y)"/>
+
+<!-- Controller -> Services (horizontal right) -->
+<line x1="310" y1="680" x2="310" y2="760" stroke="#0d9488" stroke-width="2" marker-end="url(#arr-c)"/>
+
+<!-- Services fan out -->
+<line x1="350" y1="790" x2="430" y2="820" stroke="#15803d" stroke-width="1.5" marker-end="url(#arr-ext)" stroke-dasharray="4,2"/>
+<line x1="350" y1="790" x2="430" y2="870" stroke="#15803d" stroke-width="1.5" stroke-dasharray="4,2"/>
+<line x1="350" y1="790" x2="430" y2="920" stroke="#15803d" stroke-width="1.5" stroke-dasharray="4,2"/>
+<line x1="350" y1="790" x2="430" y2="970" stroke="#15803d" stroke-width="1.5" stroke-dasharray="4,2"/>
+
+<!-- RESPONSE PATH (dashed, going back left) -->
+<!-- DB -> Prisma response -->
+<line x1="130" y1="870" x2="130" y2="640" stroke="#818cf8" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arr-back)"/>
+<text x="92" y="780" fill="#818cf8" font-size="9" font-family="IBM Plex Mono" transform="rotate(-90,92,780)">DB response</text>
+
+<!-- JSON Response goes back up through express -->
+<line x1="1190" y1="680" x2="1290" y2="680" stroke="#818cf8" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arr-back)"/>
+<line x1="1340" y1="640" x2="1340" y2="130" stroke="#818cf8" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arr-back)"/>
+<line x1="1340" y1="90" x2="1240" y2="90" stroke="#818cf8" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arr-back)"/>
+<text x="1360" y="420" fill="#818cf8" font-size="9" font-family="IBM Plex Mono" transform="rotate(90,1360,420)">JSON response + Set-Cookie</text>
+
+<!-- Set-Cookie going back to browser -->
+<line x1="1200" y1="90" x2="1070" y2="90" stroke="#818cf8" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arr-back)"/>
+
+<!-- 429 branch from Rate Limiter -->
+<line x1="1190" y1="582" x2="1280" y2="582" stroke="#dc2626" stroke-width="1.5" stroke-dasharray="3,2"/>
+<text x="1195" y="575" fill="#f87171" font-size="9" font-family="IBM Plex Mono">HTTP 429</text>
+
+<!-- 401 branch from authenticate -->
+<line x1="680" y1="665" x2="680" y2="620" stroke="#dc2626" stroke-width="1.5" stroke-dasharray="3,2"/>
+<text x="685" y="648" fill="#f87171" font-size="9" font-family="IBM Plex Mono">HTTP 401</text>
+
+<!-- 403 branch from authorize -->
+<line x1="460" y1="665" x2="460" y2="620" stroke="#dc2626" stroke-width="1.5" stroke-dasharray="3,2"/>
+<text x="465" y="648" fill="#f87171" font-size="9" font-family="IBM Plex Mono">HTTP 403</text>
+
+<!-- 400 branch from Joi -->
+<line x1="890" y1="665" x2="890" y2="620" stroke="#ea580c" stroke-width="1.5" stroke-dasharray="3,2"/>
+<text x="895" y="648" fill="#fdba74" font-size="9" font-family="IBM Plex Mono">HTTP 400</text>
+
+</svg>
+
+<!-- ======= NODES ======= -->
+
+<!-- 1. User / Browser -->
+<div class="node" style="left:20px;top:62px">
+  <div class="node-box n-user">
+    &#x1F464; Credit Analyst / User
+    <div class="node-sub">Browser (Chrome / Firefox)</div>
+    <div class="node-sub">Clicks Submit / navigates app</div>
+  </div>
+  <div class="step">1</div>
+</div>
+
+<!-- 2. Frontend (Vercel) -->
+<div class="node" style="left:230px;top:62px">
+  <div class="node-box n-fe">
+    &#x26A1; Vercel CDN + React 18
+    <div class="node-sub">Frontend UI: index.html + app.js</div>
+    <div class="node-sub">TanStack Query &bull; React Router v6</div>
+  </div>
+  <div class="step">2</div>
+</div>
+
+<!-- 3. Axios withCredentials -->
+<div class="node" style="left:480px;top:62px">
+  <div class="node-box n-cookie" style="border-color:#0ea5e9;color:#7dd3fc">
+    &#x1F4E1; Axios (withCredentials: true)
+    <div class="node-sub">Attaches HttpOnly Cookie to request</div>
+    <div class="node-sub">Cookie: accessToken=&lt;JWT&gt;</div>
+  </div>
+  <div class="step">3</div>
+</div>
+
+<!-- 4. HttpOnly Cookie -->
+<div class="node" style="left:680px;top:62px">
+  <div class="node-box n-cookie">
+    &#x1F36A; HttpOnly Cookie
+    <div class="node-sub">accessToken (15min JWT)</div>
+    <div class="node-sub">refreshToken (7day JWT, path=/auth/refresh)</div>
+    <div class="node-sub">Secure &bull; SameSite=Strict</div>
+  </div>
+  <div class="step">4</div>
+</div>
+
+<!-- 5. Render LB -->
+<div class="node" style="left:880px;top:62px">
+  <div class="node-box n-infra">
+    &#x1F6E1;&#xFE0F; Render Load Balancer
+    <div class="node-sub">Reverse Proxy (HTTPS Termination)</div>
+    <div class="node-sub">Sets X-Forwarded-For header</div>
+  </div>
+  <div class="step">5</div>
+</div>
+
+<!-- 6. Express Server -->
+<div class="node" style="left:1060px;top:62px">
+  <div class="node-box n-infra" style="border-color:#a855f7;color:#d8b4fe">
+    &#x2699;&#xFE0F; Node.js + Express 5 (app.js)
+    <div class="node-sub">src/server.js &bull; PORT from env</div>
+    <div class="node-sub">Entry point for all API requests</div>
+  </div>
+  <div class="step">6</div>
+</div>
+
+<!-- ===== MIDDLEWARE CHAIN (vertical) ===== -->
+
+<!-- 7. trust proxy -->
+<div class="node" style="left:1060px;top:168px">
+  <div class="node-box n-mw">
+    7. app.set('trust proxy', 1)
+    <div class="node-sub">Trusts X-Forwarded-For from Render LB</div>
+    <div class="node-sub">Without this: rate limiter sees wrong IP</div>
+  </div>
+  <div class="step">7</div>
+</div>
+
+<!-- 8. Helmet -->
+<div class="node" style="left:1060px;top:248px">
+  <div class="node-box n-mw">
+    8. Helmet (15 Security Headers)
+    <div class="node-sub">X-Frame-Options: DENY &bull; HSTS</div>
+    <div class="node-sub">CSP &bull; X-Content-Type-Options: nosniff</div>
+    <div class="node-sub">crossOriginResourcePolicy: cross-origin</div>
+  </div>
+  <div class="step">8</div>
+</div>
+
+<!-- 9. CORS -->
+<div class="node" style="left:1060px;top:328px">
+  <div class="node-box n-mw">
+    9. CORS Middleware
+    <div class="node-sub">origin: [deployra.vercel.app, localhost:5173]</div>
+    <div class="node-sub">credentials: true &bull; rejects all other origins</div>
+  </div>
+  <div class="step">9</div>
+</div>
+
+<!-- 10. Cookie Parser -->
+<div class="node" style="left:1060px;top:408px">
+  <div class="node-box n-mw">
+    10. Custom Cookie Parser
+    <div class="node-sub">Parses Cookie header &rarr; req.cookies object</div>
+    <div class="node-sub">req.cookies.accessToken now available</div>
+  </div>
+  <div class="step">10</div>
+</div>
+
+<!-- 11. Body Parser -->
+<div class="node" style="left:1060px;top:488px">
+  <div class="node-box n-mw">
+    11. Body Parsers
+    <div class="node-sub">express.json() &rarr; req.body (JSON payloads)</div>
+    <div class="node-sub">express.urlencoded() &rarr; form data</div>
+  </div>
+  <div class="step">11</div>
+</div>
+
+<!-- 12. Rate Limiter -->
+<div class="node" style="left:1060px;top:568px">
+  <div class="node-box n-auth">
+    12. Rate Limiter (express-rate-limit)
+    <div class="node-sub">authLimiter: 30 req / 15min / IP</div>
+    <div class="node-sub">loginLimiter: 8 req / 15min / IP</div>
+    <div class="node-sub">passwordResetLimiter: 5 req / 1hr</div>
+    <div class="node-sub" style="color:#f87171">&#x2192; 429 Too Many Requests if exceeded</div>
+  </div>
+  <div class="step">12</div>
+</div>
+
+<!-- 13. Router -->
+<div class="node" style="left:1060px;top:648px">
+  <div class="node-box n-route">
+    13. Express Router (/api/v1/*)
+    <div class="node-sub">auth &bull; products &bull; users &bull; payment</div>
+    <div class="node-sub">uploads &bull; admin &bull; orders &bull; notifications</div>
+    <div class="node-sub">routes/index.js mounts all 9 route files</div>
+  </div>
+  <div class="step">13</div>
+</div>
+
+<!-- 14. Joi Validation -->
+<div class="node" style="left:840px;top:655px">
+  <div class="node-box n-route">
+    14. Joi Schema Validation
+    <div class="node-sub">registerSchema: name, email, password, role</div>
+    <div class="node-sub">loginSchema: email + password required</div>
+    <div class="node-sub" style="color:#fdba74">&#x2192; 400 Bad Request if invalid</div>
+  </div>
+  <div class="step">14</div>
+</div>
+
+<!-- 15. authenticate -->
+<div class="node" style="left:630px;top:655px">
+  <div class="node-box n-auth">
+    15. authenticate Middleware
+    <div class="node-sub">1. Read req.cookies.accessToken</div>
+    <div class="node-sub">2. Fallback: Authorization: Bearer</div>
+    <div class="node-sub">3. jwt.verify(token, JWT_SECRET)</div>
+    <div class="node-sub">4. prisma.user.findUnique(userId)</div>
+    <div class="node-sub">5. req.user = user &rarr; next()</div>
+    <div class="node-sub" style="color:#f87171">&#x2192; 401 Unauthorized if fails</div>
+  </div>
+  <div class="step">15</div>
+</div>
+
+<!-- 16. authorize RBAC -->
+<div class="node" style="left:410px;top:655px">
+  <div class="node-box n-auth">
+    16. authorize / adminOnly (RBAC)
+    <div class="node-sub">Checks req.user.role</div>
+    <div class="node-sub">Roles: CLIENT &bull; DEVELOPER &bull; ADMIN</div>
+    <div class="node-sub" style="color:#f87171">&#x2192; 403 Forbidden if wrong role</div>
+  </div>
+  <div class="step">16</div>
+</div>
+
+<!-- 17. Controller -->
+<div class="node" style="left:130px;top:655px">
+  <div class="node-box n-ctrl">
+    17. Controller (Business Logic)
+    <div class="node-sub">auth.controller &bull; product.controller</div>
+    <div class="node-sub">payment.controller &bull; upload.controller</div>
+    <div class="node-sub">user.controller &bull; admin.controller</div>
+  </div>
+  <div class="step">17</div>
+</div>
+
+<!-- 18. Prisma ORM -->
+<div class="node" style="left:80px;top:773px">
+  <div class="node-box n-db" style="border-color:#ca8a04;color:#fde68a">
+    18. Prisma ORM
+    <div class="node-sub">Type-safe query builder</div>
+    <div class="node-sub">prisma.user.findUnique()</div>
+    <div class="node-sub">prisma.product.create()</div>
+    <div class="node-sub">prisma.purchase.create()</div>
+  </div>
+  <div class="step">18</div>
+</div>
+
+<!-- 19. Neon DB -->
+<div class="node" style="left:60px;top:858px">
+  <div class="node-box n-db">
+    19. Neon PostgreSQL (Cloud DB)
+    <div class="node-sub">12 tables: User, Product, Purchase, Order</div>
+    <div class="node-sub">Review, Wishlist, RefreshToken, Notification</div>
+    <div class="node-sub">LoginHistory, AuditLog, Message, ProductView</div>
+  </div>
+  <div class="step">19</div>
+</div>
+
+<!-- 20. Services -->
+<div class="node" style="left:270px;top:760px">
+  <div class="node-box n-svc">
+    20. Services Layer
+    <div class="node-sub">Cloudinary &bull; AWS S3 &bull; Razorpay</div>
+    <div class="node-sub">Nodemailer &bull; Google OAuth &bull; Winston</div>
+    <div class="node-sub">bcrypt &bull; jsonwebtoken &bull; Node crypto</div>
+  </div>
+  <div class="step">20</div>
+</div>
+
+<!-- External Services -->
+<div class="node" style="left:430px;top:808px">
+  <div class="node-box n-ext" style="min-width:140px">
+    &#x1F5BC;&#xFE0F; Cloudinary CDN
+    <div class="node-sub">Image upload &bull; CDN URL returned</div>
+  </div>
+</div>
+
+<div class="node" style="left:430px;top:858px">
+  <div class="node-box n-ext" style="min-width:140px">
+    &#x1F4B3; Razorpay
+    <div class="node-sub">createOrder &bull; HMAC verify</div>
+  </div>
+</div>
+
+<div class="node" style="left:430px;top:908px">
+  <div class="node-box n-ext" style="min-width:140px">
+    &#x1F4E7; Nodemailer (SMTP)
+    <div class="node-sub">Email verify &bull; Password reset</div>
+  </div>
+</div>
+
+<div class="node" style="left:430px;top:958px">
+  <div class="node-box n-ext" style="min-width:140px">
+    &#x1F511; Google OAuth 2.0
+    <div class="node-sub">Code exchange &bull; Profile fetch</div>
+  </div>
+</div>
+
+<!-- JSON Response node -->
+<div class="node" style="left:1210px;top:655px">
+  <div class="node-box n-resp">
+    &#x1F4E4; JSON Response + Set-Cookie
+    <div class="node-sub">res.json({success:true, data:{...}})</div>
+    <div class="node-sub">Set-Cookie: accessToken; HttpOnly; Secure</div>
+    <div class="node-sub">Set-Cookie: refreshToken; HttpOnly; Secure</div>
+  </div>
+  <div class="step" style="background:#818cf8">R</div>
+</div>
+
+<!-- 429 error box -->
+<div class="node" style="left:1282px;top:558px">
+  <div class="node-box n-auth" style="border-color:#b91c1c">
+    HTTP 429 Too Many Requests
+    <div class="node-sub">Winston logs: IP + path + email</div>
+    <div class="node-sub">RateLimit-Remaining: 0 header</div>
+  </div>
+</div>
+
+<!-- Section labels -->
+<div style="position:absolute;left:1050px;top:145px;color:#34d39860;font-size:9px;font-family:'IBM Plex Mono';writing-mode:vertical-rl;letter-spacing:2px;text-transform:uppercase">MIDDLEWARE CHAIN</div>
+
+<div style="position:absolute;left:50px;top:640px;color:#9333ea60;font-size:9px;font-family:'IBM Plex Mono';text-transform:uppercase;letter-spacing:2px">BUSINESS LOGIC</div>
+
+<div style="position:absolute;left:410px;top:740px;color:#0d948860;font-size:9px;font-family:'IBM Plex Mono';text-transform:uppercase;letter-spacing:2px">EXTERNAL SERVICES</div>
+
+<div style="position:absolute;left:40px;top:840px;color:#ca8a0460;font-size:9px;font-family:'IBM Plex Mono';text-transform:uppercase;letter-spacing:2px">DATABASE</div>
+
+<div style="position:absolute;left:1200px;top:130px;color:#818cf860;font-size:9px;font-family:'IBM Plex Mono';writing-mode:vertical-rl;letter-spacing:2px;text-transform:uppercase">RESPONSE PATH (dashed)</div>
+
+</div><!-- end canvas-wrap -->
+
+<div class="legend">
+  <div class="li"><div class="ldot" style="background:#6366f1"></div>User / Frontend</div>
+  <div class="li"><div class="ldot" style="background:#7c3aed"></div>Network / Infra</div>
+  <div class="li"><div class="ldot" style="background:#16a34a"></div>Middleware Chain</div>
+  <div class="li"><div class="ldot" style="background:#dc2626"></div>Auth / Security</div>
+  <div class="li"><div class="ldot" style="background:#ea580c"></div>Routing / Validation</div>
+  <div class="li"><div class="ldot" style="background:#9333ea"></div>Controllers</div>
+  <div class="li"><div class="ldot" style="background:#0d9488"></div>Services</div>
+  <div class="li"><div class="ldot" style="background:#ca8a04"></div>Database (Prisma + PostgreSQL)</div>
+  <div class="li"><div class="ldot" style="background:#818cf8"></div>&#x2508;&#x2508; Response path (dashed)</div>
+</div>
+
+</body>
+</html>
