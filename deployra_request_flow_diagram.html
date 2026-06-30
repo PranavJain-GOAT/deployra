@@ -560,5 +560,469 @@ h1{text-align:center;font-size:1.7rem;font-weight:900;
   <div class="legend-item"><div class="legend-dot" style="background:#0d9488"></div>External Services</div>
 </div>
 
+
+<style>
+/* LAYMAN SECTION */
+.layman-wrap{max-width:1280px;margin:48px auto 0;padding:0 0 60px}
+.layman-header{text-align:center;margin-bottom:32px}
+.layman-header h2{font-size:1.5rem;font-weight:900;color:#f1f5f9;margin-bottom:6px}
+.layman-header p{font-size:13px;color:#64748b;font-family:'IBM Plex Mono',monospace}
+.layman-grid{display:flex;flex-direction:column;gap:12px}
+
+/* Each card */
+.lc{display:flex;border-radius:14px;overflow:hidden;border:1px solid #1e293b}
+.lc-num{width:44px;min-width:44px;display:flex;align-items:center;justify-content:center;
+        font-size:14px;font-weight:900;font-family:'IBM Plex Mono',monospace;flex-shrink:0}
+.lc-left{padding:14px 16px;min-width:220px;max-width:240px;border-right:1px solid #1e293b;flex-shrink:0}
+.lc-name{font-size:12px;font-weight:700;font-family:'IBM Plex Mono',monospace;margin-bottom:3px}
+.lc-tech{font-size:10px;color:#475569;line-height:1.5}
+.lc-right{padding:14px 18px;flex:1}
+.lc-plain{font-size:13px;color:#cbd5e1;line-height:1.7}
+.lc-plain b{color:#f1f5f9}
+.lc-plain em{color:#94a3b8;font-style:normal;font-size:11px}
+.lc-flow{margin-top:8px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.lc-step{font-size:10px;background:#0f172a;border:1px solid #334155;border-radius:4px;
+         padding:3px 8px;color:#94a3b8;font-family:'IBM Plex Mono',monospace}
+.lc-arr{color:#4f46e5;font-size:12px}
+
+/* section divider */
+.sec-div{display:flex;align-items:center;gap:12px;margin:20px 0 8px}
+.sec-div-line{flex:1;height:1px;background:#1e293b}
+.sec-div-label{font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;
+               padding:4px 12px;border-radius:20px;font-family:'IBM Plex Mono',monospace;white-space:nowrap}
+
+/* special QA box */
+.qa-box{background:#0d1120;border:1px solid #3730a3;border-radius:14px;padding:20px 24px;margin-top:16px}
+.qa-box h3{font-size:13px;font-weight:700;color:#818cf8;font-family:'IBM Plex Mono',monospace;
+           margin-bottom:16px;letter-spacing:1px}
+.qa{margin-bottom:16px}
+.qa-q{font-size:13px;font-weight:700;color:#e2e8f0;margin-bottom:6px}
+.qa-q::before{content:'Q: ';color:#6366f1}
+.qa-a{font-size:13px;color:#94a3b8;line-height:1.7;padding-left:20px}
+.qa-a::before{content:'A: ';color:#4ade80;font-weight:700}
+.qa-a b{color:#e2e8f0}
+.qa-a em{color:#fbbf24;font-style:normal}
+</style>
+
+<div class="layman-wrap">
+  <div class="layman-header">
+    <h2>&#x1F4DA; What Does Everything Actually Do? (Plain English)</h2>
+    <p>Every box in the diagram explained as if you're explaining it to someone who has never coded</p>
+  </div>
+
+  <div class="layman-grid">
+
+    <!-- ─── SECTION: REQUEST INITIATION ─── -->
+    <div class="sec-div">
+      <div class="sec-div-line"></div>
+      <div class="sec-div-label" style="background:#1e1b4b;color:#818cf8;border:1px solid #3730a3">&#x1F310; Request Initiation &mdash; Browser &amp; Frontend</div>
+      <div class="sec-div-line"></div>
+    </div>
+
+    <!-- 1. User -->
+    <div class="lc" style="background:#0d1120;border-color:#3730a3">
+      <div class="lc-num" style="background:#1e1b4b;color:#818cf8">1</div>
+      <div class="lc-left" style="background:#0d1120">
+        <div class="lc-name" style="color:#818cf8">&#x1F464; User / Browser</div>
+        <div class="lc-tech">Chrome / Firefox<br>clicks a button or link</div>
+      </div>
+      <div class="lc-right">
+        <div class="lc-plain">
+          This is <b>you</b> &mdash; sitting in front of the browser. You click "Buy Now" or "Login" or navigate to a page. That single click is what starts <b>the entire chain of events</b> described in this diagram. Nothing happens until you do something. Think of it like pressing the button on a vending machine &mdash; everything else is the machine doing its job after you press.
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. React -->
+    <div class="lc" style="background:#0c1a26;border-color:#0369a1">
+      <div class="lc-num" style="background:#0c2233;color:#38bdf8">2</div>
+      <div class="lc-left" style="background:#0c1a26">
+        <div class="lc-name" style="color:#38bdf8">&#x26A1; React 18 + Vite (Vercel CDN)</div>
+        <div class="lc-tech">Frontend SPA &bull; React Router<br>TanStack Query &bull; Tailwind</div>
+      </div>
+      <div class="lc-right">
+        <div class="lc-plain">
+          React is the <b>visual layer</b> &mdash; the buttons, forms, cards, charts you see on screen. It's a JavaScript app that runs entirely in your browser. When you click something, React decides <em>"I need to fetch some data from the server"</em> and it hands that job off to <b>TanStack Query</b> (which is like a smart postman that also remembers the last letter it delivered, so it doesn't re-fetch unnecessarily). The whole frontend is hosted on <b>Vercel's CDN</b>, meaning it loads from a server nearest to you geographically &mdash; so it's fast.
+        </div>
+        <div class="lc-flow">
+          <span class="lc-step">You click</span><span class="lc-arr">&#x2192;</span>
+          <span class="lc-step">React event fires</span><span class="lc-arr">&#x2192;</span>
+          <span class="lc-step">TanStack Query calls useMutation/useQuery</span><span class="lc-arr">&#x2192;</span>
+          <span class="lc-step">Axios makes the HTTP request</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. Axios -->
+    <div class="lc" style="background:#0c1a26;border-color:#0369a1">
+      <div class="lc-num" style="background:#0c2233;color:#38bdf8">3</div>
+      <div class="lc-left" style="background:#0c1a26">
+        <div class="lc-name" style="color:#38bdf8">&#x1F4E1; Axios (withCredentials)</div>
+        <div class="lc-tech">HTTP Client<br>withCredentials: true</div>
+      </div>
+      <div class="lc-right">
+        <div class="lc-plain">
+          Axios is the <b>delivery person</b> on the frontend. When React says "go get this data", Axios packages up the request (URL, method like GET/POST, and any data you typed in the form) and sends it to the backend server over the internet. The key setting here is <b>withCredentials: true</b> &mdash; this tells the browser <em>"when you send this request, also attach any cookies you have stored for this site"</em>. Without this, the login cookie would never be sent and the server wouldn't know who you are. Axios also has an <b>interceptor</b>: if the server says "401 Unauthorized" (login expired), Axios automatically goes and gets a new login token and retries the original request &mdash; without you ever noticing.
+        </div>
+        <div class="lc-flow">
+          <span class="lc-step">React says "fetch data"</span><span class="lc-arr">&#x2192;</span>
+          <span class="lc-step">Axios packages: URL + method + body</span><span class="lc-arr">&#x2192;</span>
+          <span class="lc-step">Browser adds cookie header automatically</span><span class="lc-arr">&#x2192;</span>
+          <span class="lc-step">Request flies to Render server</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4. HttpOnly Cookie -->
+    <div class="lc" style="background:#0d1120;border-color:#3730a3">
+      <div class="lc-num" style="background:#1e1b4b;color:#818cf8">4</div>
+      <div class="lc-left" style="background:#0d1120">
+        <div class="lc-name" style="color:#818cf8">&#x1F36A; HttpOnly Cookie</div>
+        <div class="lc-tech">accessToken (15min JWT)<br>refreshToken (7day JWT)<br>HttpOnly &bull; Secure &bull; SameSite</div>
+      </div>
+      <div class="lc-right">
+        <div class="lc-plain">
+          Think of this like a <b>sealed government ID badge</b> that the server gives you when you log in. It's stored in your browser, but with a special lock: <b>HttpOnly</b> means no JavaScript can read it &mdash; not even your own React app. Why? Because if a hacker somehow injects malicious code into the page (an XSS attack), they still can't steal your login token because JS literally cannot access it. The browser is the only one that can read it, and it automatically attaches it to every request. <b>Secure</b> means it only travels over HTTPS (encrypted). <b>SameSite=Strict</b> means it won't be sent on requests triggered by other websites (prevents CSRF attacks). There are TWO cookies: a short-lived <b>accessToken</b> (15 mins, used for every request) and a long-lived <b>refreshToken</b> (7 days, only used to silently get a new accessToken when the short one expires).
+        </div>
+        <div class="lc-flow">
+          <span class="lc-step">Server sends Set-Cookie header on login</span><span class="lc-arr">&#x2192;</span>
+          <span class="lc-step">Browser stores cookie securely</span><span class="lc-arr">&#x2192;</span>
+          <span class="lc-step">Every future request: browser auto-attaches it</span><span class="lc-arr">&#x2192;</span>
+          <span class="lc-step">Server reads it to know who you are</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── SECTION: NETWORK ─── -->
+    <div class="sec-div">
+      <div class="sec-div-line"></div>
+      <div class="sec-div-label" style="background:#1a103a;color:#a78bfa;border:1px solid #4c1d95">&#x2601;&#xFE0F; Network &amp; Infrastructure</div>
+      <div class="sec-div-line"></div>
+    </div>
+
+    <!-- 5. Render LB -->
+    <div class="lc" style="background:#120c26;border-color:#4c1d95">
+      <div class="lc-num" style="background:#1a103a;color:#a78bfa">5</div>
+      <div class="lc-left" style="background:#120c26">
+        <div class="lc-name" style="color:#a78bfa">&#x1F6E1;&#xFE0F; Render Load Balancer</div>
+        <div class="lc-tech">Reverse Proxy<br>HTTPS Termination<br>X-Forwarded-For header</div>
+      </div>
+      <div class="lc-right">
+        <div class="lc-plain">
+          This is the <b>front door security guard</b> of the building. When your request arrives at Render's servers, it first hits this Load Balancer. It does two important things: (1) It <b>handles all the HTTPS encryption</b> &mdash; it decrypts the incoming request (so the Node.js app doesn't have to deal with SSL certificates), and re-encrypts the response before sending it back. (2) It adds a special header called <b>X-Forwarded-For</b> which contains YOUR real IP address. This is critical because our rate-limiter needs to know your actual IP to enforce "max 8 login attempts per IP". Without this, the rate-limiter would see Render's own internal IP and think everyone is the same person.
+        </div>
+      </div>
+    </div>
+
+    <!-- 6. Express Server -->
+    <div class="lc" style="background:#120c26;border-color:#4c1d95">
+      <div class="lc-num" style="background:#1a103a;color:#a78bfa">6</div>
+      <div class="lc-left" style="background:#120c26">
+        <div class="lc-name" style="color:#a78bfa">&#x2699;&#xFE0F; Express 5 / Node.js (app.js)</div>
+        <div class="lc-tech">app.set('trust proxy', 1)<br>Entry point for all requests<br>src/server.js</div>
+      </div>
+      <div class="lc-right">
+        <div class="lc-plain">
+          This is the <b>main office building</b>. Every single request &mdash; login, buy product, upload image, get notifications &mdash; enters through here. The first thing it does is <b>app.set('trust proxy', 1)</b> which tells Express: <em>"Hey, we're behind a load balancer, trust the X-Forwarded-For header to get the real user IP"</em>. Without this, all rate limiting would be broken. From here, the request travels through a series of "middleware" &mdash; think of it as going through different departments in an office before reaching the person who can actually help you.
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── SECTION: MIDDLEWARE ─── -->
+    <div class="sec-div">
+      <div class="sec-div-line"></div>
+      <div class="sec-div-label" style="background:#052e16;color:#4ade80;border:1px solid #14532d">&#x1F6E0;&#xFE0F; Middleware Chain &mdash; Every request passes through ALL of these</div>
+      <div class="sec-div-line"></div>
+    </div>
+
+    <!-- 7. Helmet -->
+    <div class="lc" style="background:#071510;border-color:#14532d">
+      <div class="lc-num" style="background:#052e16;color:#4ade80">7</div>
+      <div class="lc-left" style="background:#071510">
+        <div class="lc-name" style="color:#4ade80">&#x1FA96; Helmet</div>
+        <div class="lc-tech">15 HTTP security headers<br>X-Frame-Options, HSTS<br>CSP, X-Content-Type-Options</div>
+      </div>
+      <div class="lc-right">
+        <div class="lc-plain">
+          Helmet is like the <b>security checklist at the entrance of a building</b>. It doesn't look at who you are &mdash; it just adds a bunch of protective rules to every single response the server sends back. For example: <b>X-Frame-Options: DENY</b> prevents hackers from embedding your site inside a hidden iframe and tricking users into clicking things (clickjacking). <b>Strict-Transport-Security</b> tells the browser "only ever visit this site over HTTPS, never plain HTTP". <b>Content-Security-Policy</b> tells the browser "only load scripts and images from trusted sources, not random URLs". It's essentially slapping a bunch of safety stickers on every outgoing response.
+        </div>
+      </div>
+    </div>
+
+    <!-- 8. CORS -->
+    <div class="lc" style="background:#071510;border-color:#14532d">
+      <div class="lc-num" style="background:#052e16;color:#4ade80">8</div>
+      <div class="lc-left" style="background:#071510">
+        <div class="lc-name" style="color:#4ade80">&#x1F30D; CORS</div>
+        <div class="lc-tech">Origin whitelist<br>credentials: true<br>Blocks all unlisted origins</div>
+      </div>
+      <div class="lc-right">
+        <div class="lc-plain">
+          CORS stands for Cross-Origin Resource Sharing. Think of it as a <b>guest list at a club</b>. By default, browsers block requests from one website (like deployra.vercel.app) to another server (like our Render backend). CORS is how the backend says <em>"it's okay, I allow requests from these specific addresses"</em>. We whitelist: <b>deployra.vercel.app</b> and <b>localhost:5173</b> (for development). Anyone else trying to send requests to our API gets blocked instantly. The <b>credentials: true</b> part specifically tells the browser "yes, you are allowed to send cookies in these cross-origin requests" &mdash; without this, the HttpOnly cookies would be stripped before reaching the server.
+        </div>
+      </div>
+    </div>
+
+    <!-- 9. Cookie Parser -->
+    <div class="lc" style="background:#071510;border-color:#14532d">
+      <div class="lc-num" style="background:#052e16;color:#4ade80">9</div>
+      <div class="lc-left" style="background:#071510">
+        <div class="lc-name" style="color:#4ade80">&#x1F36A; Cookie Parser</div>
+        <div class="lc-tech">Parses Cookie: header<br>Populates req.cookies<br>req.cookies.accessToken</div>
+      </div>
+      <div class="lc-right">
+        <div class="lc-plain">
+          When the browser sends a request, cookies are sent as a single long <b>text string</b> in the header, like: <em>Cookie: accessToken=abc123; refreshToken=xyz789; theme=dark</em>. The Cookie Parser's job is to <b>split that string apart</b> and turn it into a nice JavaScript object so the code can easily do <code>req.cookies.accessToken</code> instead of manually splitting strings. It's like taking a receipt with everything on one line and organizing it into neat columns in a spreadsheet. This is a custom inline middleware &mdash; no external library needed, just a few lines of string splitting.
+        </div>
+        <div class="lc-flow">
+          <span class="lc-step">"Cookie: accessToken=abc; theme=dark"</span><span class="lc-arr">&#x2192;</span>
+          <span class="lc-step">Cookie Parser splits it</span><span class="lc-arr">&#x2192;</span>
+          <span class="lc-step">req.cookies = &#123; accessToken: 'abc', theme: 'dark' &#125;</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 10. Body Parser -->
+    <div class="lc" style="background:#071510;border-color:#14532d">
+      <div class="lc-num" style="background:#052e16;color:#4ade80">10</div>
+      <div class="lc-left" style="background:#071510">
+        <div class="lc-name" style="color:#4ade80">&#x1F4E6; Body Parsers</div>
+        <div class="lc-tech">express.json()<br>express.urlencoded()<br>Populates req.body</div>
+      </div>
+      <div class="lc-right">
+        <div class="lc-plain">
+          When you submit a form (like a login form with email and password), that data is sent in the <b>body</b> of the HTTP request as a raw text string, like: <em>"email=pranav@gmail.com&password=secret123"</em>. <b>Body Parsers</b> convert that raw text into a real JavaScript object so the controller can do <code>req.body.email</code> and <code>req.body.password</code>. <b>express.json()</b> handles API calls sent as JSON (most calls). <b>express.urlencoded()</b> handles old-school HTML form submissions and OAuth callbacks. Without this, req.body would just be undefined and nothing would work.
+        </div>
+        <div class="lc-flow">
+          <span class="lc-step">Raw: "email=a@b.com&password=abc"</span><span class="lc-arr">&#x2192;</span>
+          <span class="lc-step">Body Parser processes it</span><span class="lc-arr">&#x2192;</span>
+          <span class="lc-step">req.body = &#123; email: 'a@b.com', password: 'abc' &#125;</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── SECTION: SECURITY & ROUTING ─── -->
+    <div class="sec-div">
+      <div class="sec-div-line"></div>
+      <div class="sec-div-label" style="background:#3b0a0a;color:#f87171;border:1px solid #7f1d1d">&#x1F512; Security, Routing &amp; Authentication</div>
+      <div class="sec-div-line"></div>
+    </div>
+
+    <!-- 12. Rate Limiter -->
+    <div class="lc" style="background:#130a0a;border-color:#7f1d1d">
+      <div class="lc-num" style="background:#3b0a0a;color:#f87171">12</div>
+      <div class="lc-left" style="background:#130a0a">
+        <div class="lc-name" style="color:#f87171">&#x23F1;&#xFE0F; Rate Limiter</div>
+        <div class="lc-tech">8 login attempts / 15min / IP<br>429 on breach<br>Winston logs IP + email</div>
+      </div>
+      <div class="lc-right">
+        <div class="lc-plain">
+          Imagine a bank that only lets you swipe your card <b>8 times</b> in 15 minutes. If you exceed that, the machine blocks you. That's exactly what this does. It tracks your <b>IP address</b> and counts how many login attempts you've made. If a hacker is trying thousands of password combinations (brute force attack), they get blocked after 8 tries. Each limit is different by route: login gets 8 tries, password reset gets 5 per hour, email resend gets 3 per hour. When blocked, the server returns <b>HTTP 429 "Too Many Requests"</b> and our logger writes a warning with the IP address and email they were trying to access.
+        </div>
+      </div>
+    </div>
+
+    <!-- 13. Router -->
+    <div class="lc" style="background:#180d07;border-color:#7c2d12">
+      <div class="lc-num" style="background:#431407;color:#fb923c">13</div>
+      <div class="lc-left" style="background:#180d07">
+        <div class="lc-name" style="color:#fb923c">&#x1F6E3;&#xFE0F; Express Router /api/v1/*</div>
+        <div class="lc-tech">9 route files<br>Matches method + path<br>routes/index.js</div>
+      </div>
+      <div class="lc-right">
+        <div class="lc-plain">
+          The Router is like the <b>receptionist at the front desk</b>. When a request comes in, it looks at the URL and HTTP method (GET, POST, etc.) and directs it to the right department. <em>"POST /api/v1/auth/login? That goes to the auth team."</em> <em>"GET /api/v1/products? That goes to the product team."</em> There are 9 separate route files (auth, products, users, payment, uploads, admin, purchases, orders, notifications) each handling their own set of endpoints. The router just reads the address and forwards the request to the right place.
+        </div>
+      </div>
+    </div>
+
+    <!-- 14. Joi -->
+    <div class="lc" style="background:#180d07;border-color:#7c2d12">
+      <div class="lc-num" style="background:#431407;color:#fb923c">14</div>
+      <div class="lc-left" style="background:#180d07">
+        <div class="lc-name" style="color:#fb923c">&#x2705; Joi Schema Validation</div>
+        <div class="lc-tech">registerSchema: name, email, password<br>400 Bad Request if invalid<br>Runs before controller</div>
+      </div>
+      <div class="lc-right">
+        <div class="lc-plain">
+          Before we even let the controller touch the data, Joi acts like a <b>form validator</b> at the post office &mdash; it checks whether what you sent is actually valid. Is the email a real email format? Is the password at least 8 characters? Is the role either "CLIENT" or "DEVELOPER"? If any of these checks fail, Joi immediately rejects the request with a <b>HTTP 400 Bad Request</b> and tells you exactly which field is wrong &mdash; e.g. <em>"password must be at least 8 characters"</em>. The controller never even runs. This is the first line of defense against garbage data.
+        </div>
+      </div>
+    </div>
+
+    <!-- 15. authenticate -->
+    <div class="lc" style="background:#130a0a;border-color:#7f1d1d">
+      <div class="lc-num" style="background:#3b0a0a;color:#f87171">15</div>
+      <div class="lc-left" style="background:#130a0a">
+        <div class="lc-name" style="color:#f87171">&#x1F511; authenticate Middleware</div>
+        <div class="lc-tech">jwt.verify(token, JWT_SECRET)<br>prisma.user.findUnique<br>401 Unauthorized if fails</div>
+      </div>
+      <div class="lc-right">
+        <div class="lc-plain">
+          This is the <b>ID badge scanner</b> at the entrance of a secure floor. It reads your <b>accessToken cookie</b> (which the browser auto-sent with the request), and calls <b>jwt.verify()</b> to check: (1) Is this token genuinely signed by our server? (2) Has it expired (after 15 minutes)? If valid, it decodes the token to extract your userId and role, then does a quick database lookup to confirm you still exist (accounts can be deleted). It then attaches <b>req.user = yourUserObject</b> so every subsequent middleware and controller knows exactly who is making the request &mdash; no database lookup needed again. If the token is missing or expired or fake, it returns <b>HTTP 401 Unauthorized</b> immediately.
+        </div>
+        <div class="lc-flow">
+          <span class="lc-step">Read accessToken from cookie</span><span class="lc-arr">&#x2192;</span>
+          <span class="lc-step">jwt.verify() checks signature + expiry</span><span class="lc-arr">&#x2192;</span>
+          <span class="lc-step">Prisma confirms user exists in DB</span><span class="lc-arr">&#x2192;</span>
+          <span class="lc-step">req.user = user &rarr; next()</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 16. authorize RBAC -->
+    <div class="lc" style="background:#130a0a;border-color:#7f1d1d">
+      <div class="lc-num" style="background:#3b0a0a;color:#f87171">16</div>
+      <div class="lc-left" style="background:#130a0a">
+        <div class="lc-name" style="color:#f87171">&#x1F6E1;&#xFE0F; authorize / adminOnly (RBAC)</div>
+        <div class="lc-tech">req.user.role check<br>CLIENT / DEVELOPER / ADMIN<br>403 Forbidden if wrong role</div>
+      </div>
+      <div class="lc-right">
+        <div class="lc-plain">
+          authenticate confirmed <em>who</em> you are. authorize checks <em>what you're allowed to do</em>. Think of it like <b>different security clearance levels</b> in a company. A regular user (CLIENT) cannot access the admin dashboard. A developer can upload products but not approve them. Only an admin can approve, reject or suspend products. If you try to hit an admin endpoint as a regular user, even though you're logged in, you get <b>HTTP 403 Forbidden</b>. The role is stored in the JWT token itself (encoded at login time), so no extra DB call is needed &mdash; the middleware just reads <code>req.user.role</code>.
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── SECTION: CONTROLLERS ─── -->
+    <div class="sec-div">
+      <div class="sec-div-line"></div>
+      <div class="sec-div-label" style="background:#2d0a6e;color:#c084fc;border:1px solid #581c87">&#x1F3AE; Controllers &mdash; Where the actual work happens</div>
+      <div class="sec-div-line"></div>
+    </div>
+
+    <!-- 17-22. Controllers -->
+    <div class="lc" style="background:#0f0820;border-color:#581c87">
+      <div class="lc-num" style="background:#2d0a6e;color:#c084fc">17</div>
+      <div class="lc-left" style="background:#0f0820">
+        <div class="lc-name" style="color:#c084fc">&#x1F510; auth.controller.js</div>
+        <div class="lc-tech">register, login, refresh<br>logout, Google OAuth<br>password reset, email verify</div>
+      </div>
+      <div class="lc-right">
+        <div class="lc-plain">
+          This is the <b>registration and security desk</b>. When you register, it takes your password and runs it through <b>bcrypt</b> (a one-way scrambler) with 12 rounds of scrambling. The original password is <em>never stored</em> &mdash; only the scrambled version. When you log in, bcrypt scrambles what you typed and compares the scrambled versions. If they match &mdash; you're in. Then it creates two JWTs (access token and refresh token), stores a <b>fingerprint</b> (SHA-256 hash) of the refresh token in the database, sets both as HttpOnly cookies, and logs the login to the LoginHistory table for audit purposes.
+        </div>
+      </div>
+    </div>
+
+    <div class="lc" style="background:#0f0820;border-color:#581c87">
+      <div class="lc-num" style="background:#2d0a6e;color:#c084fc">18-22</div>
+      <div class="lc-left" style="background:#0f0820">
+        <div class="lc-name" style="color:#c084fc">&#x1F3AE; Other Controllers</div>
+        <div class="lc-tech">product, payment, upload<br>user, admin controllers</div>
+      </div>
+      <div class="lc-right">
+        <div class="lc-plain">
+          Each controller is the <b>specialist department</b> that handles its own domain. <b>product.controller</b>: manages creating, listing, reviewing products. <b>payment.controller</b>: talks to Razorpay to create an order, then verifies the payment signature using cryptography. <b>upload.controller</b>: takes your image file, holds it in memory (RAM), then streams it directly to Cloudinary cloud storage &mdash; it never saves to disk. <b>user.controller</b>: handles your profile, purchases, wishlist, 2FA setup. <b>admin.controller</b>: lets admins approve/reject products and creates audit log entries for every action. All controllers call Prisma to talk to the database.
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── SECTION: DATABASE ─── -->
+    <div class="sec-div">
+      <div class="sec-div-line"></div>
+      <div class="sec-div-label" style="background:#451a03;color:#fbbf24;border:1px solid #713f12">&#x1F5C4;&#xFE0F; Data Layer &mdash; Prisma ORM + PostgreSQL</div>
+      <div class="sec-div-line"></div>
+    </div>
+
+    <!-- 23. Prisma -->
+    <div class="lc" style="background:#130d03;border-color:#713f12">
+      <div class="lc-num" style="background:#451a03;color:#fbbf24">23</div>
+      <div class="lc-left" style="background:#130d03">
+        <div class="lc-name" style="color:#fbbf24">&#x1F4E6; Prisma ORM</div>
+        <div class="lc-tech">Type-safe query builder<br>prisma.user.findUnique()<br>schema.prisma &rarr; SQL</div>
+      </div>
+      <div class="lc-right">
+        <div class="lc-plain">
+          Prisma is a <b>translator between JavaScript and SQL</b>. Normally, to get a user from a database, you'd write raw SQL: <em>SELECT * FROM "User" WHERE email = $1</em>. With Prisma, you just write <code>prisma.user.findUnique({where:{email:'...'}})}</code> and it writes the SQL for you. It also gives you <b>type safety</b> &mdash; if you try to save a string to a number field, it catches the error before it even hits the database. Prisma uses a single shared connection instance (singleton) so the app doesn't create thousands of DB connections and crash the database (a very common beginner mistake).
+        </div>
+      </div>
+    </div>
+
+    <!-- 24. Neon DB -->
+    <div class="lc" style="background:#130d03;border-color:#713f12">
+      <div class="lc-num" style="background:#451a03;color:#fbbf24">24</div>
+      <div class="lc-left" style="background:#130d03">
+        <div class="lc-name" style="color:#fbbf24">&#x1F418; Neon PostgreSQL</div>
+        <div class="lc-tech">12 tables &bull; Serverless<br>DATABASE_URL connection<br>prisma migrate deploy</div>
+      </div>
+      <div class="lc-right">
+        <div class="lc-plain">
+          This is the <b>actual filing cabinet</b> where all data is permanently stored. Neon is a cloud-hosted PostgreSQL database &mdash; think of it like Google Sheets but much more powerful, structured, and secure. Every user account, every product listing, every purchase, every refresh token (stored as a SHA-256 hash for security), every notification &mdash; all 12 tables live here. It's "serverless" meaning it automatically scales up when there's load and scales down when idle, so you don't pay for idle compute. When Deployra deploys to Render, it runs <b>prisma migrate deploy</b> which applies any database schema changes automatically.
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── SECTION: EXTERNAL SERVICES ─── -->
+    <div class="sec-div">
+      <div class="sec-div-line"></div>
+      <div class="sec-div-label" style="background:#022c22;color:#34d399;border:1px solid #064e3b">&#x1F30F; External Services &amp; Integrations</div>
+      <div class="sec-div-line"></div>
+    </div>
+
+    <div class="lc" style="background:#071310;border-color:#064e3b">
+      <div class="lc-num" style="background:#022c22;color:#34d399">25-30</div>
+      <div class="lc-left" style="background:#071310">
+        <div class="lc-name" style="color:#34d399">&#x1F30F; External APIs</div>
+        <div class="lc-tech">Cloudinary &bull; AWS S3<br>Razorpay &bull; Google OAuth<br>Nodemailer &bull; Winston</div>
+      </div>
+      <div class="lc-right">
+        <div class="lc-plain">
+          <b>Cloudinary</b>: When you upload a product image, it goes into RAM (not disk), then gets streamed directly to Cloudinary's servers. Cloudinary auto-optimizes it (compresses, converts format) and gives back a permanent HTTPS URL that gets stored in the database.<br><br>
+          <b>Razorpay</b>: Handles Indian payments. Our server tells Razorpay "create an order for &#x20B9;499", Razorpay gives an order_id, your browser shows the Razorpay payment popup, you pay, Razorpay tells us the payment_id. We then verify the signature using a secret HMAC-SHA256 code to confirm Razorpay actually sent this (not a fake confirmation).<br><br>
+          <b>Google OAuth</b>: When you click "Login with Google", we redirect you to Google. Google asks you to authorize. Then Google sends our backend a secret code. We exchange that code for your Google profile (name, email, picture). We create or update your account in our DB, then issue our own JWT tokens (we never store Google's token).<br><br>
+          <b>Nodemailer</b>: Sends emails via SMTP. Email verification uses a random 32-byte token (from Node's crypto module) that expires in 24 hours. Password reset tokens expire in 10 minutes.<br><br>
+          <b>Winston</b>: Our logging system. Every important event (login, rate limit breach, error) is written to log files. Not just console.log &mdash; it writes to actual files that persist, so you can audit what happened days later.
+        </div>
+      </div>
+    </div>
+
+  </div><!-- end layman-grid -->
+
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <!-- Q&A: THE JOURNEY OF KEY THINGS                          -->
+  <!-- ═══════════════════════════════════════════════════════ -->
+  <div class="qa-box" style="margin-top:32px">
+    <h3>&#x2753; KEY QUESTIONS &mdash; ANSWERED IN PLAIN ENGLISH</h3>
+
+    <div class="qa">
+      <div class="qa-q">When are the HttpOnly cookies created, and where do they go?</div>
+      <div class="qa-a">Cookies are created in the <b>auth.controller.js on login</b>. After bcrypt verifies your password, the controller calls <code>jwt.sign()</code> twice (one for access token, one for refresh). It then calls <code>res.cookie('accessToken', token, &#123;httpOnly:true, secure:true...&#125;)</code> which adds a <b>Set-Cookie</b> header to the HTTP response. The browser receives this response, reads the Set-Cookie header, and <em>automatically stores the cookie</em>. From that moment on, every single request that browser makes to our backend will automatically include those cookies in the request headers &mdash; no JavaScript code needed, the browser does it on its own. The refresh token's SHA-256 hash is also stored in the <em>RefreshToken</em> database table (so we can revoke it on logout).</div>
+    </div>
+
+    <div class="qa">
+      <div class="qa-q">When the response comes back from the controller, where does it go next?</div>
+      <div class="qa-a">The controller calls <code>res.json(&#123;success:true, data:&#123;...&#125;&#125;)</code>. Express serializes (converts) that JavaScript object into a <b>JSON text string</b> and puts it in the HTTP response body. It travels back through Render's load balancer (re-encrypted to HTTPS), across the internet, and arrives in the browser. <b>Axios</b> is the one that receives it on the frontend &mdash; it automatically parses the JSON text string back into a <em>JavaScript object</em> and puts it in <code>response.data</code>. Then <b>TanStack Query</b> takes that data, stores it in its cache, and React re-renders the UI with the new data. If it was a login response, the browser also processes the <em>Set-Cookie</em> headers before Axios even sees the response body.</div>
+    </div>
+
+    <div class="qa">
+      <div class="qa-q">Who converts the JSON string into a readable JavaScript object on the frontend?</div>
+      <div class="qa-a"><b>Axios does this automatically.</b> When a response comes back from the server with Content-Type: application/json, Axios calls <code>JSON.parse()</code> under the hood, which converts the raw JSON string <em>'&#123;"success":true,"data":&#123;"id":"abc"&#125;&#125;'</em> into an actual JavaScript object <em>&#123;success: true, data: &#123;id: 'abc'&#125;&#125;</em>. This is placed in <code>response.data</code>. TanStack Query then receives this already-parsed object and stores it in the query cache. You never have to call JSON.parse() yourself.</div>
+    </div>
+
+    <div class="qa">
+      <div class="qa-q">What happens when the access token expires (after 15 minutes)?</div>
+      <div class="qa-a">The server returns <b>HTTP 401 Unauthorized</b>. Axios has a <b>response interceptor</b> configured on the frontend. When it sees a 401, it automatically fires a <code>POST /api/v1/auth/refresh</code> request (the browser auto-sends the refreshToken cookie). The server reads the refreshToken cookie, hashes it with SHA-256, looks it up in the database, verifies it's not revoked or expired, then issues a <em>new</em> accessToken and sets a new Set-Cookie header. The original failed request is then <b>retried automatically</b> with the new token. You never see a logout screen &mdash; the entire thing happens silently in the background in milliseconds.</div>
+    </div>
+
+    <div class="qa">
+      <div class="qa-q">What happens when you log out?</div>
+      <div class="qa-a">The logout endpoint calls <code>res.clearCookie('accessToken')</code> and <code>res.clearCookie('refreshToken')</code> &mdash; this tells the browser to <em>delete those cookies</em>. Simultaneously, it does <code>prisma.refreshToken.update(&#123;where:&#123;id&#125;, data:&#123;revoked:true&#125;&#125;)</code> which marks the refresh token in the database as revoked. So even if somehow someone had a copy of your refresh token, it would be rejected because the database says it's revoked. "Logout All Devices" does <code>prisma.refreshToken.updateMany()</code> which revokes <em>all</em> refresh tokens for your account simultaneously.</div>
+    </div>
+
+    <div class="qa">
+      <div class="qa-q">What is bcrypt doing with the password, and why can't we just read it back?</div>
+      <div class="qa-a">bcrypt is a <b>one-way hashing function</b>. It takes your password and scrambles it using a complex mathematical algorithm, 12 rounds deep, with a random "salt" (extra random data) mixed in. The result is a 60-character string that looks like garbage: <em>$2b$12$abcdefghij...</em>. There is <em>mathematically no way</em> to reverse this back to the original password &mdash; not even our own server can do it. When you log in, bcrypt scrambles <em>what you just typed</em> and compares the scrambled versions. If they match, the password was correct. This means even if someone steals our entire database, they cannot know any user's actual password.</div>
+    </div>
+
+    <div class="qa">
+      <div class="qa-q">How does image upload work? Does it save to the server's hard drive?</div>
+      <div class="qa-a"><b>No, it never touches the hard drive.</b> Multer is configured with <code>memoryStorage()</code> which means the uploaded file is held entirely in the server's <b>RAM</b> as a Buffer. Then we create a readable stream from that buffer and pipe it directly to Cloudinary's servers. Cloudinary stores it, optimizes it (auto quality, auto format), and returns a permanent HTTPS URL like <em>https://res.cloudinary.com/deployra/products/abc123.webp</em>. That URL gets saved to the database. When someone views the product, their browser loads the image directly from Cloudinary's CDN &mdash; not from our server at all.</div>
+    </div>
+
+  </div>
+
+</div><!-- end layman-wrap -->
+
 </body>
 </html>
