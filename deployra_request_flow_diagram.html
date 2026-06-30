@@ -2,495 +2,562 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Deployra - Request Flow Diagram</title>
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Deployra — Request Flow Diagram</title>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
 *{box-sizing:border-box;margin:0;padding:0}
-body{background:#0a0c14;font-family:'Inter',sans-serif;overflow:auto;min-height:100vh}
-h1{text-align:center;padding:24px 0 8px;font-size:1.5rem;font-weight:800;
-   background:linear-gradient(135deg,#6366f1,#8b5cf6,#ec4899);
-   -webkit-background-clip:text;-webkit-text-fill-color:transparent}
-p.sub{text-align:center;color:#475569;font-size:12px;margin-bottom:16px;font-family:'IBM Plex Mono',monospace}
-#canvas-wrap{position:relative;width:1600px;margin:0 auto;height:1100px}
-svg#arrows{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:1}
-.node{position:absolute;z-index:2;cursor:default;transition:transform .15s,box-shadow .15s}
-.node:hover{transform:scale(1.05)}
-.node-box{border-radius:8px;padding:8px 12px;font-size:11px;font-weight:600;white-space:nowrap;
-          font-family:'IBM Plex Mono',monospace;border:1px solid transparent;line-height:1.4;text-align:center}
-.node-sub{font-size:9px;font-weight:400;color:#94a3b8;margin-top:2px;font-family:'Inter',sans-serif}
-/* Node styles */
-.n-user{background:#1e1b4b;border-color:#6366f1;color:#a5b4fc;
-        box-shadow:0 0 20px #6366f140}
-.n-fe{background:#0f2236;border-color:#0ea5e9;color:#7dd3fc;
-       box-shadow:0 0 16px #0ea5e920}
-.n-cookie{background:#1a1242;border-color:#818cf8;color:#c7d2fe;
-           box-shadow:0 0 16px #818cf820}
-.n-infra{background:#1e1030;border-color:#7c3aed;color:#c084fc;
-          box-shadow:0 0 16px #7c3aed20}
-.n-mw{background:#0c1a10;border-color:#16a34a;color:#86efac;
-       box-shadow:0 0 12px #16a34a20}
-.n-auth{background:#1a0f0f;border-color:#dc2626;color:#fca5a5;
-         box-shadow:0 0 16px #dc262620}
-.n-route{background:#1a1010;border-color:#ea580c;color:#fdba74;
-          box-shadow:0 0 16px #ea580c20}
-.n-ctrl{background:#170d25;border-color:#9333ea;color:#d8b4fe;
-         box-shadow:0 0 16px #9333ea20}
-.n-svc{background:#0a1a1a;border-color:#0d9488;color:#5eead4;
-        box-shadow:0 0 16px #0d948820}
-.n-db{background:#1a1200;border-color:#ca8a04;color:#fde68a;
-       box-shadow:0 0 20px #ca8a0430}
-.n-ext{background:#0a1a12;border-color:#15803d;color:#86efac;
-        box-shadow:0 0 12px #15803d20}
-.n-resp{background:#1e1b4b;border-color:#6366f1;color:#a5b4fc;
-         box-shadow:0 0 20px #6366f140}
-/* Step badge */
-.step{position:absolute;top:-9px;left:-9px;width:18px;height:18px;border-radius:50%;
-      background:#6366f1;color:#fff;font-size:9px;font-weight:700;
-      display:flex;align-items:center;justify-content:center;z-index:3;
-      font-family:'IBM Plex Mono',monospace}
-/* Legend */
-.legend{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;padding:20px;
-        border-top:1px solid #1e293b;margin-top:8px}
-.li{display:flex;align-items:center;gap:6px;font-size:11px;color:#64748b}
-.ldot{width:10px;height:10px;border-radius:3px}
+body{background:#070a13;font-family:'Inter',sans-serif;padding:32px 24px 60px;min-width:1300px}
+
+/* HEADER */
+h1{text-align:center;font-size:1.7rem;font-weight:900;
+   background:linear-gradient(135deg,#6366f1,#a855f7,#ec4899);
+   -webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:4px}
+.subtitle{text-align:center;color:#475569;font-size:11px;font-family:'IBM Plex Mono',monospace;margin-bottom:36px}
+
+/* FLOW CONTAINER */
+.flow{display:flex;flex-direction:column;align-items:center;gap:0;max-width:1280px;margin:0 auto;position:relative}
+
+/* ARROW connector */
+.arrow-down{display:flex;flex-direction:column;align-items:center;gap:0;padding:2px 0}
+.arrow-down .line{width:2px;height:28px;background:linear-gradient(to bottom,#334155,#6366f1)}
+.arrow-down .head{width:0;height:0;border-left:6px solid transparent;border-right:6px solid transparent;border-top:8px solid #6366f1}
+.arrow-down .label{font-size:10px;color:#4f46e5;font-family:'IBM Plex Mono',monospace;margin-top:3px;white-space:nowrap}
+
+.arrow-row{display:flex;align-items:center;justify-content:center;width:100%;gap:0}
+
+/* ========== ROW SECTION ========== */
+.row{display:flex;align-items:center;gap:0;width:100%}
+
+/* ========== GROUP BOX ========== */
+.group{border-radius:16px;padding:16px;position:relative;width:100%}
+.group-label{position:absolute;top:-11px;left:20px;font-size:10px;font-weight:700;
+             letter-spacing:2px;text-transform:uppercase;padding:2px 10px;
+             border-radius:20px;font-family:'IBM Plex Mono',monospace}
+
+/* Group themes */
+.g-user   {background:#0d1120;border:1px solid #3730a3}
+.g-user   .group-label{background:#1e1b4b;color:#818cf8;border:1px solid #3730a3}
+
+.g-network{background:#0c0e1c;border:1px solid #4c1d95}
+.g-network .group-label{background:#1a103a;color:#a78bfa;border:1px solid #4c1d95}
+
+.g-mw     {background:#091510;border:2px solid #14532d;position:relative}
+.g-mw     .group-label{background:#052e16;color:#4ade80;border:1px solid #14532d}
+
+.g-sec    {background:#130a0a;border:2px solid #7f1d1d;position:relative}
+.g-sec    .group-label{background:#3b0a0a;color:#f87171;border:1px solid #7f1d1d}
+
+.g-ctrl   {background:#100a1c;border:2px solid #581c87}
+.g-ctrl   .group-label{background:#2d0a6e;color:#c084fc;border:1px solid #581c87}
+
+.g-data   {background:#100d04;border:2px solid #713f12}
+.g-data   .group-label{background:#451a03;color:#fbbf24;border:1px solid #713f12}
+
+.g-ext    {background:#071510;border:2px solid #064e3b}
+.g-ext    .group-label{background:#022c22;color:#34d399;border:1px solid #064e3b}
+
+/* ========== NODES ========== */
+.nodes{display:flex;align-items:stretch;gap:10px;flex-wrap:nowrap;margin-top:8px}
+.nodes.wrap{flex-wrap:wrap}
+
+.node{background:#0f172a;border:1px solid #1e293b;border-radius:10px;
+      padding:10px 14px;flex:1;min-width:0;position:relative;transition:border-color .2s,box-shadow .2s}
+.node:hover{border-color:#4f46e5;box-shadow:0 0 16px #6366f120}
+
+.node-num{position:absolute;top:-8px;left:-8px;width:18px;height:18px;border-radius:50%;
+          background:#6366f1;color:#fff;font-size:9px;font-weight:700;
+          display:flex;align-items:center;justify-content:center;
+          font-family:'IBM Plex Mono',monospace;z-index:2}
+
+.node-title{font-size:11px;font-weight:700;font-family:'IBM Plex Mono',monospace;margin-bottom:4px}
+.node-detail{font-size:10px;color:#64748b;line-height:1.55}
+.node-detail b{color:#94a3b8}
+.node-tag{display:inline-block;padding:2px 7px;border-radius:4px;font-size:9px;font-weight:600;
+          margin-top:5px;font-family:'IBM Plex Mono',monospace}
+.tag-err{background:#7f1d1d30;color:#f87171;border:1px solid #7f1d1d}
+.tag-ok {background:#14532d30;color:#4ade80;border:1px solid #14532d}
+.tag-info{background:#1e3a8a30;color:#60a5fa;border:1px solid #1e3a8a}
+
+/* Color themes for nodes */
+.n-blue {border-color:#3730a3;background:#0d1120}.n-blue .node-title{color:#818cf8}
+.n-sky  {border-color:#0369a1;background:#0c1a26}.n-sky  .node-title{color:#38bdf8}
+.n-violet{border-color:#4c1d95;background:#120c26}.n-violet .node-title{color:#c084fc}
+.n-green{border-color:#14532d;background:#071510}.n-green .node-title{color:#4ade80}
+.n-red  {border-color:#7f1d1d;background:#130a0a}.n-red   .node-title{color:#f87171}
+.n-orange{border-color:#7c2d12;background:#180d07}.n-orange .node-title{color:#fb923c}
+.n-purple{border-color:#581c87;background:#0f0820}.n-purple .node-title{color:#c084fc}
+.n-yellow{border-color:#713f12;background:#130d03}.n-yellow .node-title{color:#fbbf24}
+.n-teal {border-color:#134e4a;background:#071310}.n-teal  .node-title{color:#2dd4bf}
+.n-pink {border-color:#831843;background:#14060e}.n-pink  .node-title{color:#f472b6}
+
+/* Horizontal arrow between nodes in a row */
+.h-arr{display:flex;align-items:center;padding:0 4px;flex-shrink:0;margin-top:auto;margin-bottom:auto}
+.h-arr svg{display:block}
+
+/* divider inside group */
+.divider{border:none;border-top:1px dashed #1e293b;margin:12px 0}
+
+/* inner sub-label */
+.inner-label{font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;
+             color:#334155;font-family:'IBM Plex Mono',monospace;margin-bottom:8px}
+
+/* error branch */
+.err-branch{display:flex;align-items:center;gap:6px;margin-top:8px}
+.err-line{flex:1;height:1px;border-top:1px dashed #7f1d1d}
+.err-badge{font-size:9px;font-family:'IBM Plex Mono',monospace;color:#f87171;
+           background:#3b0a0a;border:1px solid #7f1d1d;border-radius:4px;
+           padding:2px 6px;white-space:nowrap}
+
+/* Response path banner */
+.resp-banner{background:linear-gradient(135deg,#1e1b4b,#0f2236);border:1px solid #3730a3;
+             border-radius:12px;padding:12px 20px;width:100%;margin-top:4px}
+.resp-banner-title{font-size:10px;font-weight:700;color:#818cf8;font-family:'IBM Plex Mono',monospace;
+                   letter-spacing:1px;text-transform:uppercase;margin-bottom:8px}
+.resp-nodes{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.resp-node{background:#0d1120;border:1px solid #3730a3;border-radius:8px;padding:8px 12px;flex:1;min-width:160px}
+.resp-node-title{font-size:10px;font-weight:700;color:#818cf8;font-family:'IBM Plex Mono',monospace;margin-bottom:3px}
+.resp-node-detail{font-size:10px;color:#475569;line-height:1.5}
+
+/* legend */
+.legend{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;margin-top:32px;
+        padding-top:20px;border-top:1px solid #1e293b}
+.legend-item{display:flex;align-items:center;gap:6px;font-size:11px;color:#64748b}
+.legend-dot{width:12px;height:12px;border-radius:3px}
+
+/* ARROW SVG inline */
+.arrow-right{display:inline-block}
 </style>
 </head>
 <body>
+
 <h1>&#x1F680; Deployra &mdash; Request Flow Diagram</h1>
-<p class="sub">From browser click to HTTP response &mdash; every node your request passes through</p>
+<p class="subtitle">From browser click to HTTP response &mdash; every node, every middleware, every layer</p>
 
-<div id="canvas-wrap">
+<div class="flow">
 
-<!-- SVG ARROWS -->
-<svg id="arrows" xmlns="http://www.w3.org/2000/svg">
-<defs>
-  <marker id="arr" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
-    <path d="M0,0 L0,6 L8,3 z" fill="#6366f1"/>
-  </marker>
-  <marker id="arr-g" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
-    <path d="M0,0 L0,6 L8,3 z" fill="#16a34a"/>
-  </marker>
-  <marker id="arr-r" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
-    <path d="M0,0 L0,6 L8,3 z" fill="#dc2626"/>
-  </marker>
-  <marker id="arr-y" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
-    <path d="M0,0 L0,6 L8,3 z" fill="#ca8a04"/>
-  </marker>
-  <marker id="arr-c" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
-    <path d="M0,0 L0,6 L8,3 z" fill="#0d9488"/>
-  </marker>
-  <marker id="arr-o" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
-    <path d="M0,0 L0,6 L8,3 z" fill="#ea580c"/>
-  </marker>
-  <marker id="arr-p" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
-    <path d="M0,0 L0,6 L8,3 z" fill="#9333ea"/>
-  </marker>
-  <!-- dashed marker for response path -->
-  <marker id="arr-back" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
-    <path d="M0,0 L0,6 L8,3 z" fill="#818cf8"/>
-  </marker>
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- GROUP 1: REQUEST INITIATION                             -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div class="group g-user" style="margin-bottom:0">
+  <div class="group-label">&#x1F310; Request Initiation &mdash; Browser &amp; Frontend</div>
+  <div class="nodes" style="margin-top:18px">
 
-  <!-- Glow filter -->
-  <filter id="glow">
-    <feGaussianBlur stdDeviation="3" result="blur"/>
-    <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
-  </filter>
-</defs>
+    <div class="node n-blue">
+      <div class="node-num">1</div>
+      <div class="node-title">&#x1F464; User / Browser</div>
+      <div class="node-detail">Clicks a button, submits a form,<br>or navigates to a route<br><b>Chrome / Firefox / Safari</b></div>
+      <span class="node-tag tag-info">SPA Client</span>
+    </div>
 
-<!-- REQUEST PATH (solid lines) -->
-<!-- 1. User -> Frontend -->
-<line x1="110" y1="90" x2="230" y2="90" stroke="#6366f1" stroke-width="2" marker-end="url(#arr)" filter="url(#glow)"/>
-<!-- label -->
-<text x="155" y="82" fill="#818cf8" font-size="9" font-family="IBM Plex Mono">HTTPS req</text>
+    <div class="h-arr">
+      <svg width="36" height="20"><defs><marker id="a1" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto"><path d="M0,0 L0,6 L7,3 z" fill="#6366f1"/></marker></defs><line x1="2" y1="10" x2="30" y2="10" stroke="#6366f1" stroke-width="2" marker-end="url(#a1)"/><text x="5" y="8" font-size="8" fill="#818cf8" font-family="IBM Plex Mono">click</text></svg>
+    </div>
 
-<!-- 2. Frontend -> Axios withCredentials -->
-<line x1="380" y1="90" x2="480" y2="90" stroke="#0ea5e9" stroke-width="2" marker-end="url(#arr)"/>
-<text x="390" y="82" fill="#7dd3fc" font-size="9" font-family="IBM Plex Mono">fetch/Axios</text>
+    <div class="node n-sky">
+      <div class="node-num">2</div>
+      <div class="node-title">&#x26A1; React 18 + Vite 6 (Vercel CDN)</div>
+      <div class="node-detail"><b>Routing:</b> React Router DOM v6<br><b>State:</b> TanStack Query v5 (useQuery/useMutation)<br><b>UI:</b> Tailwind + shadcn/ui + Framer Motion<br><b>Charts:</b> Recharts &bull; <b>Toast:</b> React Hot Toast</div>
+      <span class="node-tag tag-info">Vercel CDN Edge</span>
+    </div>
 
-<!-- 3. Axios -> Cookie attaches -->
-<line x1="620" y1="90" x2="680" y2="90" stroke="#818cf8" stroke-width="2" marker-end="url(#arr)"/>
+    <div class="h-arr">
+      <svg width="36" height="20"><defs><marker id="a2" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto"><path d="M0,0 L0,6 L7,3 z" fill="#0ea5e9"/></marker></defs><line x1="2" y1="10" x2="30" y2="10" stroke="#0ea5e9" stroke-width="2" marker-end="url(#a2)"/></svg>
+    </div>
 
-<!-- 4. Cookie -> Render LB -->
-<line x1="820" y1="90" x2="880" y2="90" stroke="#7c3aed" stroke-width="2" marker-end="url(#arr)"/>
-<text x="830" y="82" fill="#c084fc" font-size="9" font-family="IBM Plex Mono">HTTPS POST</text>
+    <div class="node n-sky">
+      <div class="node-num">3</div>
+      <div class="node-title">&#x1F4E1; Axios (withCredentials: true)</div>
+      <div class="node-detail"><b>baseURL:</b> VITE_API_BASE_URL (Render)<br><b>withCredentials: true</b> &rarr; browser auto-attaches<br>HttpOnly cookies to every cross-origin request<br><b>Interceptors:</b> auto-refresh on 401</div>
+      <span class="node-tag tag-info">HTTP Client</span>
+    </div>
 
-<!-- 5. Render LB -> Express -->
-<line x1="1010" y1="90" x2="1060" y2="90" stroke="#7c3aed" stroke-width="2" marker-end="url(#arr)"/>
-<text x="1015" y="82" fill="#c084fc" font-size="9" font-family="IBM Plex Mono">port-forward</text>
+    <div class="h-arr">
+      <svg width="36" height="20"><defs><marker id="a3" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto"><path d="M0,0 L0,6 L7,3 z" fill="#818cf8"/></marker></defs><line x1="2" y1="10" x2="30" y2="10" stroke="#818cf8" stroke-width="2" marker-end="url(#a3)"/></svg>
+    </div>
 
-<!-- Middleware chain: vertical top-down from Express -->
-<!-- Express -> trust proxy -->
-<line x1="1130" y1="120" x2="1130" y2="165" stroke="#16a34a" stroke-width="2" marker-end="url(#arr-g)"/>
+    <div class="node n-blue">
+      <div class="node-num">4</div>
+      <div class="node-title">&#x1F36A; HttpOnly Cookie (auto-attached)</div>
+      <div class="node-detail"><b>accessToken</b> &rarr; 15min JWT (JWT_SECRET)<br><b>refreshToken</b> &rarr; 7day JWT (JWT_REFRESH_SECRET)<br>HttpOnly &bull; Secure &bull; SameSite=Strict<br>JS cannot read it &rarr; XSS &amp; CSRF proof</div>
+      <span class="node-tag tag-ok">XSS-proof</span>
+    </div>
 
-<!-- trust proxy -> Helmet -->
-<line x1="1130" y1="200" x2="1130" y2="245" stroke="#16a34a" stroke-width="2" marker-end="url(#arr-g)"/>
-
-<!-- Helmet -> CORS -->
-<line x1="1130" y1="280" x2="1130" y2="325" stroke="#16a34a" stroke-width="2" marker-end="url(#arr-g)"/>
-
-<!-- CORS -> Cookie Parser -->
-<line x1="1130" y1="360" x2="1130" y2="405" stroke="#16a34a" stroke-width="2" marker-end="url(#arr-g)"/>
-
-<!-- Cookie Parser -> Body Parser -->
-<line x1="1130" y1="440" x2="1130" y2="485" stroke="#16a34a" stroke-width="2" marker-end="url(#arr-g)"/>
-
-<!-- Body Parser -> Rate Limiter -->
-<line x1="1130" y1="520" x2="1130" y2="565" stroke="#dc2626" stroke-width="2" marker-end="url(#arr-r)"/>
-
-<!-- Rate Limiter -> Router -->
-<line x1="1130" y1="600" x2="1130" y2="645" stroke="#ea580c" stroke-width="2" marker-end="url(#arr-o)"/>
-
-<!-- Router -> Joi Validate -->
-<line x1="1070" y1="680" x2="940" y2="680" stroke="#ea580c" stroke-width="2" marker-end="url(#arr-o)"/>
-
-<!-- Joi Validate -> authenticate -->
-<line x1="840" y1="680" x2="730" y2="680" stroke="#dc2626" stroke-width="2" marker-end="url(#arr-r)"/>
-
-<!-- authenticate -> authorize RBAC -->
-<line x1="630" y1="680" x2="510" y2="680" stroke="#dc2626" stroke-width="2" marker-end="url(#arr-r)"/>
-
-<!-- authorize -> Controller -->
-<line x1="410" y1="680" x2="310" y2="680" stroke="#9333ea" stroke-width="2" marker-end="url(#arr-p)"/>
-
-<!-- Controller -> Prisma ORM -->
-<line x1="200" y1="715" x2="200" y2="770" stroke="#ca8a04" stroke-width="2" marker-end="url(#arr-y)"/>
-
-<!-- Prisma -> Neon DB -->
-<line x1="200" y1="810" x2="200" y2="855" stroke="#ca8a04" stroke-width="2" marker-end="url(#arr-y)"/>
-
-<!-- Controller -> Services (horizontal right) -->
-<line x1="310" y1="680" x2="310" y2="760" stroke="#0d9488" stroke-width="2" marker-end="url(#arr-c)"/>
-
-<!-- Services fan out -->
-<line x1="350" y1="790" x2="430" y2="820" stroke="#15803d" stroke-width="1.5" marker-end="url(#arr-ext)" stroke-dasharray="4,2"/>
-<line x1="350" y1="790" x2="430" y2="870" stroke="#15803d" stroke-width="1.5" stroke-dasharray="4,2"/>
-<line x1="350" y1="790" x2="430" y2="920" stroke="#15803d" stroke-width="1.5" stroke-dasharray="4,2"/>
-<line x1="350" y1="790" x2="430" y2="970" stroke="#15803d" stroke-width="1.5" stroke-dasharray="4,2"/>
-
-<!-- RESPONSE PATH (dashed, going back left) -->
-<!-- DB -> Prisma response -->
-<line x1="130" y1="870" x2="130" y2="640" stroke="#818cf8" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arr-back)"/>
-<text x="92" y="780" fill="#818cf8" font-size="9" font-family="IBM Plex Mono" transform="rotate(-90,92,780)">DB response</text>
-
-<!-- JSON Response goes back up through express -->
-<line x1="1190" y1="680" x2="1290" y2="680" stroke="#818cf8" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arr-back)"/>
-<line x1="1340" y1="640" x2="1340" y2="130" stroke="#818cf8" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arr-back)"/>
-<line x1="1340" y1="90" x2="1240" y2="90" stroke="#818cf8" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arr-back)"/>
-<text x="1360" y="420" fill="#818cf8" font-size="9" font-family="IBM Plex Mono" transform="rotate(90,1360,420)">JSON response + Set-Cookie</text>
-
-<!-- Set-Cookie going back to browser -->
-<line x1="1200" y1="90" x2="1070" y2="90" stroke="#818cf8" stroke-width="1.5" stroke-dasharray="5,3" marker-end="url(#arr-back)"/>
-
-<!-- 429 branch from Rate Limiter -->
-<line x1="1190" y1="582" x2="1280" y2="582" stroke="#dc2626" stroke-width="1.5" stroke-dasharray="3,2"/>
-<text x="1195" y="575" fill="#f87171" font-size="9" font-family="IBM Plex Mono">HTTP 429</text>
-
-<!-- 401 branch from authenticate -->
-<line x1="680" y1="665" x2="680" y2="620" stroke="#dc2626" stroke-width="1.5" stroke-dasharray="3,2"/>
-<text x="685" y="648" fill="#f87171" font-size="9" font-family="IBM Plex Mono">HTTP 401</text>
-
-<!-- 403 branch from authorize -->
-<line x1="460" y1="665" x2="460" y2="620" stroke="#dc2626" stroke-width="1.5" stroke-dasharray="3,2"/>
-<text x="465" y="648" fill="#f87171" font-size="9" font-family="IBM Plex Mono">HTTP 403</text>
-
-<!-- 400 branch from Joi -->
-<line x1="890" y1="665" x2="890" y2="620" stroke="#ea580c" stroke-width="1.5" stroke-dasharray="3,2"/>
-<text x="895" y="648" fill="#fdba74" font-size="9" font-family="IBM Plex Mono">HTTP 400</text>
-
-</svg>
-
-<!-- ======= NODES ======= -->
-
-<!-- 1. User / Browser -->
-<div class="node" style="left:20px;top:62px">
-  <div class="node-box n-user">
-    &#x1F464; Credit Analyst / User
-    <div class="node-sub">Browser (Chrome / Firefox)</div>
-    <div class="node-sub">Clicks Submit / navigates app</div>
-  </div>
-  <div class="step">1</div>
-</div>
-
-<!-- 2. Frontend (Vercel) -->
-<div class="node" style="left:230px;top:62px">
-  <div class="node-box n-fe">
-    &#x26A1; Vercel CDN + React 18
-    <div class="node-sub">Frontend UI: index.html + app.js</div>
-    <div class="node-sub">TanStack Query &bull; React Router v6</div>
-  </div>
-  <div class="step">2</div>
-</div>
-
-<!-- 3. Axios withCredentials -->
-<div class="node" style="left:480px;top:62px">
-  <div class="node-box n-cookie" style="border-color:#0ea5e9;color:#7dd3fc">
-    &#x1F4E1; Axios (withCredentials: true)
-    <div class="node-sub">Attaches HttpOnly Cookie to request</div>
-    <div class="node-sub">Cookie: accessToken=&lt;JWT&gt;</div>
-  </div>
-  <div class="step">3</div>
-</div>
-
-<!-- 4. HttpOnly Cookie -->
-<div class="node" style="left:680px;top:62px">
-  <div class="node-box n-cookie">
-    &#x1F36A; HttpOnly Cookie
-    <div class="node-sub">accessToken (15min JWT)</div>
-    <div class="node-sub">refreshToken (7day JWT, path=/auth/refresh)</div>
-    <div class="node-sub">Secure &bull; SameSite=Strict</div>
-  </div>
-  <div class="step">4</div>
-</div>
-
-<!-- 5. Render LB -->
-<div class="node" style="left:880px;top:62px">
-  <div class="node-box n-infra">
-    &#x1F6E1;&#xFE0F; Render Load Balancer
-    <div class="node-sub">Reverse Proxy (HTTPS Termination)</div>
-    <div class="node-sub">Sets X-Forwarded-For header</div>
-  </div>
-  <div class="step">5</div>
-</div>
-
-<!-- 6. Express Server -->
-<div class="node" style="left:1060px;top:62px">
-  <div class="node-box n-infra" style="border-color:#a855f7;color:#d8b4fe">
-    &#x2699;&#xFE0F; Node.js + Express 5 (app.js)
-    <div class="node-sub">src/server.js &bull; PORT from env</div>
-    <div class="node-sub">Entry point for all API requests</div>
-  </div>
-  <div class="step">6</div>
-</div>
-
-<!-- ===== MIDDLEWARE CHAIN (vertical) ===== -->
-
-<!-- 7. trust proxy -->
-<div class="node" style="left:1060px;top:168px">
-  <div class="node-box n-mw">
-    7. app.set('trust proxy', 1)
-    <div class="node-sub">Trusts X-Forwarded-For from Render LB</div>
-    <div class="node-sub">Without this: rate limiter sees wrong IP</div>
-  </div>
-  <div class="step">7</div>
-</div>
-
-<!-- 8. Helmet -->
-<div class="node" style="left:1060px;top:248px">
-  <div class="node-box n-mw">
-    8. Helmet (15 Security Headers)
-    <div class="node-sub">X-Frame-Options: DENY &bull; HSTS</div>
-    <div class="node-sub">CSP &bull; X-Content-Type-Options: nosniff</div>
-    <div class="node-sub">crossOriginResourcePolicy: cross-origin</div>
-  </div>
-  <div class="step">8</div>
-</div>
-
-<!-- 9. CORS -->
-<div class="node" style="left:1060px;top:328px">
-  <div class="node-box n-mw">
-    9. CORS Middleware
-    <div class="node-sub">origin: [deployra.vercel.app, localhost:5173]</div>
-    <div class="node-sub">credentials: true &bull; rejects all other origins</div>
-  </div>
-  <div class="step">9</div>
-</div>
-
-<!-- 10. Cookie Parser -->
-<div class="node" style="left:1060px;top:408px">
-  <div class="node-box n-mw">
-    10. Custom Cookie Parser
-    <div class="node-sub">Parses Cookie header &rarr; req.cookies object</div>
-    <div class="node-sub">req.cookies.accessToken now available</div>
-  </div>
-  <div class="step">10</div>
-</div>
-
-<!-- 11. Body Parser -->
-<div class="node" style="left:1060px;top:488px">
-  <div class="node-box n-mw">
-    11. Body Parsers
-    <div class="node-sub">express.json() &rarr; req.body (JSON payloads)</div>
-    <div class="node-sub">express.urlencoded() &rarr; form data</div>
-  </div>
-  <div class="step">11</div>
-</div>
-
-<!-- 12. Rate Limiter -->
-<div class="node" style="left:1060px;top:568px">
-  <div class="node-box n-auth">
-    12. Rate Limiter (express-rate-limit)
-    <div class="node-sub">authLimiter: 30 req / 15min / IP</div>
-    <div class="node-sub">loginLimiter: 8 req / 15min / IP</div>
-    <div class="node-sub">passwordResetLimiter: 5 req / 1hr</div>
-    <div class="node-sub" style="color:#f87171">&#x2192; 429 Too Many Requests if exceeded</div>
-  </div>
-  <div class="step">12</div>
-</div>
-
-<!-- 13. Router -->
-<div class="node" style="left:1060px;top:648px">
-  <div class="node-box n-route">
-    13. Express Router (/api/v1/*)
-    <div class="node-sub">auth &bull; products &bull; users &bull; payment</div>
-    <div class="node-sub">uploads &bull; admin &bull; orders &bull; notifications</div>
-    <div class="node-sub">routes/index.js mounts all 9 route files</div>
-  </div>
-  <div class="step">13</div>
-</div>
-
-<!-- 14. Joi Validation -->
-<div class="node" style="left:840px;top:655px">
-  <div class="node-box n-route">
-    14. Joi Schema Validation
-    <div class="node-sub">registerSchema: name, email, password, role</div>
-    <div class="node-sub">loginSchema: email + password required</div>
-    <div class="node-sub" style="color:#fdba74">&#x2192; 400 Bad Request if invalid</div>
-  </div>
-  <div class="step">14</div>
-</div>
-
-<!-- 15. authenticate -->
-<div class="node" style="left:630px;top:655px">
-  <div class="node-box n-auth">
-    15. authenticate Middleware
-    <div class="node-sub">1. Read req.cookies.accessToken</div>
-    <div class="node-sub">2. Fallback: Authorization: Bearer</div>
-    <div class="node-sub">3. jwt.verify(token, JWT_SECRET)</div>
-    <div class="node-sub">4. prisma.user.findUnique(userId)</div>
-    <div class="node-sub">5. req.user = user &rarr; next()</div>
-    <div class="node-sub" style="color:#f87171">&#x2192; 401 Unauthorized if fails</div>
-  </div>
-  <div class="step">15</div>
-</div>
-
-<!-- 16. authorize RBAC -->
-<div class="node" style="left:410px;top:655px">
-  <div class="node-box n-auth">
-    16. authorize / adminOnly (RBAC)
-    <div class="node-sub">Checks req.user.role</div>
-    <div class="node-sub">Roles: CLIENT &bull; DEVELOPER &bull; ADMIN</div>
-    <div class="node-sub" style="color:#f87171">&#x2192; 403 Forbidden if wrong role</div>
-  </div>
-  <div class="step">16</div>
-</div>
-
-<!-- 17. Controller -->
-<div class="node" style="left:130px;top:655px">
-  <div class="node-box n-ctrl">
-    17. Controller (Business Logic)
-    <div class="node-sub">auth.controller &bull; product.controller</div>
-    <div class="node-sub">payment.controller &bull; upload.controller</div>
-    <div class="node-sub">user.controller &bull; admin.controller</div>
-  </div>
-  <div class="step">17</div>
-</div>
-
-<!-- 18. Prisma ORM -->
-<div class="node" style="left:80px;top:773px">
-  <div class="node-box n-db" style="border-color:#ca8a04;color:#fde68a">
-    18. Prisma ORM
-    <div class="node-sub">Type-safe query builder</div>
-    <div class="node-sub">prisma.user.findUnique()</div>
-    <div class="node-sub">prisma.product.create()</div>
-    <div class="node-sub">prisma.purchase.create()</div>
-  </div>
-  <div class="step">18</div>
-</div>
-
-<!-- 19. Neon DB -->
-<div class="node" style="left:60px;top:858px">
-  <div class="node-box n-db">
-    19. Neon PostgreSQL (Cloud DB)
-    <div class="node-sub">12 tables: User, Product, Purchase, Order</div>
-    <div class="node-sub">Review, Wishlist, RefreshToken, Notification</div>
-    <div class="node-sub">LoginHistory, AuditLog, Message, ProductView</div>
-  </div>
-  <div class="step">19</div>
-</div>
-
-<!-- 20. Services -->
-<div class="node" style="left:270px;top:760px">
-  <div class="node-box n-svc">
-    20. Services Layer
-    <div class="node-sub">Cloudinary &bull; AWS S3 &bull; Razorpay</div>
-    <div class="node-sub">Nodemailer &bull; Google OAuth &bull; Winston</div>
-    <div class="node-sub">bcrypt &bull; jsonwebtoken &bull; Node crypto</div>
-  </div>
-  <div class="step">20</div>
-</div>
-
-<!-- External Services -->
-<div class="node" style="left:430px;top:808px">
-  <div class="node-box n-ext" style="min-width:140px">
-    &#x1F5BC;&#xFE0F; Cloudinary CDN
-    <div class="node-sub">Image upload &bull; CDN URL returned</div>
   </div>
 </div>
 
-<div class="node" style="left:430px;top:858px">
-  <div class="node-box n-ext" style="min-width:140px">
-    &#x1F4B3; Razorpay
-    <div class="node-sub">createOrder &bull; HMAC verify</div>
+<!-- Arrow down -->
+<div class="arrow-down">
+  <div class="line"></div>
+  <div class="head"></div>
+  <div class="label">HTTPS POST to api.render.com</div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- GROUP 2: NETWORK                                        -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div class="group g-network" style="margin-bottom:0">
+  <div class="group-label">&#x2601;&#xFE0F; Network &amp; Deployment Infrastructure</div>
+  <div class="nodes" style="margin-top:18px">
+
+    <div class="node n-violet">
+      <div class="node-num">5</div>
+      <div class="node-title">&#x1F6E1;&#xFE0F; Render Load Balancer</div>
+      <div class="node-detail"><b>HTTPS Termination</b> (TLS/SSL)<br><b>Reverse Proxy</b> &rarr; forwards to Node.js<br><b>X-Forwarded-For</b> header added<br>Port: 443 &rarr; internal app port</div>
+      <span class="node-tag" style="background:#2d1254;color:#c084fc;border:1px solid #4c1d95">Reverse Proxy</span>
+    </div>
+
+    <div class="h-arr">
+      <svg width="44" height="20"><defs><marker id="a4" markerWidth="7" markerHeight="7" refX="5" refY="3" orient="auto"><path d="M0,0 L0,6 L7,3 z" fill="#7c3aed"/></marker></defs><line x1="2" y1="10" x2="38" y2="10" stroke="#7c3aed" stroke-width="2" marker-end="url(#a4)"/><text x="4" y="8" font-size="8" fill="#a78bfa" font-family="IBM Plex Mono">HTTP fwd</text></svg>
+    </div>
+
+    <div class="node n-violet">
+      <div class="node-num">6</div>
+      <div class="node-title">&#x2699;&#xFE0F; Node.js + Express 5 (app.js)</div>
+      <div class="node-detail"><b>Entry:</b> src/server.js &bull; PORT=process.env.PORT<br><b>Trust Proxy:</b> app.set('trust proxy', 1)<br>Tells Express to trust X-Forwarded-For<br>&rarr; rate limiter sees real user IP, not Render internal</div>
+      <span class="node-tag" style="background:#2d1254;color:#c084fc;border:1px solid #4c1d95">Express Server</span>
+    </div>
+
   </div>
 </div>
 
-<div class="node" style="left:430px;top:908px">
-  <div class="node-box n-ext" style="min-width:140px">
-    &#x1F4E7; Nodemailer (SMTP)
-    <div class="node-sub">Email verify &bull; Password reset</div>
+<!-- Arrow down -->
+<div class="arrow-down">
+  <div class="line"></div>
+  <div class="head"></div>
+  <div class="label">Request enters middleware pipeline</div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- GROUP 3: MIDDLEWARE CHAIN                               -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div class="group g-mw" style="margin-bottom:0">
+  <div class="group-label">&#x1F6E0;&#xFE0F; Express Middleware Chain (runs in ORDER for every request)</div>
+  <div class="nodes" style="margin-top:18px">
+
+    <div class="node n-green">
+      <div class="node-num">7</div>
+      <div class="node-title">&#x1FA96; Helmet</div>
+      <div class="node-detail">Adds <b>15 security HTTP headers</b>:<br>&bull; X-Frame-Options: DENY (anti-clickjack)<br>&bull; Strict-Transport-Security (HSTS)<br>&bull; Content-Security-Policy<br>&bull; X-Content-Type-Options: nosniff<br>&bull; crossOriginResourcePolicy: cross-origin<br><span style="color:#4ade80">(so Cloudinary CDN images load)</span></div>
+    </div>
+
+    <div class="h-arr">
+      <svg width="24" height="20"><defs><marker id="amw1" markerWidth="6" markerHeight="6" refX="4" refY="3" orient="auto"><path d="M0,0 L0,6 L6,3 z" fill="#16a34a"/></marker></defs><line x1="2" y1="10" x2="20" y2="10" stroke="#16a34a" stroke-width="1.5" marker-end="url(#amw1)"/></svg>
+    </div>
+
+    <div class="node n-green">
+      <div class="node-num">8</div>
+      <div class="node-title">&#x1F30D; CORS</div>
+      <div class="node-detail">Whitelisted origins:<br>&bull; <b>deployra.vercel.app</b><br>&bull; <b>localhost:3000 / 5173</b><br>credentials: true (allows cookies)<br>Methods: GET POST PUT DELETE PATCH<br><span style="color:#f87171">All other origins &rarr; blocked</span></div>
+    </div>
+
+    <div class="h-arr">
+      <svg width="24" height="20"><defs><marker id="amw2" markerWidth="6" markerHeight="6" refX="4" refY="3" orient="auto"><path d="M0,0 L0,6 L6,3 z" fill="#16a34a"/></marker></defs><line x1="2" y1="10" x2="20" y2="10" stroke="#16a34a" stroke-width="1.5" marker-end="url(#amw2)"/></svg>
+    </div>
+
+    <div class="node n-green">
+      <div class="node-num">9</div>
+      <div class="node-title">&#x1F36A; Cookie Parser</div>
+      <div class="node-detail">Custom inline middleware (zero deps)<br>Parses <b>Cookie:</b> header string<br>&rarr; populates <b>req.cookies</b> object<br>&bull; req.cookies.accessToken<br>&bull; req.cookies.refreshToken<br>Auth middleware reads from here first</div>
+    </div>
+
+    <div class="h-arr">
+      <svg width="24" height="20"><defs><marker id="amw3" markerWidth="6" markerHeight="6" refX="4" refY="3" orient="auto"><path d="M0,0 L0,6 L6,3 z" fill="#16a34a"/></marker></defs><line x1="2" y1="10" x2="20" y2="10" stroke="#16a34a" stroke-width="1.5" marker-end="url(#amw3)"/></svg>
+    </div>
+
+    <div class="node n-green">
+      <div class="node-num">10</div>
+      <div class="node-title">&#x1F4E6; Body Parsers</div>
+      <div class="node-detail"><b>express.json()</b><br>Parses application/json &rarr; req.body<br>Used by all POST/PUT endpoints<br><br><b>express.urlencoded({extended:true})</b><br>Parses form data (OAuth callbacks)<br>Populates req.body for form submissions</div>
+    </div>
+
+    <div class="h-arr">
+      <svg width="24" height="20"><defs><marker id="amw4" markerWidth="6" markerHeight="6" refX="4" refY="3" orient="auto"><path d="M0,0 L0,6 L6,3 z" fill="#16a34a"/></marker></defs><line x1="2" y1="10" x2="20" y2="10" stroke="#16a34a" stroke-width="1.5" marker-end="url(#amw4)"/></svg>
+    </div>
+
+    <div class="node n-green">
+      <div class="node-num">11</div>
+      <div class="node-title">&#x1F5C2;&#xFE0F; express.static()</div>
+      <div class="node-detail">Serves <b>/uploads</b> at /uploads/* URL<br>Dev fallback when Cloudinary<br>is not configured.<br>In production: unused<br>(all images &rarr; Cloudinary CDN)</div>
+    </div>
+
   </div>
 </div>
 
-<div class="node" style="left:430px;top:958px">
-  <div class="node-box n-ext" style="min-width:140px">
-    &#x1F511; Google OAuth 2.0
-    <div class="node-sub">Code exchange &bull; Profile fetch</div>
+<!-- Arrow down -->
+<div class="arrow-down">
+  <div class="line"></div>
+  <div class="head"></div>
+  <div class="label">Request matched to route</div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- GROUP 4: SECURITY & ROUTING                             -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div class="group g-sec" style="margin-bottom:0">
+  <div class="group-label">&#x1F512; Security, Routing &amp; Auth Middleware</div>
+  <div class="nodes" style="margin-top:18px">
+
+    <div class="node n-red">
+      <div class="node-num">12</div>
+      <div class="node-title">&#x23F1;&#xFE0F; Rate Limiter</div>
+      <div class="node-detail"><b>authLimiter:</b> 30 req/15min/IP &mdash; all /auth/*<br><b>loginLimiter:</b> 8 req/15min/IP &mdash; POST /login, /register<br><b>passwordResetLimiter:</b> 5 req/hr/IP<br><b>emailResendLimiter:</b> 3 req/hr/IP<br>On breach: Winston logs IP + path<br>standardHeaders: true (RFC 6585)</div>
+      <div class="err-branch"><div class="err-line"></div><div class="err-badge">&#x2192; HTTP 429 Too Many Requests</div></div>
+    </div>
+
+    <div class="h-arr">
+      <svg width="24" height="20"><defs><marker id="as1" markerWidth="6" markerHeight="6" refX="4" refY="3" orient="auto"><path d="M0,0 L0,6 L6,3 z" fill="#dc2626"/></marker></defs><line x1="2" y1="10" x2="20" y2="10" stroke="#dc2626" stroke-width="1.5" marker-end="url(#as1)"/></svg>
+    </div>
+
+    <div class="node n-orange">
+      <div class="node-num">13</div>
+      <div class="node-title">&#x1F6E3;&#xFE0F; Express Router /api/v1/*</div>
+      <div class="node-detail">9 route files mounted in routes/index.js:<br>&bull; /auth &bull; /products &bull; /users<br>&bull; /payment &bull; /uploads &bull; /admin<br>&bull; /purchases &bull; /orders &bull; /notifications<br>Matches HTTP method + URL path</div>
+    </div>
+
+    <div class="h-arr">
+      <svg width="24" height="20"><defs><marker id="as2" markerWidth="6" markerHeight="6" refX="4" refY="3" orient="auto"><path d="M0,0 L0,6 L6,3 z" fill="#ea580c"/></marker></defs><line x1="2" y1="10" x2="20" y2="10" stroke="#ea580c" stroke-width="1.5" marker-end="url(#as2)"/></svg>
+    </div>
+
+    <div class="node n-orange">
+      <div class="node-num">14</div>
+      <div class="node-title">&#x2705; Joi Schema Validation</div>
+      <div class="node-detail">Runs <b>before</b> the controller.<br><b>registerSchema:</b> name, email, password (min 8), role enum<br><b>loginSchema:</b> email + password (required)<br>Returns field-level errors on failure<br>Controller never runs if invalid</div>
+      <div class="err-branch"><div class="err-line"></div><div class="err-badge">&#x2192; HTTP 400 Bad Request</div></div>
+    </div>
+
+    <div class="h-arr">
+      <svg width="24" height="20"><defs><marker id="as3" markerWidth="6" markerHeight="6" refX="4" refY="3" orient="auto"><path d="M0,0 L0,6 L6,3 z" fill="#dc2626"/></marker></defs><line x1="2" y1="10" x2="20" y2="10" stroke="#dc2626" stroke-width="1.5" marker-end="url(#as3)"/></svg>
+    </div>
+
+    <div class="node n-red">
+      <div class="node-num">15</div>
+      <div class="node-title">&#x1F511; authenticate Middleware</div>
+      <div class="node-detail">1. Read <b>req.cookies.accessToken</b><br>2. Fallback: <b>Authorization: Bearer</b> header<br>3. <b>jwt.verify(token, JWT_SECRET)</b> &rarr; decode<br>4. <b>prisma.user.findUnique({id})</b> &rarr; confirm<br>5. <b>req.user = user</b> &rarr; next()<br>Guards all protected routes</div>
+      <div class="err-branch"><div class="err-line"></div><div class="err-badge">&#x2192; HTTP 401 Unauthorized</div></div>
+    </div>
+
+    <div class="h-arr">
+      <svg width="24" height="20"><defs><marker id="as4" markerWidth="6" markerHeight="6" refX="4" refY="3" orient="auto"><path d="M0,0 L0,6 L6,3 z" fill="#dc2626"/></marker></defs><line x1="2" y1="10" x2="20" y2="10" stroke="#dc2626" stroke-width="1.5" marker-end="url(#as4)"/></svg>
+    </div>
+
+    <div class="node n-red">
+      <div class="node-num">16</div>
+      <div class="node-title">&#x1F6E1;&#xFE0F; authorize / adminOnly (RBAC)</div>
+      <div class="node-detail">Role-based access via <b>req.user.role</b><br>Enum roles: <b>CLIENT</b> &bull; <b>DEVELOPER</b> &bull; <b>ADMIN</b><br>authorize('ADMIN','DEVELOPER')<br>&rarr; checks role inclusion<br>adminOnly = authorize('ADMIN') shorthand</div>
+      <div class="err-branch"><div class="err-line"></div><div class="err-badge">&#x2192; HTTP 403 Forbidden</div></div>
+    </div>
+
   </div>
 </div>
 
-<!-- JSON Response node -->
-<div class="node" style="left:1210px;top:655px">
-  <div class="node-box n-resp">
-    &#x1F4E4; JSON Response + Set-Cookie
-    <div class="node-sub">res.json({success:true, data:{...}})</div>
-    <div class="node-sub">Set-Cookie: accessToken; HttpOnly; Secure</div>
-    <div class="node-sub">Set-Cookie: refreshToken; HttpOnly; Secure</div>
-  </div>
-  <div class="step" style="background:#818cf8">R</div>
+<!-- Arrow down -->
+<div class="arrow-down">
+  <div class="line"></div>
+  <div class="head"></div>
+  <div class="label">Validated &amp; authenticated request reaches controller</div>
 </div>
 
-<!-- 429 error box -->
-<div class="node" style="left:1282px;top:558px">
-  <div class="node-box n-auth" style="border-color:#b91c1c">
-    HTTP 429 Too Many Requests
-    <div class="node-sub">Winston logs: IP + path + email</div>
-    <div class="node-sub">RateLimit-Remaining: 0 header</div>
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- GROUP 5: CONTROLLERS                                    -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div class="group g-ctrl" style="margin-bottom:0">
+  <div class="group-label">&#x1F3AE; Controllers &mdash; Business Logic Layer</div>
+  <div class="nodes wrap" style="margin-top:18px">
+
+    <div class="node n-purple" style="min-width:200px">
+      <div class="node-num">17</div>
+      <div class="node-title">&#x1F510; auth.controller.js</div>
+      <div class="node-detail"><b>register:</b> bcrypt.hash(pw,12) &rarr; prisma.user.create &rarr; sendVerificationEmail<br><b>login:</b> bcrypt.compare &rarr; check lockedUntil &rarr; generateJWT pair &rarr; sha256(refresh) &rarr; prisma.refreshToken.create &rarr; Set-Cookie &#x2715;2 &rarr; loginHistory<br><b>refresh:</b> sha256 cookie &rarr; DB lookup &rarr; new accessToken<br><b>logout / logoutAll:</b> revoke refreshToken(s)<br><b>googleCallback:</b> Axios userinfo &rarr; prisma.upsert</div>
+    </div>
+
+    <div class="node n-purple" style="min-width:160px">
+      <div class="node-num">18</div>
+      <div class="node-title">&#x1F6D2; product.controller.js</div>
+      <div class="node-detail"><b>create:</b> prisma.product.create (PENDING_REVIEW)<br><b>list:</b> findMany + filters<br><b>review:</b> prisma.review.create<br><b>wishlist:</b> upsert (@@unique guard)<br><b>view:</b> prisma.productView.create</div>
+    </div>
+
+    <div class="node n-purple" style="min-width:160px">
+      <div class="node-num">19</div>
+      <div class="node-title">&#x1F4B3; payment.controller.js</div>
+      <div class="node-detail"><b>createOrder:</b> razorpay.orders.create<br>({amount: price&#x00D7;100, currency:'INR'})<br>&rarr; returns order_id to frontend<br><b>verifyPayment:</b> HMAC-SHA256<br>(orderId+|+paymentId) vs signature<br>&rarr; prisma.purchase.create</div>
+    </div>
+
+    <div class="node n-purple" style="min-width:160px">
+      <div class="node-num">20</div>
+      <div class="node-title">&#x1F4F7; upload.controller.js</div>
+      <div class="node-detail"><b>multer</b> memoryStorage &rarr; req.file.buffer<br>Readable.from(buffer).pipe(<br>  cloudinary.upload_stream({<br>    folder, quality:'auto'<br>  })<br>) &rarr; secure_url</div>
+    </div>
+
+    <div class="node n-purple" style="min-width:160px">
+      <div class="node-num">21</div>
+      <div class="node-title">&#x1F464; user.controller.js</div>
+      <div class="node-detail">Profile GET/PUT<br>Password change (bcrypt verify+hash)<br>Wishlist &bull; Purchases &bull; Dashboard stats<br>2FA TOTP setup/verify<br>Login history &bull; Messages</div>
+    </div>
+
+    <div class="node n-purple" style="min-width:160px">
+      <div class="node-num">22</div>
+      <div class="node-title">&#x1F6E1;&#xFE0F; admin.controller.js</div>
+      <div class="node-detail">Approve/Reject/Suspend products<br>&rarr; prisma.auditLog.create<br>&rarr; prisma.notification.create<br>Platform stats via Prisma<br>count + aggregate queries</div>
+    </div>
+
   </div>
 </div>
 
-<!-- Section labels -->
-<div style="position:absolute;left:1050px;top:145px;color:#34d39860;font-size:9px;font-family:'IBM Plex Mono';writing-mode:vertical-rl;letter-spacing:2px;text-transform:uppercase">MIDDLEWARE CHAIN</div>
+<!-- Arrow down to two groups side by side -->
+<div class="arrow-down">
+  <div class="line"></div>
+  <div class="head"></div>
+  <div class="label">Controller calls Prisma ORM &amp; external services</div>
+</div>
 
-<div style="position:absolute;left:50px;top:640px;color:#9333ea60;font-size:9px;font-family:'IBM Plex Mono';text-transform:uppercase;letter-spacing:2px">BUSINESS LOGIC</div>
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- GROUP 6+7: DATABASE + EXTERNAL SERVICES (side by side)  -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;width:100%">
 
-<div style="position:absolute;left:410px;top:740px;color:#0d948860;font-size:9px;font-family:'IBM Plex Mono';text-transform:uppercase;letter-spacing:2px">EXTERNAL SERVICES</div>
+  <!-- DATABASE -->
+  <div class="group g-data" style="margin:0">
+    <div class="group-label">&#x1F5C4;&#xFE0F; Data Layer &mdash; Prisma ORM + Neon PostgreSQL</div>
+    <div style="margin-top:18px;display:flex;flex-direction:column;gap:10px">
 
-<div style="position:absolute;left:40px;top:840px;color:#ca8a0460;font-size:9px;font-family:'IBM Plex Mono';text-transform:uppercase;letter-spacing:2px">DATABASE</div>
+      <div class="node n-yellow">
+        <div class="node-num">23</div>
+        <div class="node-title">&#x1F4E6; Prisma ORM (@prisma/client)</div>
+        <div class="node-detail">
+          <b>schema.prisma</b> &rarr; prisma generate &rarr; type-safe client<br>
+          <b>prisma migrate deploy</b> runs on Render deploy<br>
+          Single PrismaClient <b>singleton</b> shared app-wide<br>
+          Example: prisma.user.findUnique({where:{email}})<br>
+          &rarr; SELECT * FROM "User" WHERE email=$1 LIMIT 1
+        </div>
+      </div>
 
-<div style="position:absolute;left:1200px;top:130px;color:#818cf860;font-size:9px;font-family:'IBM Plex Mono';writing-mode:vertical-rl;letter-spacing:2px;text-transform:uppercase">RESPONSE PATH (dashed)</div>
+      <div class="node n-yellow">
+        <div class="node-num">24</div>
+        <div class="node-title">&#x1F418; Neon PostgreSQL (12 Tables)</div>
+        <div class="node-detail">
+          <b>User</b> (id, email, password, role, googleId, lockedUntil, twoFactorSecret)<br>
+          <b>RefreshToken</b> (tokenHash SHA-256, revoked, expiresAt)<br>
+          <b>Product</b> (status: PENDING|APPROVED|REJECTED|SUSPENDED)<br>
+          <b>Purchase</b> (pricePaid, paymentIntentId, isInstalled)<br>
+          <b>Order &bull; Review &bull; Wishlist</b> (@@unique[userId,productId])<br>
+          <b>Notification &bull; Message &bull; LoginHistory &bull; AuditLog &bull; ProductView</b>
+        </div>
+        <span class="node-tag" style="background:#451a0330;color:#fbbf24;border:1px solid #713f12">Serverless Postgres</span>
+      </div>
 
-</div><!-- end canvas-wrap -->
+    </div>
+  </div>
 
+  <!-- EXTERNAL SERVICES -->
+  <div class="group g-ext" style="margin:0">
+    <div class="group-label">&#x1F30F; External Services &amp; Integrations</div>
+    <div style="margin-top:18px;display:grid;grid-template-columns:1fr 1fr;gap:10px">
+
+      <div class="node n-teal">
+        <div class="node-num">25</div>
+        <div class="node-title">&#x1F5BC;&#xFE0F; Cloudinary</div>
+        <div class="node-detail">Image CDN. upload_stream with<br>quality:auto + fetch_format:auto<br>Folder: deployra/products<br>&rarr; returns HTTPS secure_url<br>Stored in Product.coverImage</div>
+      </div>
+
+      <div class="node n-teal">
+        <div class="node-num">26</div>
+        <div class="node-title">&#x1F4E6; AWS S3 (multer-s3)</div>
+        <div class="node-detail">@aws-sdk/client-s3 S3Client<br>Streams buffer directly to bucket<br>AWS_ACCESS_KEY_ID + AWS_REGION<br>Alternative to Cloudinary<br>for large file uploads</div>
+      </div>
+
+      <div class="node n-teal">
+        <div class="node-num">27</div>
+        <div class="node-title">&#x1F4B3; Razorpay</div>
+        <div class="node-detail">razorpay.orders.create<br>({amount:price&#x00D7;100,currency:'INR'})<br>Frontend: Razorpay checkout modal<br>Backend: HMAC-SHA256 verify<br>crypto.createHmac('sha256',secret)</div>
+      </div>
+
+      <div class="node n-teal">
+        <div class="node-num">28</div>
+        <div class="node-title">&#x1F511; Google OAuth 2.0</div>
+        <div class="node-detail">Redirect to accounts.google.com<br>Axios POST /token (exchange code)<br>Axios GET /userinfo (profile)<br>prisma.user.upsert(googleId)<br>Issues JWT pair &rarr; redirect</div>
+      </div>
+
+      <div class="node n-teal">
+        <div class="node-num">29</div>
+        <div class="node-title">&#x1F4E7; Nodemailer (SMTP)</div>
+        <div class="node-detail">createTransport({host,port:465})<br>&bull; Email verify (24h crypto token)<br>&bull; Password reset (10min token)<br>&bull; Purchase receipt<br>&bull; Product status notification</div>
+      </div>
+
+      <div class="node n-teal">
+        <div class="node-num">30</div>
+        <div class="node-title">&#x1F4CB; Winston Logger</div>
+        <div class="node-detail">info: logins, requests<br>warn: rate limit breaches, IPs<br>error: crashes, DB failures<br>Transports: Console + log files<br>logs/combined.log + error.log</div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<!-- Arrow down -->
+<div class="arrow-down" style="align-self:center">
+  <div class="line"></div>
+  <div class="head"></div>
+  <div class="label" style="color:#818cf8">JSON response + Set-Cookie returned to browser</div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!-- RESPONSE PATH                                           -->
+<!-- ═══════════════════════════════════════════════════════ -->
+<div class="resp-banner">
+  <div class="resp-banner-title">&#x1F4E4; Response Path &mdash; Controller &rarr; Express &rarr; Browser</div>
+  <div class="resp-nodes">
+
+    <div class="resp-node">
+      <div class="resp-node-title">&#x1F4CB; Controller builds response</div>
+      <div class="resp-node-detail">res.json({success:true, data:{...}})<br>or res.status(201).json({...})<br>or error passed to next(new AppError(...))</div>
+    </div>
+
+    <svg width="30" height="30" style="flex-shrink:0"><defs><marker id="ra1" markerWidth="6" markerHeight="6" refX="4" refY="3" orient="auto"><path d="M0,0 L0,6 L6,3 z" fill="#6366f1"/></marker></defs><line x1="2" y1="15" x2="26" y2="15" stroke="#6366f1" stroke-width="1.5" marker-end="url(#ra1)"/></svg>
+
+    <div class="resp-node">
+      <div class="resp-node-title">&#x26A0;&#xFE0F; errorHandler.js (global)</div>
+      <div class="resp-node-detail">AppError class (statusCode + isOperational)<br>Formats: {success:false, message, stack(dev)}<br>Logs all errors via Winston</div>
+    </div>
+
+    <svg width="30" height="30" style="flex-shrink:0"><defs><marker id="ra2" markerWidth="6" markerHeight="6" refX="4" refY="3" orient="auto"><path d="M0,0 L0,6 L6,3 z" fill="#6366f1"/></marker></defs><line x1="2" y1="15" x2="26" y2="15" stroke="#6366f1" stroke-width="1.5" marker-end="url(#ra2)"/></svg>
+
+    <div class="resp-node">
+      <div class="resp-node-title">&#x1F36A; Set-Cookie (on login/refresh)</div>
+      <div class="resp-node-detail">accessToken; HttpOnly; Secure; SameSite=Strict<br>refreshToken; HttpOnly; Secure; Path=/api/v1/auth/refresh<br>bcrypt.hash(pw,12) &rarr; SHA-256 stored in DB</div>
+    </div>
+
+    <svg width="30" height="30" style="flex-shrink:0"><defs><marker id="ra3" markerWidth="6" markerHeight="6" refX="4" refY="3" orient="auto"><path d="M0,0 L0,6 L6,3 z" fill="#6366f1"/></marker></defs><line x1="2" y1="15" x2="26" y2="15" stroke="#6366f1" stroke-width="1.5" marker-end="url(#ra3)"/></svg>
+
+    <div class="resp-node">
+      <div class="resp-node-title">&#x26A1; Render LB &rarr; Browser</div>
+      <div class="resp-node-detail">HTTPS encrypted response<br>TanStack Query caches result<br>React re-renders with new data<br>Toast notification shown to user</div>
+    </div>
+
+    <svg width="30" height="30" style="flex-shrink:0"><defs><marker id="ra4" markerWidth="6" markerHeight="6" refX="4" refY="3" orient="auto"><path d="M0,0 L0,6 L6,3 z" fill="#6366f1"/></marker></defs><line x1="2" y1="15" x2="26" y2="15" stroke="#6366f1" stroke-width="1.5" marker-end="url(#ra4)"/></svg>
+
+    <div class="resp-node" style="border-color:#4ade80;background:#071510">
+      <div class="resp-node-title" style="color:#4ade80">&#x2705; User sees result</div>
+      <div class="resp-node-detail">DOM updated &bull; Toast shown<br>Recharts renders new data<br>On 401: Axios interceptor &rarr; POST /refresh &rarr; retry<br>On error: React Hot Toast shows message</div>
+    </div>
+
+  </div>
+</div>
+
+</div><!-- end .flow -->
+
+<!-- LEGEND -->
 <div class="legend">
-  <div class="li"><div class="ldot" style="background:#6366f1"></div>User / Frontend</div>
-  <div class="li"><div class="ldot" style="background:#7c3aed"></div>Network / Infra</div>
-  <div class="li"><div class="ldot" style="background:#16a34a"></div>Middleware Chain</div>
-  <div class="li"><div class="ldot" style="background:#dc2626"></div>Auth / Security</div>
-  <div class="li"><div class="ldot" style="background:#ea580c"></div>Routing / Validation</div>
-  <div class="li"><div class="ldot" style="background:#9333ea"></div>Controllers</div>
-  <div class="li"><div class="ldot" style="background:#0d9488"></div>Services</div>
-  <div class="li"><div class="ldot" style="background:#ca8a04"></div>Database (Prisma + PostgreSQL)</div>
-  <div class="li"><div class="ldot" style="background:#818cf8"></div>&#x2508;&#x2508; Response path (dashed)</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#6366f1"></div>Browser / Frontend</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#7c3aed"></div>Network / Infra (Render + Vercel)</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#16a34a"></div>Middleware Chain</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#dc2626"></div>Auth &amp; Security</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#ea580c"></div>Routing &amp; Validation</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#9333ea"></div>Controllers (Business Logic)</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#ca8a04"></div>Database (Prisma + PostgreSQL)</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#0d9488"></div>External Services</div>
 </div>
 
 </body>
