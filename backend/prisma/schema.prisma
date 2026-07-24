@@ -1,5 +1,4 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
+// This is your Prisma schema file for OmniPulse
 
 generator client {
   provider = "prisma-client-js"
@@ -10,256 +9,112 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum Role {
-  CLIENT
-  DEVELOPER
-  ADMIN
+enum Priority {
+  critical
+  high
+  medium
+  low
 }
 
-enum ProductStatus {
-  DRAFT
-  PENDING_REVIEW
-  APPROVED
-  REJECTED
-  SUSPENDED
+enum ItemStatus {
+  pending
+  done
+  snoozed
+  dismissed
 }
 
-enum PurchaseStatus {
-  COMPLETED
-  REFUNDED
+enum ItemSource {
+  email
+  whatsapp
+  codeforces
+  leetcode
+  codechef
+  atcoder
+  manual
 }
 
-// ─── User ────────────────────────────────────────────────────────────────────
-model User {
-  id                    String    @id @default(uuid())
-  email                 String    @unique
-  password              String?
-  googleId              String?   @unique
-  name                  String
-  firstName             String?
-  lastName              String?
-  country               String?   @default("India")
-  role                  Role      @default(CLIENT)
-  authProvider          String    @default("email")
-  profileImage          String?
-  lastLogin             DateTime?
-  createdAt             DateTime  @default(now())
-  updatedAt             DateTime  @updatedAt
-
-  // Email Verification
-  isEmailVerified       Boolean   @default(false)
-  emailVerifyToken      String?
-  emailVerifyExpires    DateTime?
-
-  // Password Reset
-  resetPasswordToken    String?
-  resetPasswordExpires  DateTime?
-
-  // Brute-Force Protection
-  failedLoginAttempts   Int       @default(0)
-  lockedUntil           DateTime?
-
-  // Payments (future Stripe Connect)
-  stripeAccountId       String?
-
-  // Two-Factor Authentication
-  twoFactorSecret       String?
-  twoFactorEnabled      Boolean   @default(false)
-  twoFactorRecoveryCodes String?
-
-  // Preferences & Privacy Settings
-  preferencesJson       String?
-
-  // Relations
-  products        Product[]
-  purchases       Purchase[]
-  reviews         Review[]
-  wishlists       Wishlist[]
-  orders          Order[]
-  notifications   Notification[]
-  sentMessages    Message[]      @relation("SentMessages")
-  recvMessages    Message[]      @relation("ReceivedMessages")
-  refreshTokens   RefreshToken[]
-  loginHistory    LoginHistory[]
+enum ContestPlatform {
+  codeforces
+  leetcode
+  codechef
+  atcoder
+  hackerrank
+  hackerearth
 }
 
-// ─── Refresh Token Store ──────────────────────────────────────────────────────
-// Stores hashed refresh tokens so individual sessions can be revoked.
-model RefreshToken {
-  id          String    @id @default(uuid())
-  userId      String
-  tokenHash   String    @unique   // SHA-256 hash of the actual token
-  userAgent   String?             // Browser/device identifier
-  ipAddress   String?             // IP at time of login
-  expiresAt   DateTime            // Hard expiry date
-  revoked     Boolean   @default(false)
-  createdAt   DateTime  @default(now())
+model FeedItem {
+  id             String     @id @default(uuid())
+  title          String
+  summary        String
+  body           String?
+  source         ItemSource
+  priority       Priority   @default(medium)
+  status         ItemStatus @default(pending)
+  url            String?
+  deadline       DateTime?
+  extractedDates String[]
+  tags           String[]
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
 
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId])
+  reminders Reminder[]
 }
 
-// ─── Login History ────────────────────────────────────────────────────────────
-// Immutable audit log of all login attempts.
-model LoginHistory {
-  id          String   @id @default(uuid())
-  userId      String
-  ipAddress   String?
-  userAgent   String?
-  success     Boolean
-  failReason  String?
-  createdAt   DateTime @default(now())
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId])
+model Contest {
+  id              String          @id @default(uuid())
+  name            String
+  platform        ContestPlatform
+  url             String
+  startTime       DateTime
+  endTime         DateTime
+  durationSeconds Int
+  isRegistered    Boolean         @default(false)
+  reminderSet     Boolean         @default(false)
+  createdAt       DateTime        @default(now())
 }
 
-// ─── Product ──────────────────────────────────────────────────────────────────
-model Product {
-  id                  String        @id @default(uuid())
-  title               String
-  shortDesc           String        @default("")
-  description         String
-  category            String        @default("")
-  tags                String[]
-  features            String[]
-  industries          String[]
-  requirements        String[]
-  price               Float
-  deliveryDays        Int           @default(7)
-  revisions           String        @default("2")
-  support             String        @default("30 Days")
-  deploymentMethod    String        @default("Developer Hosted")
-  hostingRequirements String        @default("")
-  coverImage          String        @default("")
-  screenshots         String[]
-  videoUrl            String        @default("")
-  demoUrl             String        @default("")
-  docsUrl             String        @default("")
-  walkthroughUrl      String        @default("")
-  configSchema        String?       // JSON string of config fields
-  status              ProductStatus @default(PENDING_REVIEW)
-  rejectionReason     String?
-  reviewedAt          DateTime?
-  reviewedBy          String?       // Admin user ID
-  developerId         String
-  createdAt           DateTime      @default(now())
-  updatedAt           DateTime      @updatedAt
+model Deadline {
+  id           String     @id @default(uuid())
+  title        String
+  description  String?
+  dueAt        DateTime
+  source       ItemSource
+  sourceItemId String?
+  priority     Priority   @default(medium)
+  status       ItemStatus @default(pending)
+  tags         String[]
+  createdAt    DateTime   @default(now())
 
-  developer User       @relation(fields: [developerId], references: [id], onDelete: Cascade)
-  purchases Purchase[]
-  reviews   Review[]
-  wishlists Wishlist[]
-  orders    Order[]
-  views     ProductView[]
+  reminders Reminder[]
 }
 
+model Reminder {
+  id               String     @id @default(uuid())
+  feedItemId       String?
+  deadlineId       String?
+  fireAt           DateTime
+  status           ItemStatus @default(pending)
+  repeatUntilDone  Boolean    @default(true)
+  channels         String[]   // ["browser", "sound", "telegram"]
+  createdAt        DateTime   @default(now())
 
-// ─── Purchase ─────────────────────────────────────────────────────────────────
-model Purchase {
-  id              String         @id @default(uuid())
-  userId          String
-  productId       String
-  pricePaid       Float
-  paymentIntentId String?
-  status          PurchaseStatus @default(COMPLETED)
-  isInstalled     Boolean        @default(false)
-  createdAt       DateTime       @default(now())
-  updatedAt       DateTime       @updatedAt
-
-  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  feedItem FeedItem? @relation(fields: [feedItemId], references: [id])
+  deadline Deadline? @relation(fields: [deadlineId], references: [id])
 }
 
-// ─── Review ───────────────────────────────────────────────────────────────────
-model Review {
+model Keyword {
   id        String   @id @default(uuid())
-  rating    Int
-  comment   String?
-  userId    String
-  productId String
+  word      String   @unique
+  priority  Priority
+  category  String
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
 }
 
-// ─── Wishlist ─────────────────────────────────────────────────────────────────
-model Wishlist {
+model NotificationLog {
   id        String   @id @default(uuid())
-  userId    String
-  productId String
-  createdAt DateTime @default(now())
-
-  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, productId])
-}
-
-// ─── Order ────────────────────────────────────────────────────────────────────
-model Order {
-  id        String   @id @default(uuid())
-  userId    String
-  productId String
-  details   String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
-}
-
-// ─── Message ──────────────────────────────────────────────────────────────────
-model Message {
-  id         String   @id @default(uuid())
-  senderId   String
-  receiverId String
-  content    String
-  isRead     Boolean  @default(false)
-  createdAt  DateTime @default(now())
-
-  sender   User @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
-  receiver User @relation("ReceivedMessages", fields: [receiverId], references: [id], onDelete: Cascade)
-}
-
-// ─── Notification ─────────────────────────────────────────────────────────────
-model Notification {
-  id        String   @id @default(uuid())
-  userId    String
-  type      String
+  channel   String   // browser | sound | telegram
   title     String
-  message   String
-  isRead    Boolean  @default(false)
-  createdAt DateTime @default(now())
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-}
-
-// ─── Product View ─────────────────────────────────────────────────────────────
-// Tracks per-product views for analytics
-model ProductView {
-  id          String   @id @default(uuid())
-  productId   String
-  visitorId   String   @default("")  // anonymous or user id
-  createdAt   DateTime @default(now())
-
-  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
-
-  @@index([productId])
-}
-
-// ─── Audit Log ────────────────────────────────────────────────────────────────
-// Immutable log of admin actions (approve/reject/suspend)
-model AuditLog {
-  id         String   @id @default(uuid())
-  action     String   // e.g. "PRODUCT_APPROVED", "PRODUCT_REJECTED"
-  actorId    String   // admin user id
-  targetId   String   // product id or user id
-  targetType String   // "PRODUCT" | "USER"
-  metadata   String?  // JSON string — reason, extra info
-  createdAt  DateTime @default(now())
+  body      String?
+  sentAt    DateTime @default(now())
+  itemId    String?
 }

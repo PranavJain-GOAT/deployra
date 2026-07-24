@@ -1,0 +1,24 @@
+node_modules/
+dist/
+build/
+
+# Secrets — NEVER commit
+.env
+.env.local
+.env.production
+
+# WhatsApp session keys
+.whatsapp-auth/
+
+# Logs
+logs/
+*.log
+
+# Uploads
+uploads/
+
+# TypeScript cache
+*.tsbuildinfo
+
+# Prisma local db
+prisma/*.db
